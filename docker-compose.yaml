@@ -1,0 +1,7 @@
+version: "3.8"
+
+services:
+  python-fear-greed-api:
+    build: .
+    image: python-fear-greed-api
+    container_name: python-fear-greed-api
