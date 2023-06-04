@@ -3,14 +3,14 @@ import logging
 from dotenv import load_dotenv
 from flask import Flask
 # from flask_cors import CORS
-# from .db.setup import db_connect
+from .db.setup import db_connect
 # from api.user import views as user
 # from api.project import views as project
 # from api.skill import views as skill
 # from api.exception.models import *
 # from api.data.setup import generate_placeholder_data
 
-# load_dotenv("config/.env")
+load_dotenv("config/.env")
 
 
 app = Flask(__name__)
@@ -28,9 +28,8 @@ logging.basicConfig(level=logging.INFO)
 #     return e.generate_exception_response()
 
 
-# if os.environ.get("MONGO_DB_CONNECTION_STRING"):
-#     db_connect()
-#     generate_placeholder_data()
+if os.environ.get("MONGO_DB_CONNECTION_STRING"):
+    db_connect()
 
 @app.route("/ping")
 def ping():
