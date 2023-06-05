@@ -4,6 +4,8 @@ A Python Flask API which returns data from Fear and Greed scraper
 
 ![cicd cloud run workflow](https://github.com/MatthewCYLau/python-fear-greed-api/actions/workflows/cicd-cloud-run.yaml/badge.svg)
 
+API URL here: [`https://python-fear-greed-api-3i2mtbjusq-ew.a.run.app/`](https://python-fear-greed-api-3i2mtbjusq-ew.a.run.app/)
+
 The list of repositories are as follow:
 
 - Python Flask API repository [here](https://github.com/MatthewCYLau/python-fear-greed-api)
