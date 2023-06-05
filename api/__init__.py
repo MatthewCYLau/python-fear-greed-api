@@ -4,10 +4,10 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
 from .db.setup import db_connect
-from src.user import views as user
-# from api.project import views as project
+from api.user import views as user
+from api.alert import views as alert
 # from api.skill import views as skill
-from src.exception.models import *
+from api.exception.models import *
 # from api.data.setup import generate_placeholder_data
 
 load_dotenv("config/.env")
@@ -17,7 +17,7 @@ app = Flask(__name__)
 
 CORS(app, resources={r"/*": {"origins": "*"}})
 app.register_blueprint(user.bp, url_prefix="/api")
-# app.register_blueprint(project.bp, url_prefix="/api")
+app.register_blueprint(alert.bp, url_prefix="/api")
 # app.register_blueprint(skill.bp, url_prefix="/api")
 
 logging.basicConfig(level=logging.INFO)

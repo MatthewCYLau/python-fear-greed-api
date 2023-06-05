@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from src.user.models import User
+from api.user.models import User
 
 def test_new_user():
     user = User(

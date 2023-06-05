@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import check_password_hash
 from bson.objectid import ObjectId
-from src.db.setup import db
-from src.util.util import generate_response
-from src.auth.auth import auth_required
-from src.exception.models import UnauthorizedException, BadRequestException
+from api.db.setup import db
+from api.util.util import generate_response
+from api.auth.auth import auth_required
+from api.exception.models import UnauthorizedException, BadRequestException
 import os
 import jwt
 import logging

@@ -1,9 +1,9 @@
 import uuid
 from werkzeug.security import generate_password_hash
 from bson.objectid import ObjectId
-from src.common.models import BaseModel
-from src.db.setup import db
-from src.auth.auth import auth_required
+from api.common.models import BaseModel
+from api.db.setup import db
+from api.auth.auth import auth_required
 
 
 class User(BaseModel):

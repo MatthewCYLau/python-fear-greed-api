@@ -16,4 +16,4 @@ COPY --from=build /usr/app/venv ./venv
 COPY . .
 
 ENV PATH="/usr/app/venv/bin:$PATH"
-CMD ["gunicorn", "-b", ":8080", "src:app"]
+CMD ["gunicorn", "-b", ":8080", "api:app"]

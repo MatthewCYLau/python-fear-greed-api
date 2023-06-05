@@ -1,6 +1,6 @@
 from flask import request
-from src.db.setup import db
-from src.exception.models import UnauthorizedException
+from api.db.setup import db
+from api.exception.models import UnauthorizedException
 import os
 import jwt
 import logging

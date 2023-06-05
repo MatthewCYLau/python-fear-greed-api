@@ -1,4 +1,4 @@
-from src.util.util import return_dupliucated_items_in_list, is_valid_sector
+from api.util.util import return_dupliucated_items_in_list, is_valid_sector
 
 
 def test_return_duplicated_items_in_list_one_duplicate():

@@ -19,6 +19,7 @@ PyJWT==2.7.0
 pymongo==4.3.3
 pytest==7.3.1
 python-dotenv==1.0.0
+pytz==2023.3
 six==1.16.0
 tomli==2.0.1
 Werkzeug==2.3.4
