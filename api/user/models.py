@@ -34,12 +34,14 @@ class User(BaseModel):
     @auth_required
     def update_user_by_id(_, user_id: uuid.UUID, data: dict):
         updated_user = {
-            "email": data["email"],
-            "password": generate_password_hash(data["password"], method="sha256"),
-            "name": data["name"],
-            "last_modified": get_current_time_gb(),
+            "$set": {
+                "email": data["email"],
+                "password": generate_password_hash(data["password"], method="sha256"),
+                "name": data["name"],
+                "last_modified": get_current_time_gb(),
+            }
         }
-        return db["users"].replace_one({"_id": ObjectId(user_id)}, updated_user, True)
+        return db["users"].update_one({"_id": ObjectId(user_id)}, updated_user, True)
 
     def update_user_as_email_verified(email):
         user = User.get_user_by_email(email)
@@ -49,4 +51,4 @@ class User(BaseModel):
                 "isEmailVerified": True,
                 "last_modified": get_current_time_gb(),
             }
-            return db["users"].replace_one({"_id": user["_id"]}, updated_user, True)
+            return db["users"].update_one({"_id": user["_id"]}, updated_user, True)
