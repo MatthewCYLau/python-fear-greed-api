@@ -46,8 +46,6 @@ def register_user():
         password=data["password"],
         name=data["name"],
         isEmailVerified=True,
-        created=datetime.now(timezone.utc),
-        last_modified=datetime.now(timezone.utc),
     )
     try:
         if new_user.save_user_to_db():
@@ -79,7 +77,6 @@ def get_auth_user(user):
 
 @bp.route("/auth", methods=["POST"])
 def login_user():
-
     data = request.get_json()
 
     if not data or not data["email"] or not data["password"]:
@@ -101,6 +98,7 @@ def login_user():
         return jsonify({"token": token})
 
     raise UnauthorizedException("User not authorized", status_code=401)
+
 
 @bp.route("/users/<user_id>", methods=["PUT"])
 @auth_required

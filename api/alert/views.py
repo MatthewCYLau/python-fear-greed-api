@@ -1,7 +1,5 @@
 from flask import Blueprint, request, jsonify
 import logging
-import pytz
-from datetime import datetime, timezone
 from bson.objectid import ObjectId
 from api.db.setup import db
 from api.util.util import (
@@ -11,10 +9,7 @@ from api.auth.auth import auth_required
 from .models import Alert
 from api.exception.models import UnauthorizedException
 
-
 bp = Blueprint("alert", __name__)
-
-GB = pytz.timezone("Europe/London")
 
 
 @bp.route("/alerts", methods=(["GET"]))
@@ -44,10 +39,8 @@ def get_alert_by_id(_, alert_id):
 def create_alert(user):
     data = request.get_json()
     new_alert = Alert(
-        created=datetime.now(timezone.utc).astimezone(GB).isoformat(),
         index=data["index"],
         created_by=user["_id"],
-        last_modified=datetime.now(timezone.utc).astimezone(GB).isoformat(),
     )
     res = db.alerts.insert_one(vars(new_alert))
     if res.inserted_id:
@@ -59,7 +52,6 @@ def create_alert(user):
 @bp.route("/alerts/<alert_id>", methods=["DELETE"])
 @auth_required
 def delete_alert_by_id(user, alert_id):
-
     alert = Alert.get_alert_by_id(alert_id)
     if alert["created_by"] != user["_id"]:
         raise UnauthorizedException(

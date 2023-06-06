@@ -1,4 +1,8 @@
+from api.util.util import get_current_time_gb
+
+
 class BaseModel:
-    def __init__(self, created, last_modified):
-        self.created = created
-        self.last_modified = last_modified
+    def __init__(self):
+        current_time = get_current_time_gb()
+        self.created = current_time
+        self.last_modified = current_time

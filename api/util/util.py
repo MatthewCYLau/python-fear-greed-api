@@ -1,5 +1,7 @@
-import json
 from flask import jsonify
+from datetime import datetime, timezone
+import pytz
+import json
 
 
 def generate_response(input):
@@ -23,3 +25,8 @@ def return_dupliucated_items_in_list(input_list):
 
 def is_valid_sector(sector):
     return sector in ["Financial Services", "Public Sector", "Private Sector"]
+
+
+def get_current_time_gb():
+    GB = pytz.timezone("Europe/London")
+    return datetime.now(timezone.utc).astimezone(GB).isoformat()

@@ -1,16 +1,18 @@
 import uuid
-from datetime import datetime, timezone
 from bson.objectid import ObjectId
 from api.common.models import BaseModel
 from api.db.setup import db
 from api.auth.auth import auth_required
+from api.util.util import get_current_time_gb
 
 
 class Alert(BaseModel):
     def __init__(
-        self, index, created, created_by, last_modified
+        self,
+        index,
+        created_by,
     ):
-        super().__init__(created, last_modified)
+        super().__init__()
         self.index = index
         self.created_by = created_by
 
@@ -33,11 +35,6 @@ class Alert(BaseModel):
     @auth_required
     def update_alert_by_id(_, alert_id: uuid.UUID, data: dict):
         updated_alert = {
-            "$set": {
-                "index": data["index"],
-                "last_modified": datetime.now(timezone.utc),
-            }
+            "$set": {"index": data["index"], "last_modified": get_current_time_gb()}
         }
-        return db["alerts"].update_one(
-            {"_id": ObjectId(alert_id)}, updated_alert, True
-        )
+        return db["alerts"].update_one({"_id": ObjectId(alert_id)}, updated_alert, True)

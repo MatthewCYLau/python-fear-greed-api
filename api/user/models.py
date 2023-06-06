@@ -4,11 +4,18 @@ from bson.objectid import ObjectId
 from api.common.models import BaseModel
 from api.db.setup import db
 from api.auth.auth import auth_required
+from api.util.util import get_current_time_gb
 
 
 class User(BaseModel):
-    def __init__(self, email, password, name, isEmailVerified, created, last_modified):
-        super().__init__(created, last_modified)
+    def __init__(
+        self,
+        email,
+        password,
+        name,
+        isEmailVerified,
+    ):
+        super().__init__()
         self.email = email
         self.password = password
         self.name = name
@@ -30,11 +37,16 @@ class User(BaseModel):
             "email": data["email"],
             "password": generate_password_hash(data["password"], method="sha256"),
             "name": data["name"],
+            "last_modified": get_current_time_gb(),
         }
         return db["users"].replace_one({"_id": ObjectId(user_id)}, updated_user, True)
 
     def update_user_as_email_verified(email):
         user = User.get_user_by_email(email)
         if user is not None:
-            updated_user = {**user, "isEmailVerified": True}
+            updated_user = {
+                **user,
+                "isEmailVerified": True,
+                "last_modified": get_current_time_gb(),
+            }
             return db["users"].replace_one({"_id": user["_id"]}, updated_user, True)
