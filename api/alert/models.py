@@ -17,8 +17,8 @@ class Alert(BaseModel):
         self.created_by = created_by
 
     @staticmethod
-    def get_alerts(count: int = 0):
-        alerts = list(db["alerts"].find({}).limit(count))
+    def get_alerts(count: int = 0, max_index: int = 100):
+        alerts = list(db["alerts"].find({"index": {"$lt": max_index + 1}}).limit(count))
         for alert in alerts:
             if alert["created_by"]:
                 alert["created_by"] = db["users"].find_one(

@@ -16,7 +16,8 @@ bp = Blueprint("alert", __name__)
 @auth_required
 def get_alerts(_):
     count = int(request.args["count"]) if "count" in request.args else 0
-    alerts = Alert.get_alerts(count)
+    max_index = int(request.args["maxIndex"]) if "maxIndex" in request.args else 100
+    alerts = Alert.get_alerts(count, max_index)
     return generate_response(alerts)
 
 
