@@ -3,7 +3,6 @@ from werkzeug.security import generate_password_hash
 from bson.objectid import ObjectId
 from api.common.models import BaseModel
 from api.db.setup import db
-from api.auth.auth import auth_required
 from api.util.util import get_current_time_gb
 
 
@@ -31,7 +30,6 @@ class User(BaseModel):
         return db["users"].find_one({"email": email})
 
     @staticmethod
-    @auth_required
     def update_user_by_id(_, user_id: uuid.UUID, data: dict):
         updated_user = {
             "$set": {

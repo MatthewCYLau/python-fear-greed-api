@@ -2,7 +2,6 @@ import uuid
 from bson.objectid import ObjectId
 from api.common.models import BaseModel
 from api.db.setup import db
-from api.auth.auth import auth_required
 from api.util.util import get_current_time_gb
 
 
@@ -27,12 +26,10 @@ class Alert(BaseModel):
         return alerts
 
     @staticmethod
-    @auth_required
     def get_alert_by_id(_, alert_id: uuid.UUID):
         return db["alerts"].find_one({"_id": ObjectId(alert_id)})
 
     @staticmethod
-    @auth_required
     def update_alert_by_id(_, alert_id: uuid.UUID, data: dict):
         updated_alert = {
             "$set": {"index": data["index"], "last_modified": get_current_time_gb()}
