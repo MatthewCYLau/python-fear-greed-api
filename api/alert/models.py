@@ -17,7 +17,12 @@ class Alert(BaseModel):
 
     @staticmethod
     def get_alerts(count: int = 0, max_index: int = 100):
-        alerts = list(db["alerts"].find({"index": {"$lt": max_index + 1}}).limit(count))
+        alerts = list(
+            db["alerts"]
+            .find({"index": {"$lt": max_index + 1}})
+            .sort("_id", -1)
+            .limit(count)
+        )
         for alert in alerts:
             if alert["created_by"]:
                 alert["created_by"] = db["users"].find_one(
@@ -31,7 +36,9 @@ class Alert(BaseModel):
 
     @staticmethod
     def get_alert_by_created_by(created_by: uuid.UUID):
-        alerts = list(db["alerts"].find({"created_by": ObjectId(created_by)}))
+        alerts = list(
+            db["alerts"].find({"created_by": ObjectId(created_by)}).sort("_id", -1)
+        )
         for alert in alerts:
             if alert["created_by"]:
                 alert["created_by"] = db["users"].find_one(
