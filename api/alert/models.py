@@ -26,11 +26,11 @@ class Alert(BaseModel):
         return alerts
 
     @staticmethod
-    def get_alert_by_id(_, alert_id: uuid.UUID):
+    def get_alert_by_id(alert_id: uuid.UUID):
         return db["alerts"].find_one({"_id": ObjectId(alert_id)})
 
     @staticmethod
-    def update_alert_by_id(_, alert_id: uuid.UUID, data: dict):
+    def update_alert_by_id(alert_id: uuid.UUID, data: dict):
         updated_alert = {
             "$set": {"index": data["index"], "last_modified": get_current_time_gb()}
         }
