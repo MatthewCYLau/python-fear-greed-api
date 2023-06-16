@@ -21,6 +21,17 @@ def get_alerts(_):
     return generate_response(alerts)
 
 
+@bp.route("/alerts/me", methods=(["GET"]))
+@auth_required
+def get_alerts_created_by_current_user(user):
+    try:
+        alerts = Alert.get_alert_by_created_by(user["_id"])
+        return generate_response(alerts)
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"message": "Get alert by curretn user failed"}), 500
+
+
 @bp.route("/alerts/<alert_id>", methods=(["GET"]))
 @auth_required
 def get_alert_by_id(_, alert_id):

@@ -30,6 +30,16 @@ class Alert(BaseModel):
         return db["alerts"].find_one({"_id": ObjectId(alert_id)})
 
     @staticmethod
+    def get_alert_by_created_by(created_by: uuid.UUID):
+        alerts = list(db["alerts"].find({"created_by": ObjectId(created_by)}))
+        for alert in alerts:
+            if alert["created_by"]:
+                alert["created_by"] = db["users"].find_one(
+                    {"_id": ObjectId(alert["created_by"])}, {"password": False}
+                )
+        return alerts
+
+    @staticmethod
     def update_alert_by_id(alert_id: uuid.UUID, data: dict):
         updated_alert = {
             "$set": {"index": data["index"], "last_modified": get_current_time_gb()}
