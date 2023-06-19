@@ -49,7 +49,15 @@ def register_user():
     )
     try:
         if new_user.save_user_to_db():
-            return jsonify({"message": "User created"}), 201
+            token = jwt.encode(
+                {
+                    "email": new_user["email"],
+                    "exp": datetime.utcnow() + timedelta(minutes=30),
+                },
+                os.environ.get("JWT_SECRET"),
+                algorithm="HS256",
+            )
+            return jsonify({"token": token})
         else:
             return jsonify({"errors": [{"message": "Failed to create user"}]}), 500
     except Exception as e:
