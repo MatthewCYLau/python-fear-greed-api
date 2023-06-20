@@ -51,7 +51,7 @@ def register_user():
         if new_user.save_user_to_db():
             token = jwt.encode(
                 {
-                    "email": new_user["email"],
+                    "email": data["email"],
                     "exp": datetime.utcnow() + timedelta(minutes=30),
                 },
                 os.environ.get("JWT_SECRET"),
