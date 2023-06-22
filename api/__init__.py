@@ -6,6 +6,7 @@ from flask_cors import CORS
 from .db.setup import db_connect
 from api.user import views as user
 from api.alert import views as alert
+from api.record import views as record
 from api.exception.models import *
 
 load_dotenv("config/.env")
@@ -16,6 +17,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 app.register_blueprint(user.bp, url_prefix="/api")
 app.register_blueprint(alert.bp, url_prefix="/api")
+app.register_blueprint(record.bp, url_prefix="/api")
 
 logging.basicConfig(level=logging.INFO)
 
