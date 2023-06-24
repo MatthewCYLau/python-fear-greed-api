@@ -52,6 +52,7 @@ def create_alert(user):
     data = request.get_json()
     new_alert = Alert(
         index=data["index"],
+        note=data["note"],
         created_by=user["_id"],
     )
     res = db.alerts.insert_one(vars(new_alert))

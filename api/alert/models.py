@@ -9,10 +9,12 @@ class Alert(BaseModel):
     def __init__(
         self,
         index,
+        note,
         created_by,
     ):
         super().__init__()
         self.index = index
+        self.note = note
         self.created_by = created_by
 
     @staticmethod
