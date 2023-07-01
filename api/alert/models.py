@@ -51,6 +51,10 @@ class Alert(BaseModel):
     @staticmethod
     def update_alert_by_id(alert_id: uuid.UUID, data: dict):
         updated_alert = {
-            "$set": {"index": data["index"], "last_modified": get_current_time_gb()}
+            "$set": {
+                "index": data["index"],
+                "note": data["note"],
+                "last_modified": get_current_time_gb(),
+            }
         }
         return db["alerts"].update_one({"_id": ObjectId(alert_id)}, updated_alert, True)

@@ -86,7 +86,7 @@ def delete_alert_by_id(user, alert_id):
 @auth_required
 def update_alert_by_id(_, alert_id):
     data = request.get_json()
-    if not data or not data["index"]:
+    if not data or not data["index"] or not data["note"]:
         return jsonify({"message": "Missing field"}), 400
 
     try:
