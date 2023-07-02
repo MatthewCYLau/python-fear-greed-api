@@ -37,7 +37,7 @@ class Alert(BaseModel):
         return db["alerts"].find_one({"_id": ObjectId(alert_id)})
 
     @staticmethod
-    def get_alert_by_created_by(created_by: uuid.UUID):
+    def get_alerts_by_created_by(created_by: uuid.UUID):
         alerts = list(
             db["alerts"].find({"created_by": ObjectId(created_by)}).sort("_id", -1)
         )
