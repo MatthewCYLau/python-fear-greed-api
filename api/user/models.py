@@ -30,7 +30,7 @@ class User(BaseModel):
         return db["users"].find_one({"email": email})
 
     @staticmethod
-    def update_user_by_id(_, user_id: uuid.UUID, data: dict):
+    def update_user_by_id(user_id: uuid.UUID, data: dict):
         updated_user = {
             "$set": {
                 "email": data["email"],

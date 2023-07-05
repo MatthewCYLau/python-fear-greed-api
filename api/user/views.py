@@ -126,4 +126,4 @@ def update_user_by_id(current_user, user_id):
             return jsonify({"message": "User not found"}), 404
     except Exception as e:
         logging.error(e)
-        return jsonify({"message": "Update project failed"}), 500
+        return jsonify({"message": "Update user failed"}), 500
