@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import check_password_hash
+from google.cloud import storage
 from bson.objectid import ObjectId
 from api.db.setup import db
 from api.util.util import generate_response
@@ -8,7 +9,7 @@ from api.exception.models import UnauthorizedException, BadRequestException
 import os
 import jwt
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 from .models import User
 
 bp = Blueprint("user", __name__)
@@ -127,3 +128,12 @@ def update_user_by_id(current_user, user_id):
     except Exception as e:
         logging.error(e)
         return jsonify({"message": "Update user failed"}), 500
+
+
+@bp.route("/upload-image", methods=(["POST"]))
+def upload_image():
+    storage_client = storage.Client(project="open-source-apps-001")
+    buckets = storage_client.list_buckets()
+    for i in buckets:
+        logging.info(i.name)
+    return "Ok"
