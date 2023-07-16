@@ -9,7 +9,8 @@ from api.exception.models import UnauthorizedException, BadRequestException
 import os
 import jwt
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+import pytz
 from .models import User
 
 bp = Blueprint("user", __name__)
@@ -132,8 +133,15 @@ def update_user_by_id(current_user, user_id):
 
 @bp.route("/upload-image", methods=(["POST"]))
 def upload_image():
-    storage_client = storage.Client(project="open-source-apps-001")
-    buckets = storage_client.list_buckets()
-    for i in buckets:
-        logging.info(i.name)
-    return "Ok"
+    try:
+        storage_client = storage.Client(project="open-source-apps-001")
+        bucket = storage_client.get_bucket("python-fear-greed-client-assets")
+        file = request.files["file"]
+        GB = pytz.timezone("Europe/London")
+        timestamp = datetime.now(timezone.utc).astimezone(GB).timestamp()
+        blob = bucket.blob(f"{timestamp}_{file.filename}")
+        blob.upload_from_string(file.read(), content_type=file.content_type)
+        return jsonify({"asset_url": blob.public_url}), 200
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"message": "Upload image failed"}), 500
