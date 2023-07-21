@@ -13,12 +13,14 @@ class User(BaseModel):
         password,
         name,
         isEmailVerified,
+        avatarImageUrl = '',
     ):
         super().__init__()
         self.email = email
         self.password = password
         self.name = name
         self.isEmailVerified = isEmailVerified
+        self.avatarImageUrl = avatarImageUrl
 
     def save_user_to_db(self):
         self.password = generate_password_hash(self.password, method="sha256")
@@ -37,6 +39,7 @@ class User(BaseModel):
                 "password": generate_password_hash(data["password"], method="sha256"),
                 "name": data["name"],
                 "last_modified": get_current_time_gb(),
+                "avatarImageUrl": data["avatarImageUrl"],
             }
         }
         return db["users"].update_one({"_id": ObjectId(user_id)}, updated_user, True)
