@@ -36,12 +36,13 @@ class User(BaseModel):
         updated_user = {
             "$set": {
                 "email": data["email"],
-                "password": generate_password_hash(data["password"], method="sha256"),
                 "name": data["name"],
                 "last_modified": get_current_time_gb(),
                 "avatarImageUrl": data["avatarImageUrl"],
             }
         }
+        if 'password' in data:
+            updated_user["$set"]["password"] = generate_password_hash(data["password"], method="sha256")
         return db["users"].update_one({"_id": ObjectId(user_id)}, updated_user, True)
 
     def update_user_as_email_verified(email):

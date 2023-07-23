@@ -114,12 +114,14 @@ def login_user():
 @auth_required
 def update_user_by_id(current_user, user_id):
     data = request.get_json()
-    if not data or not data["email"] or not data["password"] or not data["name"]:
-        return jsonify({"message": "Missing field"}), 400
+    if not data or not data["email"] or not data["name"] or not data["avatarImageUrl"]:
+        return jsonify({"message": "Missing field value"}), 400
     if current_user["email"] != data["email"]:
         user = db["users"].find_one({"email": data["email"]})
         if user:
             raise BadRequestException("Email already registered", status_code=400)
+    if 'password' in data and not data["password"]:
+        raise BadRequestException("New password cannot be empty", status_code=400)
     try:
         res = User.update_user_by_id(user_id=user_id, data=data)
         if res.matched_count:
