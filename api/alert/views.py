@@ -7,7 +7,7 @@ from api.util.util import (
 )
 from api.auth.auth import auth_required
 from .models import Alert
-from api.exception.models import UnauthorizedException
+from api.exception.models import UnauthorizedException, BadRequestException
 
 bp = Blueprint("alert", __name__)
 
@@ -50,8 +50,11 @@ def get_alert_by_id(_, alert_id):
 @auth_required
 def create_alert(user):
     data = request.get_json()
+    index = data["index"]
+    if (int(index) > 100 or int(index) <= 0):
+        raise BadRequestException("Index must be between 1 and 100 inclusive", status_code=400)
     new_alert = Alert(
-        index=data["index"],
+        index=index,
         note=data["note"],
         created_by=user["_id"],
     )
