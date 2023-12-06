@@ -12,5 +12,5 @@ def get_records():
     sort_direction = (
         1 if "order" in request.args and request.args["order"] == "asc" else -1
     )
-    records = list(db["records"].find().sort("_id", sort_direction).limit(count))
+    records = list(db["records"].find().sort("created", sort_direction).limit(count))
     return generate_response(records)
