@@ -1,6 +1,7 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, make_response
 from api.db.setup import db
 from api.util.util import generate_response
+from datetime import datetime
 
 
 bp = Blueprint("records", __name__)
@@ -14,3 +15,14 @@ def get_records():
     )
     records = list(db["records"].find().sort("created", sort_direction).limit(count))
     return generate_response(records)
+
+
+@bp.route("/records/export-csv", methods=(["POST"]))
+def get_records_csv():
+    csv = "foo,bar\nfoo,bar"
+    response = make_response(csv)
+    response.headers["Content-Disposition"] = (
+        f"attachment; filename={datetime.today().strftime('%Y-%m-%d')}.csv"
+    )
+    response.mimetype = "text/csv"
+    return response
