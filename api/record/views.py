@@ -3,6 +3,7 @@ from api.db.setup import db
 from api.util.util import generate_response
 from datetime import datetime
 import pandas as pd
+import numpy as np
 import logging
 
 bp = Blueprint("records", __name__)
@@ -22,9 +23,11 @@ def get_records():
 def get_records_csv():
     records = list(db["records"].find())
     df = pd.DataFrame(records)
-    logging.info(f"Old headers: {df.columns}")
+
     df = df.drop(columns=["_id", "creatd"])
-    logging.info(f"New headers: {df.columns}")
+    df["created"].replace("", np.nan, inplace=True)
+    df.dropna(subset=["created"], inplace=True)
+
     response = make_response(df.to_csv())
     response.headers["Content-Disposition"] = (
         f"attachment; filename={datetime.today().strftime('%Y-%m-%d')}.csv"
