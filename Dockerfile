@@ -11,9 +11,16 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 FROM python:3.10-slim
+RUN groupadd -g 999 python-group && \
+    useradd -r -u 888 -g python-group python-user
+
+RUN mkdir /usr/app && chown python-user:python-group /usr/app
 WORKDIR /usr/app
-COPY --from=build /usr/app/venv ./venv
-COPY . .
+
+COPY --chown=python-user:python-group --from=build /usr/app/venv ./venv
+COPY --chown=python-user:python-group . .
+
+USER 888
 
 ENV PATH="/usr/app/venv/bin:$PATH"
 CMD ["gunicorn", "-b", ":8080", "api:app"]
