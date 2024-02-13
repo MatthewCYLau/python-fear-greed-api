@@ -20,6 +20,8 @@ def get_records():
 
 @bp.route("/records/export-csv", methods=(["POST"]))
 def get_records_csv():
+    min_index = int(request.args["min"]) if "min" in request.args else 0
+    max_index = int(request.args["max"]) if "max" in request.args else 100
     records = list(db["records"].find())
     df = pd.DataFrame(records)
 
@@ -30,14 +32,20 @@ def get_records_csv():
     df.rename(columns={"index": "fear_greed_index"}, inplace=True)
 
     # remove rows with empty created timestamp
-    df["created"].replace("", np.nan, inplace=True)
+    df["created"] = df["created"].replace("", np.nan)
     df.dropna(subset=["created"], inplace=True)
 
     # set created column as data frame index
     df["created"] = pd.to_datetime(df["created"], format="ISO8601", utc=True)
     df = df.set_index("created")
 
-    response = make_response(df.to_csv())
+    df = df.astype({"fear_greed_index": int})
+
+    filtered_df = df.loc[
+        (df["fear_greed_index"] >= min_index) & (df["fear_greed_index"] <= max_index)
+    ]
+
+    response = make_response(filtered_df.to_csv())
     response.headers["Content-Disposition"] = (
         f"attachment; filename={datetime.today().strftime('%Y-%m-%d')}.csv"
     )
