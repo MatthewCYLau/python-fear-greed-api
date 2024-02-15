@@ -22,11 +22,34 @@ def get_records():
 def get_records_csv():
     min_index = int(request.args["min"]) if "min" in request.args else 0
     max_index = int(request.args["max"]) if "max" in request.args else 100
-    records = list(db["records"].find())
+
+    start_date = request.args["startDate"] if "startDate" in request.args else None
+    end_date = request.args["endDate"] if "endDate" in request.args else None
+
+    if start_date and end_date:
+        records = list(
+            db["records"].find(
+                {
+                    "created": {
+                        "$gte": datetime.strptime(start_date, "%d-%m-%Y")
+                        .date()
+                        .isoformat(),
+                        "$lt": datetime.strptime(end_date, "%d-%m-%Y")
+                        .date()
+                        .isoformat(),
+                    }
+                }
+            )
+        )
+    else:
+        records = list(db["records"].find())
+
     df = pd.DataFrame(records)
 
     # drop redundant columns
-    df = df.drop(columns=["_id", "creatd"])
+    df = df.drop(columns=["_id"])
+    if "creatd" in df.columns:
+        df = df.drop(columns=["creatd"])
 
     # re-name column
     df.rename(columns={"index": "fear_greed_index"}, inplace=True)
