@@ -1,6 +1,7 @@
 from flask import Blueprint, request, make_response
 from api.db.setup import db
-from api.util.util import generate_response
+from api.util.util import generate_response, validate_date_string
+from api.exception.models import BadRequestException
 from datetime import datetime
 import pandas as pd
 import numpy as np
@@ -25,6 +26,17 @@ def get_records_csv():
 
     start_date = request.args["startDate"] if "startDate" in request.args else None
     end_date = request.args["endDate"] if "endDate" in request.args else None
+
+    dates_input = [start_date, end_date]
+
+    if (
+        start_date
+        and end_date
+        and not all([validate_date_string(i) for i in dates_input])
+    ):
+        raise BadRequestException(
+            "Invalid date input. Must be in format DD-MM-YYYY", status_code=400
+        )
 
     if start_date and end_date:
         records = list(

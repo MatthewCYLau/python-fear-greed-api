@@ -30,3 +30,12 @@ def is_valid_sector(sector):
 def get_current_time_gb():
     GB = pytz.timezone("Europe/London")
     return datetime.now(timezone.utc).astimezone(GB).isoformat()
+
+
+def validate_date_string(date_text):
+    try:
+        if date_text != datetime.strptime(date_text, "%d-%m-%Y").strftime("%d-%m-%Y"):
+            raise ValueError
+        return True
+    except ValueError:
+        return False
