@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from api.user.models import User
 
 

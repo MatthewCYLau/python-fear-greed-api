@@ -1,4 +1,5 @@
 from flask import Blueprint, request, make_response
+from api.common.constants import DATETIME_FORMATE_CODE
 from api.db.setup import db
 from api.util.util import generate_response, validate_date_string
 from api.exception.models import BadRequestException
@@ -43,10 +44,10 @@ def get_records_csv():
             db["records"].find(
                 {
                     "created": {
-                        "$gte": datetime.strptime(start_date, "%d-%m-%Y")
+                        "$gte": datetime.strptime(start_date, DATETIME_FORMATE_CODE)
                         .date()
                         .isoformat(),
-                        "$lt": datetime.strptime(end_date, "%d-%m-%Y")
+                        "$lt": datetime.strptime(end_date, DATETIME_FORMATE_CODE)
                         .date()
                         .isoformat(),
                     }
@@ -82,7 +83,7 @@ def get_records_csv():
 
     response = make_response(filtered_df.to_csv())
     response.headers["Content-Disposition"] = (
-        f"attachment; filename={datetime.today().strftime('%Y-%m-%d')}.csv"
+        f"attachment; filename={datetime.today().strftime(DATETIME_FORMATE_CODE)}.csv"
     )
     response.mimetype = "text/csv"
     return response

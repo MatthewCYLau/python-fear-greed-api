@@ -1,0 +1,1 @@
+DATETIME_FORMATE_CODE = "%d-%m-%Y"

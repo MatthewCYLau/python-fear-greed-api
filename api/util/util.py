@@ -1,5 +1,6 @@
 from flask import jsonify
 from datetime import datetime, timezone
+from api.common.constants import DATETIME_FORMATE_CODE
 import pytz
 import json
 
@@ -34,8 +35,10 @@ def get_current_time_gb():
 
 def validate_date_string(date_text):
     try:
-        if date_text != datetime.strptime(date_text, "%d-%m-%Y").strftime("%d-%m-%Y"):
-            raise ValueError
+        if date_text != datetime.strptime(date_text, DATETIME_FORMATE_CODE).strftime(
+            DATETIME_FORMATE_CODE
+        ):
+            raise ValueError("Invalid date input. Must be in format DD-MM-YYYY")
         return True
     except ValueError:
         return False

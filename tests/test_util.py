@@ -1,4 +1,8 @@
-from api.util.util import return_dupliucated_items_in_list, is_valid_sector
+from api.util.util import (
+    return_dupliucated_items_in_list,
+    is_valid_sector,
+    validate_date_string,
+)
 
 
 def test_return_duplicated_items_in_list_one_duplicate():
@@ -22,3 +26,8 @@ def test_return_duplicated_items_in_list_no_duplicates():
 def test_is_valid_sector():
     assert is_valid_sector("Financial Services") == True
     assert is_valid_sector("Foo") == False
+
+
+def test_validate_date_string():
+    assert validate_date_string("06-22-2023") == False
+    assert validate_date_string("26-06-2023") == True
