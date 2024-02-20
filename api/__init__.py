@@ -8,6 +8,8 @@ from api.user import views as user
 from api.alert import views as alert
 from api.record import views as record
 from api.event import views as event
+from api.analysis import views as analysis
+
 from api.exception.models import *
 
 load_dotenv("config/.env")
@@ -20,6 +22,7 @@ app.register_blueprint(user.bp, url_prefix="/api")
 app.register_blueprint(alert.bp, url_prefix="/api")
 app.register_blueprint(record.bp, url_prefix="/api")
 app.register_blueprint(event.bp, url_prefix="/api")
+app.register_blueprint(analysis.bp, url_prefix="/api")
 
 logging.basicConfig(level=logging.INFO)
 
