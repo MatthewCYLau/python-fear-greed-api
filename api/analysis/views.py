@@ -17,8 +17,10 @@ def get_stock_analysis(_):
     logging.info(f"Analysing stock with ticker symbol {stock_symbol}...")
     try:
         data = yf.Ticker(stock_symbol)
-        logging.info(data.history(period="1mo"))
-        return "Ok"
+        df = data.history(period="1mo")
+        most_recent_close = df.tail(1)["Close"].values[0]
+        most_recent_close = "{:.2f}".format(most_recent_close)
+        return jsonify({"close": most_recent_close}), 200
     except Exception as e:
         logging.error(e)
         return jsonify({"message": "Get stock analysis failed"}), 500
