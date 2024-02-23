@@ -1,7 +1,9 @@
 from flask import Blueprint, jsonify, request
 from api.db.setup import db
 import logging
+import json
 import yfinance as yf
+from google.cloud import pubsub_v1
 from api.auth.auth import auth_required
 from api.exception.models import BadRequestException
 
@@ -41,3 +43,25 @@ def get_stock_analysis(_):
     except Exception as e:
         logging.error(e)
         return jsonify({"message": "Get stock analysis failed"}), 500
+
+
+@bp.route("/analysis-jobs", methods=(["POST"]))
+@auth_required
+def create_analysis_job(_):
+    try:
+        GCP_PROJECT_ID = "open-source-apps-001"
+        PUB_SUB_TOPIC = "analysis-jobs-topic"
+        publisher = pubsub_v1.PublisherClient()
+        topic_name = f"projects/{GCP_PROJECT_ID}/topics/{PUB_SUB_TOPIC}"
+
+        job_data_dict = {
+            "StockSymbol": "foo",
+            "JobId": "bar",
+        }
+        job_data_encode = json.dumps(job_data_dict, indent=2).encode("utf-8")
+        future = publisher.publish(topic_name, job_data_encode)
+        message_id = future.result()
+        return jsonify({"messageId": message_id}), 200
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"message": "Create analysis job failed"}), 500
