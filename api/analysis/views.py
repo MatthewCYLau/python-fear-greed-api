@@ -6,9 +6,14 @@ import yfinance as yf
 from google.cloud import pubsub_v1
 from api.auth.auth import auth_required
 from api.exception.models import BadRequestException
+from api.analysis.models import AnalysisJob
 
 
 bp = Blueprint("analysis", __name__)
+
+GCP_PROJECT_ID = "open-source-apps-001"
+PUB_SUB_TOPIC = "analysis-jobs-topic"
+topic_name = f"projects/{GCP_PROJECT_ID}/topics/{PUB_SUB_TOPIC}"
 
 
 @bp.route("/analysis", methods=(["GET"]))
@@ -48,16 +53,17 @@ def get_stock_analysis(_):
 @bp.route("/analysis-jobs", methods=(["POST"]))
 @auth_required
 def create_analysis_job(_):
+    data = request.get_json()
+    new_analysis_job = AnalysisJob(stock_symbol=data["stock"])
     try:
-        GCP_PROJECT_ID = "open-source-apps-001"
-        PUB_SUB_TOPIC = "analysis-jobs-topic"
+        analysis_job_id = new_analysis_job.save_analysis_job_to_db()
+        logging.info(f"Created analysis job with id: {analysis_job_id}")
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"errors": [{"message": "Failed to create analysis job"}]}), 500
+    try:
         publisher = pubsub_v1.PublisherClient()
-        topic_name = f"projects/{GCP_PROJECT_ID}/topics/{PUB_SUB_TOPIC}"
-
-        job_data_dict = {
-            "StockSymbol": "foo",
-            "JobId": "bar",
-        }
+        job_data_dict = {"StockSymbol": data["stock"], "JobId": str(analysis_job_id)}
         job_data_encode = json.dumps(job_data_dict, indent=2).encode("utf-8")
         future = publisher.publish(topic_name, job_data_encode)
         message_id = future.result()
