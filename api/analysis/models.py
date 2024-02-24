@@ -14,5 +14,5 @@ class AnalysisJob(BaseModel):
         self.stock_symbol = stock_symbol
 
     def save_analysis_job_to_db(self):
-        res = db.users.insert_one(vars(self))
+        res = db.analysis_jobs.insert_one(vars(self))
         return res.inserted_id
