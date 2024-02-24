@@ -1,18 +1,26 @@
 from flask import Blueprint, jsonify, request
 from api.db.setup import db
+import os
 import logging
 import json
 import yfinance as yf
 from google.cloud import pubsub_v1
 from api.auth.auth import auth_required
+from api.util.util import generate_response
 from api.exception.models import BadRequestException
 from api.analysis.models import AnalysisJob
 
 
 bp = Blueprint("analysis", __name__)
 
-GCP_PROJECT_ID = "open-source-apps-001"
-PUB_SUB_TOPIC = "analysis-jobs-topic"
+with open(
+    os.path.dirname(os.path.dirname(__file__)) + "/config/gcp_config.json"
+) as gcp_config_json:
+    gcp_config = json.load(gcp_config_json)
+GCP_PROJECT_ID = gcp_config["GCP_PROJECT_ID"]
+PUB_SUB_TOPIC = gcp_config["PUB_SUB_TOPIC"]
+
+
 topic_name = f"projects/{GCP_PROJECT_ID}/topics/{PUB_SUB_TOPIC}"
 
 
@@ -71,3 +79,14 @@ def create_analysis_job(_):
     except Exception as e:
         logging.error(e)
         return jsonify({"message": "Create analysis job failed"}), 500
+
+
+@bp.route("/analysis-jobs", methods=(["GET"]))
+@auth_required
+def get_analysis_jobs(_):
+    try:
+        users = list(db["analysis_jobs"].find())
+        return generate_response(users)
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"errors": [{"message": "Get analysis jobs failed"}]}), 500
