@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from api.db.setup import db
+from bson.objectid import ObjectId
 import os
 import logging
 import json
@@ -75,7 +76,10 @@ def create_analysis_job(_):
         job_data_encode = json.dumps(job_data_dict, indent=2).encode("utf-8")
         future = publisher.publish(topic_name, job_data_encode)
         message_id = future.result()
-        return jsonify({"messageId": message_id}), 200
+        return (
+            jsonify({"messageId": message_id, "analysisJobId": str(analysis_job_id)}),
+            200,
+        )
     except Exception as e:
         logging.error(e)
         return jsonify({"message": "Create analysis job failed"}), 500
@@ -90,3 +94,15 @@ def get_analysis_jobs(_):
     except Exception as e:
         logging.error(e)
         return jsonify({"errors": [{"message": "Get analysis jobs failed"}]}), 500
+
+
+@bp.route("/analysis-jobs/<analysis_job_id>", methods=(["GET"]))
+def get_analysis_jobs_by_id(analysis_job_id):
+    try:
+        analysis_job = db["analysis_jobs"].find_one({"_id": ObjectId(analysis_job_id)})
+        if analysis_job:
+            return generate_response(analysis_job)
+        else:
+            return "Analysis job not found", 404
+    except Exception:
+        return jsonify({"message": "Get analysis job by ID failed"}), 500
