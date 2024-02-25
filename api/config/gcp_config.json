@@ -1,4 +1,5 @@
 {
     "GCP_PROJECT_ID": "open-source-apps-001",
-    "PUB_SUB_TOPIC": "analysis-jobs-topic"
+    "PUB_SUB_TOPIC": "analysis-jobs-topic",
+    "PUB_SUB_SUBSCRIPTION": "analysis-jobs-subscription"
 }
