@@ -42,3 +42,9 @@ def validate_date_string(date_text):
         return True
     except ValueError:
         return False
+
+
+def generate_stock_fair_value(
+    most_recent_close: int, most_recent_fear_greed_index: int
+) -> float:
+    return round(most_recent_close * ((100 - most_recent_fear_greed_index) / 100), 2)
