@@ -124,9 +124,12 @@ def handle_pubsub_subscription_push():
     pubsub_message = envelope["message"]
 
     if isinstance(pubsub_message, dict) and "data" in pubsub_message:
-        stock = json.load(
+        message_string = (
             base64.b64decode(pubsub_message["data"]).decode("utf-8").strip()
-        )["StockSymbol"]
+        )
+        logging.info(f"Pub Sub message string: {message_string}")
+        stock = json.load(message_string)["StockSymbol"]
+
         logging.info(f"Received Pub Sub message with for stock {stock}")
 
     return ("", 204)
