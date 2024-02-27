@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from api.db.setup import db
 from bson.objectid import ObjectId
 import os
+import base64
 import logging
 import json
 import yfinance as yf
@@ -123,7 +124,9 @@ def handle_pubsub_subscription_push():
     pubsub_message = envelope["message"]
 
     if isinstance(pubsub_message, dict) and "data" in pubsub_message:
-        logging.info(f"Pub sub message: {str(pubsub_message)}")
-        logging.info(f"Received Pub Sub message with for stock.")
+        stock = json.load(
+            base64.b64decode(pubsub_message["data"]).decode("utf-8").strip()
+        )["StockSymbol"]
+        logging.info(f"Received Pub Sub message with for stock {stock}")
 
     return ("", 204)
