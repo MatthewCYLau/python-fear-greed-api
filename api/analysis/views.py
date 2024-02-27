@@ -127,9 +127,27 @@ def handle_pubsub_subscription_push():
         message_string = (
             base64.b64decode(pubsub_message["data"]).decode("utf-8").strip()
         )
-        logging.info(f"Pub Sub message string: {message_string}")
-        stock = json.loads(message_string)["StockSymbol"]
-
-        logging.info(f"Received Pub Sub message with for stock {stock}")
+        message_json = json.loads(message_string)
+        stock_symbol = message_json["StockSymbol"]
+        job_id = message_json["StockSymbol"]
+        logging.info(
+            f"Received Pub Sub message with for stock {stock_symbol} with job ID {job_id}"
+        )
+        data = yf.Ticker(stock_symbol)
+        df = data.history(period="1mo")
+        most_recent_close = df.tail(1)["Close"].values[0]
+        logging.info(
+            f"Most recent close for stock {stock_symbol} is {most_recent_close}"
+        )
+        most_recent_fear_greed_index = int(Record.get_most_recent_record()["index"])
+        AnalysisJob.update_analysis_job_by_id(
+            analysis_job_id=job_id,
+            data={
+                "fair_value": generate_stock_fair_value(
+                    most_recent_close, most_recent_fear_greed_index
+                )
+            },
+        )
+        logging.info(f"Update analysis job for stock {stock_symbol} complete!")
 
     return ("", 204)
