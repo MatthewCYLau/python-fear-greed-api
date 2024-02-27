@@ -129,7 +129,7 @@ def handle_pubsub_subscription_push():
         )
         message_json = json.loads(message_string)
         stock_symbol = message_json["StockSymbol"]
-        job_id = message_json["StockSymbol"]
+        job_id = message_json["JobId"]
         logging.info(
             f"Received Pub Sub message with for stock {stock_symbol} with job ID {job_id}"
         )
