@@ -123,7 +123,7 @@ def handle_pubsub_subscription_push():
     pubsub_message = envelope["message"]
 
     if isinstance(pubsub_message, dict) and "data" in pubsub_message:
-        print(pubsub_message["data"])
+        print(f"Pub sub message: {str(pubsub_message)}")
         logging.info(f"Received Pub Sub message with for stock.")
 
     return ("", 204)
