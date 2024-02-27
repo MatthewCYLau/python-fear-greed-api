@@ -1,5 +1,4 @@
 from api import app
-from api.subscriber.subscribe import streaming_pull_pub_sub_subscription
 
 
 def runserver():
@@ -8,4 +7,3 @@ def runserver():
 
 if __name__ == "__main__":
     runserver()
-    streaming_pull_pub_sub_subscription()

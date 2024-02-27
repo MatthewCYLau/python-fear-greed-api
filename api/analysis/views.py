@@ -105,3 +105,25 @@ def get_analysis_jobs_by_id(analysis_job_id):
             return "Analysis job not found", 404
     except Exception:
         return jsonify({"message": "Get analysis job by ID failed"}), 500
+
+
+@bp.route("/subscription-push", methods=(["POST"]))
+def handle_pubsub_subscription_push():
+    envelope = request.get_json()
+    if not envelope:
+        msg = "no Pub/Sub message received"
+        logging.error(f"error: {msg}")
+        return f"Bad Request: {msg}", 400
+
+    if not isinstance(envelope, dict) or "message" not in envelope:
+        msg = "invalid Pub/Sub message format"
+        logging.error(f"error: {msg}")
+        return f"Bad Request: {msg}", 400
+
+    pubsub_message = envelope["message"]
+
+    if isinstance(pubsub_message, dict) and "data" in pubsub_message:
+        stock_symbol = json.loads(pubsub_message.data)["StockSymbol"]
+        logging.info(f"Received Pub Sub message with for stock {stock_symbol}.")
+
+    return ("", 204)
