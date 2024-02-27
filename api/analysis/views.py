@@ -128,7 +128,7 @@ def handle_pubsub_subscription_push():
             base64.b64decode(pubsub_message["data"]).decode("utf-8").strip()
         )
         logging.info(f"Pub Sub message string: {message_string}")
-        stock = json.load(message_string)["StockSymbol"]
+        stock = json.loads(message_string)["StockSymbol"]
 
         logging.info(f"Received Pub Sub message with for stock {stock}")
 
