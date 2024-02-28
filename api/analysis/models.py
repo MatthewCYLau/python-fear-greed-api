@@ -14,6 +14,7 @@ class AnalysisJob(BaseModel):
         super().__init__()
         self.stock_symbol = stock_symbol
         self.fair_value = fair_value
+        self.complete = False
 
     def save_analysis_job_to_db(self):
         res = db.analysis_jobs.insert_one(vars(self))
@@ -23,7 +24,8 @@ class AnalysisJob(BaseModel):
     def update_analysis_job_by_id(analysis_job_id: uuid.UUID, data: dict = {}):
         updated_analysis_job = {
             "$set": {
-                "fair_value": data.get("fair_value", random.randint(1, 101)),
+                "fair_value": data["fair_value"],
+                "complete": data["complete"],
                 "last_modified": get_current_time_gb(),
             }
         }

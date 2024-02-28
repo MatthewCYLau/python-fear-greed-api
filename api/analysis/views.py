@@ -133,21 +133,25 @@ def handle_pubsub_subscription_push():
         logging.info(
             f"Received Pub Sub message with for stock {stock_symbol} with job ID {job_id}"
         )
-        data = yf.Ticker(stock_symbol)
-        df = data.history(period="1mo")
-        most_recent_close = df.tail(1)["Close"].values[0]
-        logging.info(
-            f"Most recent close for stock {stock_symbol} is {most_recent_close}"
-        )
-        most_recent_fear_greed_index = int(Record.get_most_recent_record()["index"])
-        AnalysisJob.update_analysis_job_by_id(
-            analysis_job_id=job_id,
-            data={
-                "fair_value": generate_stock_fair_value(
-                    most_recent_close, most_recent_fear_greed_index
-                )
-            },
-        )
-        logging.info(f"Update analysis job for stock {stock_symbol} complete!")
+        try:
+            data = yf.Ticker(stock_symbol)
+            df = data.history(period="1mo")
+            most_recent_close = df.tail(1)["Close"].values[0]
+            logging.info(
+                f"Most recent close for stock {stock_symbol} is {most_recent_close}"
+            )
+            most_recent_fear_greed_index = int(Record.get_most_recent_record()["index"])
+            AnalysisJob.update_analysis_job_by_id(
+                analysis_job_id=job_id,
+                data={
+                    "fair_value": generate_stock_fair_value(
+                        most_recent_close, most_recent_fear_greed_index
+                    ),
+                    "complete": True,
+                },
+            )
+            logging.info(f"Update analysis job for stock {stock_symbol} complete!")
+        except Exception as e:
+            logging.error(f"Update analysis job failed -  {e}")
 
     return ("", 204)
