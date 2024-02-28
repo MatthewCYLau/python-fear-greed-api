@@ -2,6 +2,7 @@ from api.util.util import (
     return_dupliucated_items_in_list,
     is_valid_sector,
     validate_date_string,
+    generate_stock_fair_value,
 )
 
 
@@ -31,3 +32,8 @@ def test_is_valid_sector():
 def test_validate_date_string():
     assert validate_date_string("06-22-2023") == False
     assert validate_date_string("26-06-2023") == True
+
+
+def test_generate_stock_fair_value():
+    assert generate_stock_fair_value(100, 80) == 20
+    assert generate_stock_fair_value(80, 34) == 52.8
