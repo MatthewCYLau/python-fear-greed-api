@@ -6,6 +6,7 @@ import base64
 import logging
 import json
 import yfinance as yf
+import math
 from google.cloud import pubsub_v1
 from api.auth.auth import auth_required
 from api.util.util import generate_response, generate_stock_fair_value
@@ -88,16 +89,19 @@ def create_analysis_job(_):
 @bp.route("/analysis-jobs", methods=(["GET"]))
 @auth_required
 def get_analysis_jobs(_):
+    page_size = int(request.args["pageSize"]) if "pageSize" in request.args else 10
+    current_page = int(request.args["page"]) if "page" in request.args else 1
     try:
         analysis_jobs = list(db["analysis_jobs"].find())
         if analysis_jobs:
+            total_records = db["analysis_jobs"].estimated_document_count()
 
             return generate_response(
                 {
                     "paginationMetadata": {
-                        "totalRecords": 0,
-                        "currentPage": 0,
-                        "totalPages": 0,
+                        "totalRecords": total_records,
+                        "currentPage": current_page,
+                        "totalPages": math.ceil(total_records / page_size),
                     },
                     "analysisJobs": analysis_jobs,
                 }
