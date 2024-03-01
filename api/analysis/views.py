@@ -89,8 +89,20 @@ def create_analysis_job(_):
 @auth_required
 def get_analysis_jobs(_):
     try:
-        users = list(db["analysis_jobs"].find())
-        return generate_response(users)
+        analysis_jobs = list(db["analysis_jobs"].find())
+        if analysis_jobs:
+
+            return generate_response(
+                {
+                    "paginationMetadata": {
+                        "totalRecords": 0,
+                        "currentPage": 0,
+                        "totalPages": 0,
+                    },
+                    "analysisJobs": analysis_jobs,
+                }
+            )
+
     except Exception as e:
         logging.error(e)
         return jsonify({"errors": [{"message": "Get analysis jobs failed"}]}), 500
