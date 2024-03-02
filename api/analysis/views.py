@@ -92,20 +92,39 @@ def get_analysis_jobs(_):
     page_size = int(request.args["pageSize"]) if "pageSize" in request.args else 10
     current_page = int(request.args["page"]) if "page" in request.args else 1
     try:
-        analysis_jobs = list(db["analysis_jobs"].find())
-        if analysis_jobs:
-            total_records = db["analysis_jobs"].estimated_document_count()
-
-            return generate_response(
-                {
-                    "paginationMetadata": {
-                        "totalRecords": total_records,
-                        "currentPage": current_page,
-                        "totalPages": math.ceil(total_records / page_size),
-                    },
-                    "analysisJobs": analysis_jobs,
-                }
+        total_records = db["analysis_jobs"].estimated_document_count()
+        total_pages = math.ceil(total_records / page_size)
+        if current_page > total_pages:
+            return (
+                jsonify(
+                    {
+                        "errors": [
+                            {
+                                "message": f"Requested page {current_page} exceeds max page size"
+                            }
+                        ]
+                    }
+                ),
+                400,
             )
+        analysis_jobs = list(
+            db["analysis_jobs"]
+            .find()
+            .sort("created", -1)
+            .skip((current_page - 1) * page_size)
+            .limit(page_size)
+        )
+
+        return generate_response(
+            {
+                "paginationMetadata": {
+                    "totalRecords": total_records,
+                    "currentPage": current_page,
+                    "totalPages": total_pages,
+                },
+                "analysisJobs": analysis_jobs,
+            }
+        )
 
     except Exception as e:
         logging.error(e)
