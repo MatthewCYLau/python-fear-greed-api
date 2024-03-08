@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from api.db.setup import db
 from bson.objectid import ObjectId
+from concurrent.futures import ProcessPoolExecutor
 import os
 import base64
 import logging
@@ -41,9 +42,13 @@ def get_stock_analysis(_):
         most_recent_close = df.tail(1)["Close"].values[0]
         most_recent_close = float("{:.2f}".format(most_recent_close))
         most_recent_fear_greed_index = int(Record.get_most_recent_record()["index"])
-        fair_value = generate_stock_fair_value(
-            most_recent_close, most_recent_fear_greed_index
-        )
+        with ProcessPoolExecutor(1) as exe:
+            future = exe.submit(
+                generate_stock_fair_value,
+                most_recent_close,
+                most_recent_fear_greed_index,
+            )
+            fair_value = future.result()
         return (
             jsonify(
                 {
