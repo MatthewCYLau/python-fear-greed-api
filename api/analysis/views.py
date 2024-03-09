@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from api.db.setup import db
 from bson.objectid import ObjectId
 from concurrent.futures import ProcessPoolExecutor
+import time
 import os
 import base64
 import logging
@@ -174,6 +175,7 @@ def handle_pubsub_subscription_push():
             f"Received Pub Sub message with for stock {stock_symbol} with job ID {job_id}"
         )
         try:
+            start_time = time.perf_counter()
             data = yf.Ticker(stock_symbol)
             df = data.history(period="1mo")
             most_recent_close = df.tail(1)["Close"].values[0]
@@ -193,5 +195,9 @@ def handle_pubsub_subscription_push():
             logging.info(f"Update analysis job for stock {stock_symbol} complete!")
         except Exception as e:
             logging.error(f"Update analysis job failed -  {e}")
+        finally:
+            end_time = time.perf_counter()
+            formatted_time_taken = "{:.2f}".format(round(end_time - start_time, 2))
+            logging.info(f"Time taken: {formatted_time_taken}")
 
     return ("", 204)
