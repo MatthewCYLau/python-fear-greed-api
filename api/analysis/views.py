@@ -40,6 +40,10 @@ def get_stock_analysis(_):
     try:
         data = yf.Ticker(stock_symbol)
         df = data.history(period="1mo")
+
+        for index, row in df.tail().iterrows():
+            logging.info(f"Most recent close with index {index} is {row.Close}")
+
         most_recent_close = df.tail(1)["Close"].values[0]
         most_recent_close = float("{:.2f}".format(most_recent_close))
         most_recent_fear_greed_index = int(Record.get_most_recent_record()["index"])
