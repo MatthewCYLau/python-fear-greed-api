@@ -4,6 +4,7 @@ from bson.objectid import ObjectId
 from api.common.models import BaseModel
 from api.util.util import get_current_time_gb
 from api.db.setup import db
+from datetime import datetime, timedelta
 
 GB = pytz.timezone("Europe/London")
 
@@ -32,3 +33,24 @@ class AnalysisJob(BaseModel):
         return db["analysis_jobs"].update_one(
             {"_id": ObjectId(analysis_job_id)}, updated_analysis_job, True
         )
+
+    @staticmethod
+    def get_analysis_jobs_by_created_by_within_days(
+        created_by: uuid.UUID, days: int = 1
+    ):
+        alerts = list(
+            db["analysis_jobs"].find(
+                {
+                    "$and": [
+                        {"created_by": ObjectId(created_by)},
+                        {
+                            "created": {
+                                "$lt": datetime.now(),
+                                "$gt": datetime.now() - timedelta(days=days),
+                            }
+                        },
+                    ]
+                }
+            )
+        )
+        return alerts

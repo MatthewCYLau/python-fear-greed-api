@@ -74,6 +74,13 @@ def get_stock_analysis(_):
 @auth_required
 def create_analysis_job(user):
     data = request.get_json()
+    current_user_analysis_jobs_past_one_day = (
+        AnalysisJob.get_analysis_jobs_by_created_by_within_days(user["_id"], 1)
+    )
+    logging.info(
+        f"Current user has created {len(current_user_analysis_jobs_past_one_day)} analysis jobs past one day"
+    )
+
     new_analysis_job = AnalysisJob(
         stock_symbol=data["stock"],
         created_by=user["_id"],
