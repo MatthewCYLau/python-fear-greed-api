@@ -72,9 +72,12 @@ def get_stock_analysis(_):
 
 @bp.route("/analysis-jobs", methods=(["POST"]))
 @auth_required
-def create_analysis_job(_):
+def create_analysis_job(user):
     data = request.get_json()
-    new_analysis_job = AnalysisJob(stock_symbol=data["stock"])
+    new_analysis_job = AnalysisJob(
+        stock_symbol=data["stock"],
+        created_by=user["_id"],
+    )
     try:
         analysis_job_id = new_analysis_job.save_analysis_job_to_db()
         logging.info(f"Created analysis job with id: {analysis_job_id}")

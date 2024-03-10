@@ -1,6 +1,5 @@
 import pytz
 import uuid
-import random
 from bson.objectid import ObjectId
 from api.common.models import BaseModel
 from api.util.util import get_current_time_gb
@@ -10,9 +9,10 @@ GB = pytz.timezone("Europe/London")
 
 
 class AnalysisJob(BaseModel):
-    def __init__(self, stock_symbol, fair_value=0):
+    def __init__(self, stock_symbol, created_by, fair_value=0):
         super().__init__()
         self.stock_symbol = stock_symbol
+        self.created_by = created_by
         self.fair_value = fair_value
         self.complete = False
 
