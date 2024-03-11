@@ -35,8 +35,8 @@ class AnalysisJob(BaseModel):
         )
 
     @staticmethod
-    def get_analysis_jobs_by_created_by_within_days(
-        created_by: uuid.UUID, days: int = 1
+    def get_analysis_jobs_by_created_by_within_hours(
+        created_by: uuid.UUID, hours: int = 24
     ):
         alerts = list(
             db["analysis_jobs"].find(
@@ -46,7 +46,7 @@ class AnalysisJob(BaseModel):
                         {
                             "created": {
                                 "$lt": datetime.now(),
-                                "$gt": datetime.now() - timedelta(days=days),
+                                "$gt": datetime.now() - timedelta(hours=hours),
                             }
                         },
                     ]

@@ -75,11 +75,25 @@ def get_stock_analysis(_):
 def create_analysis_job(user):
     data = request.get_json()
     current_user_analysis_jobs_past_one_day = (
-        AnalysisJob.get_analysis_jobs_by_created_by_within_days(user["_id"], 1)
+        AnalysisJob.get_analysis_jobs_by_created_by_within_hours(user["_id"])
     )
     logging.info(
-        f"Current user has created {len(current_user_analysis_jobs_past_one_day)} analysis jobs past one day"
+        f"Current user has created {len(current_user_analysis_jobs_past_one_day)} analysis jobs past 24 hours."
     )
+
+    if len(current_user_analysis_jobs_past_one_day) >= 5:
+        return (
+            jsonify(
+                {
+                    "errors": [
+                        {
+                            "message": "User cannot create more than five analysis jobs every 24 hours!"
+                        }
+                    ]
+                }
+            ),
+            500,
+        )
 
     new_analysis_job = AnalysisJob(
         stock_symbol=data["stock"],
