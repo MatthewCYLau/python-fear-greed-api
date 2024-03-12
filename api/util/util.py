@@ -45,6 +45,10 @@ def validate_date_string(date_text):
 
 
 def generate_stock_fair_value(
-    most_recent_close: int, most_recent_fear_greed_index: int
+    most_recent_close: float, most_recent_fear_greed_index: int
 ) -> float:
+    if not isinstance(most_recent_close, float):
+        raise ValueError("Recent close must be instance of float")
+    if not isinstance(most_recent_fear_greed_index, int):
+        raise ValueError("Index must be instance of int")
     return round(most_recent_close * ((100 - most_recent_fear_greed_index) / 100), 2)

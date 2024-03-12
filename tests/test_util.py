@@ -1,3 +1,4 @@
+import pytest
 from api.util.util import (
     return_dupliucated_items_in_list,
     is_valid_sector,
@@ -35,5 +36,10 @@ def test_validate_date_string():
 
 
 def test_generate_stock_fair_value():
-    assert generate_stock_fair_value(100, 80) == 20
-    assert generate_stock_fair_value(80, 34) == 52.8
+    assert generate_stock_fair_value(100.12, 80) == 20.02
+    assert generate_stock_fair_value(80.21, 34) == 52.94
+
+
+def test_generate_stock_fair_value_value_error():
+    with pytest.raises(ValueError):
+        generate_stock_fair_value("foo", 34)
