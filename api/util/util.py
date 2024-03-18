@@ -1,3 +1,4 @@
+from functools import cache
 from flask import jsonify
 from datetime import datetime, timezone
 from api.common.constants import DATETIME_FORMATE_CODE
@@ -44,6 +45,7 @@ def validate_date_string(date_text):
         return False
 
 
+@cache
 def generate_stock_fair_value(
     most_recent_close: float, most_recent_fear_greed_index: int
 ) -> float:
