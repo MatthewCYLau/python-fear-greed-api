@@ -77,8 +77,8 @@ def get_records_csv():
 
     df = df.astype({"fear_greed_index": int})
 
-    bins = [0, 25, 45, 55, 75, 100]
-    group_names = ["Extreme Fear", "Fear", "Neutral", "Greed", "Extreme Greed"]
+    bins = (0, 25, 45, 55, 75, 100)
+    group_names = ("Extreme Fear", "Fear", "Neutral", "Greed", "Extreme Greed")
     df["description"] = pd.cut(df["fear_greed_index"], bins, labels=group_names)
 
     filtered_df = df.loc[
