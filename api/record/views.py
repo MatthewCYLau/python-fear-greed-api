@@ -4,10 +4,12 @@ from api.db.setup import db
 from api.util.util import generate_response, validate_date_string
 from api.exception.models import BadRequestException
 from datetime import datetime
+from api.rate_limiter.rate_limiter import limiter
 import pandas as pd
 import numpy as np
 
 bp = Blueprint("records", __name__)
+limiter.limit("25/minute")(bp)
 
 
 @bp.route("/records", methods=(["GET"]))
