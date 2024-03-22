@@ -3,6 +3,8 @@ import logging
 from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from .db.setup import db_connect
 from api.user import views as user
 from api.alert import views as alert
@@ -16,6 +18,15 @@ load_dotenv("config/.env")
 
 
 app = Flask(__name__)
+
+
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["100/minute"],
+    storage_uri="memory://",
+)
+
 
 CORS(app, resources={r"/*": {"origins": "*"}})
 app.register_blueprint(user.bp, url_prefix="/api")

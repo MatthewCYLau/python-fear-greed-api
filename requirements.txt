@@ -9,6 +9,7 @@ dnspython==2.3.0
 exceptiongroup==1.1.1
 Flask==2.3.2
 Flask-Cors==3.0.10
+Flask-Limiter==3.5.1
 google-api-core==2.11.1
 google-auth==2.22.0
 google-cloud-core==2.3.3
