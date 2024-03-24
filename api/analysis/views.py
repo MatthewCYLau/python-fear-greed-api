@@ -11,6 +11,7 @@ import yfinance as yf
 import math
 from google.cloud import pubsub_v1
 from api.auth.auth import auth_required
+from api.common.constants import ANALYSIS_JOB_CREATION_DAILY_LIMIT
 from api.util.util import generate_response, generate_stock_fair_value
 from api.exception.models import BadRequestException
 from api.analysis.models import AnalysisJob
@@ -81,13 +82,16 @@ def create_analysis_job(user):
         f"Current user has created {len(current_user_analysis_jobs_past_one_day)} analysis jobs past 24 hours."
     )
 
-    if len(current_user_analysis_jobs_past_one_day) >= 5:
+    if (
+        len(current_user_analysis_jobs_past_one_day)
+        >= ANALYSIS_JOB_CREATION_DAILY_LIMIT
+    ):
         return (
             jsonify(
                 {
                     "errors": [
                         {
-                            "message": "User cannot create more than five analysis jobs every 24 hours!"
+                            "message": f"User cannot create more than {ANALYSIS_JOB_CREATION_DAILY_LIMIT} analysis jobs every 24 hours!"
                         }
                     ]
                 }
