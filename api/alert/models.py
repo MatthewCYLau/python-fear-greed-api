@@ -11,11 +11,13 @@ class Alert(BaseModel):
         index,
         note,
         created_by,
+        view_count=0,
     ):
         super().__init__()
         self.index = index
         self.note = note
         self.created_by = created_by
+        self.view_count = view_count
 
     @staticmethod
     def get_alerts(count: int = 0, max_index: int = 100):
@@ -58,3 +60,9 @@ class Alert(BaseModel):
             }
         }
         return db["alerts"].update_one({"_id": ObjectId(alert_id)}, updated_alert, True)
+
+    @staticmethod
+    def increment_alert_view_count_by_id(alert_id: uuid.UUID):
+        return db["alerts"].find_one_and_update(
+            {"_id": ObjectId(alert_id)}, {"$inc": {"view_count": 1}}
+        )

@@ -51,8 +51,10 @@ def get_alert_by_id(_, alert_id):
 def create_alert(user):
     data = request.get_json()
     index = data["index"]
-    if (int(index) > 100 or int(index) <= 0):
-        raise BadRequestException("Index must be between 1 and 100 inclusive", status_code=400)
+    if int(index) > 100 or int(index) <= 0:
+        raise BadRequestException(
+            "Index must be between 1 and 100 inclusive", status_code=400
+        )
     new_alert = Alert(
         index=index,
         note=data["note"],
@@ -83,6 +85,20 @@ def delete_alert_by_id(user, alert_id):
             return jsonify({"message": "alert not found"}), 404
     except Exception:
         return jsonify({"message": "Delete alert by ID failed"}), 500
+
+
+@bp.route("/alerts/<alert_id>/views", methods=(["POST"]))
+@auth_required
+def increment_alert_view_count(_, alert_id):
+    try:
+        alert = Alert.increment_alert_view_count_by_id(alert_id=alert_id)
+        if alert:
+            return generate_response(alert)
+        else:
+            return jsonify({"message": "Alert not found"}), 404
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"message": "Update alert failed"}), 500
 
 
 @bp.route("/alerts/<alert_id>", methods=["PUT"])
