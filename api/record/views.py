@@ -5,11 +5,18 @@ from api.util.util import generate_response, validate_date_string
 from api.exception.models import BadRequestException
 from datetime import datetime
 from api.rate_limiter.rate_limiter import limiter
+import yaml
+import os
 import pandas as pd
 import numpy as np
 
 bp = Blueprint("records", __name__)
 limiter.limit("25/minute")(bp)
+
+with open(
+    os.path.dirname(os.path.dirname(__file__)) + "/config/columns.yaml", "r"
+) as f:
+    yaml_content = yaml.safe_load(f)
 
 
 @bp.route("/records", methods=(["GET"]))
@@ -80,7 +87,7 @@ def get_records_csv():
     df = df.astype({"fear_greed_index": int})
 
     bins = (0, 25, 45, 55, 75, 100)
-    group_names = ("Extreme Fear", "Fear", "Neutral", "Greed", "Extreme Greed")
+    group_names = tuple(yaml_content["columns"])
     df["description"] = pd.cut(df["fear_greed_index"], bins, labels=group_names)
 
     filtered_df = df.loc[
