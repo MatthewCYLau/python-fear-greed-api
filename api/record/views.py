@@ -5,6 +5,7 @@ from api.util.util import generate_response, validate_date_string
 from api.exception.models import BadRequestException
 from datetime import datetime
 from api.rate_limiter.rate_limiter import limiter
+import logging
 import yaml
 import os
 import pandas as pd
@@ -89,6 +90,14 @@ def get_records_csv():
     bins = (0, 25, 45, 55, 75, 100)
     group_names = tuple(yaml_content["columns"])
     df["description"] = pd.cut(df["fear_greed_index"], bins, labels=group_names)
+
+    df_value_counts_description = df.value_counts(["description"]).reset_index(
+        name="count"
+    )
+    for _, row in df_value_counts_description.iterrows():
+        description = row["description"]
+        count = row["count"]
+        logging.info(f"{description} has count {count}")
 
     filtered_df = df.loc[
         (df["fear_greed_index"] >= min_index) & (df["fear_greed_index"] <= max_index)
