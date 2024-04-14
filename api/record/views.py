@@ -1,4 +1,4 @@
-from flask import Blueprint, request, make_response
+from flask import Blueprint, request, make_response, jsonify
 from api.common.constants import DATETIME_FORMATE_CODE
 from api.db.setup import db
 from api.util.util import generate_response, validate_date_string
@@ -28,6 +28,24 @@ def get_records():
     )
     records = list(db["records"].find().sort("created", sort_direction).limit(count))
     return generate_response(records)
+
+
+@bp.route("/records-count", methods=(["GET"]))
+def get_records_count_bin():
+    pipeline = [
+        {"$project": {"_id": 0, "indexNumber": {"$toInt": "$index"}}},
+        {
+            "$project": {
+                "indexLowerBound": {
+                    "$subtract": ["$indexNumber", {"$mod": ["$indexNumber", 10]}]
+                }
+            }
+        },
+        {"$group": {"_id": "$indexLowerBound", "count": {"$sum": 1}}},
+        {"$sort": {"_id": -1}},
+    ]
+    res = db["records"].aggregate(pipeline)
+    return jsonify(list(res))
 
 
 @bp.route("/records/export-csv", methods=(["POST"]))
