@@ -19,6 +19,12 @@ with open(
 ) as f:
     yaml_content = yaml.safe_load(f)
 
+ALLOWED_EXTENSIONS = {"csv"}
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @bp.route("/records", methods=(["GET"]))
 def get_records():
@@ -126,4 +132,20 @@ def get_records_csv():
         f"attachment; filename={datetime.today().strftime(DATETIME_FORMATE_CODE)}.csv"
     )
     response.mimetype = "text/csv"
+    return response
+
+
+@bp.route("/records/upload-csv", methods=(["POST"]))
+def upload_records_csv():
+    file = request.files.get("file")
+
+    if not file or not allowed_file(file.filename):
+        raise BadRequestException("Please upload a CSV file", status_code=400)
+
+    try:
+        df = pd.read_csv(file, encoding="utf-8")
+    except Exception as e:
+        raise BadRequestException(f"Failed to read CSV {e}", status_code=400)
+    response = make_response(df.to_json(orient="records"))
+    response.headers["Content-Type"] = "application/json"
     return response
