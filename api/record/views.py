@@ -1,7 +1,7 @@
 from flask import Blueprint, request, make_response, jsonify
 from api.common.constants import DATETIME_FORMATE_CODE
 from api.db.setup import db
-from api.util.util import generate_response, validate_date_string
+from api.util.util import generate_response, validate_date_string, is_allowed_file
 from api.exception.models import BadRequestException
 from datetime import datetime
 from api.rate_limiter.rate_limiter import limiter
@@ -18,12 +18,6 @@ with open(
     os.path.dirname(os.path.dirname(__file__)) + "/config/columns.yaml", "r"
 ) as f:
     yaml_content = yaml.safe_load(f)
-
-ALLOWED_EXTENSIONS = {"csv"}
-
-
-def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @bp.route("/records", methods=(["GET"]))
@@ -139,7 +133,7 @@ def get_records_csv():
 def upload_records_csv():
     file = request.files.get("file")
 
-    if not file or not allowed_file(file.filename):
+    if not file or not is_allowed_file(file.filename):
         raise BadRequestException("Please upload a CSV file", status_code=400)
 
     try:

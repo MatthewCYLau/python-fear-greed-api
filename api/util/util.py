@@ -34,6 +34,11 @@ def get_current_time_gb():
     return datetime.fromisoformat(datetime.now(timezone.utc).astimezone(GB).isoformat())
 
 
+def is_allowed_file(filename: str):
+    ALLOWED_EXTENSIONS = {"csv"}
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 def validate_date_string(date_text):
     try:
         if date_text != datetime.strptime(date_text, DATETIME_FORMATE_CODE).strftime(

@@ -4,6 +4,7 @@ from api.util.util import (
     is_valid_sector,
     validate_date_string,
     generate_stock_fair_value,
+    is_allowed_file,
 )
 
 
@@ -43,3 +44,8 @@ def test_generate_stock_fair_value():
 def test_generate_stock_fair_value_value_error():
     with pytest.raises(ValueError):
         generate_stock_fair_value("foo", 34)
+
+
+def test_is_allowed_filename():
+    assert is_allowed_file("foo.csv") == True
+    assert is_allowed_file("foo.txt") == False
