@@ -137,9 +137,12 @@ def upload_records_csv():
         raise BadRequestException("Please upload a CSV file", status_code=400)
 
     try:
-        df = pd.read_csv(file, encoding="utf-8")
+        df = pd.read_csv(
+            file, encoding="utf-8", index_col=["created"], parse_dates=["created"]
+        )
     except Exception as e:
         raise BadRequestException(f"Failed to read CSV {e}", status_code=400)
-    response = make_response(df.to_json(orient="records"))
+    logging.info(df.index)
+    response = make_response(df.to_json(orient="table"))
     response.headers["Content-Type"] = "application/json"
     return response
