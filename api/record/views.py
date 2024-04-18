@@ -142,6 +142,8 @@ def upload_records_csv():
         )
     except Exception as e:
         raise BadRequestException(f"Failed to read CSV {e}", status_code=400)
+    if "fear_greed_index" in df.columns:
+        logging.info("CSV has required columns.")
     logging.info(df.index)
     response = make_response(df.to_json(orient="table"))
     response.headers["Content-Type"] = "application/json"
