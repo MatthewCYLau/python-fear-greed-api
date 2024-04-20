@@ -13,7 +13,7 @@ bp = Blueprint("event", __name__)
 @auth_required
 def get_alerts_created_by_current_user(user):
     try:
-        events = Event.get_events_by_created_by(user["_id"])
+        events = Event.get_events_by_alert_created_by(user["_id"])
         return generate_response(events)
     except Exception as e:
         logging.error(e)
