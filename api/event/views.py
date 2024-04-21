@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 import logging
 from api.util.util import (
     generate_response,
@@ -18,3 +18,21 @@ def get_alerts_created_by_current_user(user):
     except Exception as e:
         logging.error(e)
         return jsonify({"message": "Get events by current user failed"}), 500
+
+
+@bp.route("/events/<event_id>", methods=["PUT"])
+@auth_required
+def update_event_by_id(_, event_id):
+    data = request.get_json()
+    if not data or not data["acknowledged"]:
+        return jsonify({"message": "Missing field"}), 400
+
+    try:
+        res = Event.update_event_by_id(event_id=event_id, data=data)
+        if res.matched_count:
+            return jsonify({"message": "Event updated"}), 200
+        else:
+            return jsonify({"message": "Event not found"}), 404
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"message": "Update event failed"}), 500
