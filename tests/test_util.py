@@ -5,6 +5,7 @@ from api.util.util import (
     validate_date_string,
     generate_stock_fair_value,
     is_allowed_file,
+    value_is_true,
 )
 
 
@@ -49,3 +50,10 @@ def test_generate_stock_fair_value_value_error():
 def test_is_allowed_filename():
     assert is_allowed_file("foo.csv") == True
     assert is_allowed_file("foo.txt") == False
+
+
+def test_value_is_true():
+    assert value_is_true("True") == True
+    assert value_is_true("true") == True
+    assert value_is_true("False") == False
+    assert value_is_true("false") == False

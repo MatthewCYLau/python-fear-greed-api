@@ -1,5 +1,6 @@
 import uuid
 from bson.objectid import ObjectId
+from api.util.util import value_is_true
 from api.db.setup import db
 
 
@@ -32,7 +33,7 @@ class Event:
     def update_event_by_id(event_id: uuid.UUID, data: dict = {}):
         updated_event = {
             "$set": {
-                "acknowledged": data["acknowledged"] == "True",
+                "acknowledged": value_is_true(data["acknowledged"]),
             }
         }
         return db["events"].update_one({"_id": ObjectId(event_id)}, updated_event, True)

@@ -50,6 +50,10 @@ def validate_date_string(date_text):
         return False
 
 
+def value_is_true(value: str):
+    return value.lower() == "true"
+
+
 @cache
 def generate_stock_fair_value(
     most_recent_close: float, most_recent_fear_greed_index: int
