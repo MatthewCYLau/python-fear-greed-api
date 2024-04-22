@@ -9,11 +9,18 @@ from .models import Event
 bp = Blueprint("event", __name__)
 
 
+def _request_argument_is_true(value):
+    return value.lower() == "true"
+
+
 @bp.route("/events/me", methods=(["GET"]))
 @auth_required
 def get_alerts_created_by_current_user(user):
+    acknowledged = request.args.get(
+        "acknowledged", default=False, type=_request_argument_is_true
+    )
     try:
-        events = Event.get_events_by_alert_created_by(user["_id"])
+        events = Event.get_events_by_alert_created_by(user["_id"], acknowledged)
         return generate_response(events)
     except Exception as e:
         logging.error(e)
