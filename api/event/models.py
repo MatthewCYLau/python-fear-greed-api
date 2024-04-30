@@ -7,26 +7,30 @@ from api.db.setup import db
 class Event:
     @staticmethod
     def get_events_by_alert_created_by(
-        created_by: uuid.UUID, acknowledged: bool = False
+        created_by: uuid.UUID,
+        acknowledged: bool = False,
+        start_date=None,
+        end_date=None,
     ):
         alerts = list(
             db["alerts"].find({"created_by": ObjectId(created_by)}).sort("_id", -1)
         )
 
         alert_ids = [i["_id"] for i in alerts]
-
-        events = list(
-            db["events"]
-            .find(
+        queries = [
+            {"alert_id": {"$in": [ObjectId(i) for i in alert_ids]}},
+            {"acknowledged": acknowledged},
+        ]
+        if start_date and end_date:
+            queries.append(
                 {
-                    "$and": [
-                        {"alert_id": {"$in": [ObjectId(i) for i in alert_ids]}},
-                        {"acknowledged": acknowledged},
-                    ]
+                    "created": {
+                        "$gte": start_date,
+                        "$lt": end_date,
+                    }
                 }
             )
-            .sort("_id", -1)
-        )
+        events = list(db["events"].find({"$and": queries}).sort("_id", -1))
         return events
 
     @staticmethod
