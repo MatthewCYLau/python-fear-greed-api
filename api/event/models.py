@@ -2,6 +2,7 @@ import uuid
 from bson.objectid import ObjectId
 from api.util.util import value_is_true
 from api.db.setup import db
+from datetime import timedelta
 
 
 class Event:
@@ -26,7 +27,7 @@ class Event:
                 {
                     "created": {
                         "$gte": start_date,
-                        "$lt": end_date,
+                        "$lte": end_date + timedelta(days=1),
                     }
                 }
             )
