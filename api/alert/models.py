@@ -2,7 +2,7 @@ import uuid
 from bson.objectid import ObjectId
 from api.common.models import BaseModel
 from api.db.setup import db
-from api.util.util import get_current_time_gb
+from api.util.util import get_current_time_utc
 
 
 class Alert(BaseModel):
@@ -56,7 +56,7 @@ class Alert(BaseModel):
             "$set": {
                 "index": data["index"],
                 "note": data["note"],
-                "last_modified": get_current_time_gb(),
+                "last_modified": get_current_time_utc(),
             }
         }
         return db["alerts"].update_one({"_id": ObjectId(alert_id)}, updated_alert, True)

@@ -2,7 +2,6 @@ from functools import cache
 from flask import jsonify
 from datetime import datetime, timezone
 from api.common.constants import DATETIME_FORMATE_CODE
-import pytz
 import json
 
 
@@ -29,9 +28,8 @@ def is_valid_sector(sector):
     return sector in ["Financial Services", "Public Sector", "Private Sector"]
 
 
-def get_current_time_gb():
-    GB = pytz.timezone("Europe/London")
-    return datetime.fromisoformat(datetime.now(timezone.utc).astimezone(GB).isoformat())
+def get_current_time_utc():
+    return datetime.now(tz=timezone.utc)
 
 
 def is_allowed_file(filename: str):

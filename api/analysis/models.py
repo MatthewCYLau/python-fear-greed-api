@@ -2,7 +2,7 @@ import pytz
 import uuid
 from bson.objectid import ObjectId
 from api.common.models import BaseModel
-from api.util.util import get_current_time_gb
+from api.util.util import get_current_time_utc
 from api.db.setup import db
 from datetime import datetime, timedelta
 
@@ -27,7 +27,7 @@ class AnalysisJob(BaseModel):
             "$set": {
                 "fair_value": data["fair_value"],
                 "complete": data["complete"],
-                "last_modified": get_current_time_gb(),
+                "last_modified": get_current_time_utc(),
             }
         }
         return db["analysis_jobs"].update_one(

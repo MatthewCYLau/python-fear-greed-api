@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash
 from bson.objectid import ObjectId
 from api.common.models import BaseModel
 from api.db.setup import db
-from api.util.util import get_current_time_gb
+from api.util.util import get_current_time_utc
 
 
 class User(BaseModel):
@@ -37,7 +37,7 @@ class User(BaseModel):
             "$set": {
                 "email": data["email"],
                 "name": data["name"],
-                "last_modified": get_current_time_gb(),
+                "last_modified": get_current_time_utc(),
                 "avatarImageUrl": data["avatarImageUrl"],
             }
         }
@@ -51,6 +51,6 @@ class User(BaseModel):
             updated_user = {
                 **user,
                 "isEmailVerified": True,
-                "last_modified": get_current_time_gb(),
+                "last_modified": get_current_time_utc(),
             }
             return db["users"].update_one({"_id": user["_id"]}, updated_user, True)
