@@ -11,7 +11,7 @@ from api.event import views as event
 from api.analysis import views as analysis
 from api.rate_limiter.rate_limiter import limiter
 
-from api.exception.models import *
+from api.exception.models import UnauthorizedException, BadRequestException
 
 load_dotenv("config/.env")
 

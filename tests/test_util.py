@@ -28,13 +28,13 @@ def test_return_duplicated_items_in_list_no_duplicates():
 
 
 def test_is_valid_sector():
-    assert is_valid_sector("Financial Services") == True
-    assert is_valid_sector("Foo") == False
+    assert is_valid_sector("Financial Services")
+    assert not is_valid_sector("Foo")
 
 
 def test_validate_date_string():
-    assert validate_date_string("06-22-2023") == False
-    assert validate_date_string("26-06-2023") == True
+    assert not validate_date_string("06-22-2023")
+    assert validate_date_string("26-06-2023")
 
 
 def test_generate_stock_fair_value():
@@ -48,12 +48,12 @@ def test_generate_stock_fair_value_value_error():
 
 
 def test_is_allowed_filename():
-    assert is_allowed_file("foo.csv") == True
-    assert is_allowed_file("foo.txt") == False
+    assert is_allowed_file("foo.csv")
+    assert not is_allowed_file("foo.txt")
 
 
 def test_value_is_true():
-    assert value_is_true("True") == True
-    assert value_is_true("true") == True
-    assert value_is_true("False") == False
-    assert value_is_true("false") == False
+    assert value_is_true("True")
+    assert value_is_true("true")
+    assert not value_is_true("False")
+    assert not value_is_true("false")
