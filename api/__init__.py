@@ -1,19 +1,22 @@
 import os
 import logging
 from dotenv import load_dotenv
-from flask import Flask
-from flask_cors import CORS
-from .db.setup import db_connect
-from api.user import views as user
-from api.alert import views as alert
-from api.record import views as record
-from api.event import views as event
-from api.analysis import views as analysis
-from api.rate_limiter.rate_limiter import limiter
-
-from api.exception.models import UnauthorizedException, BadRequestException
 
 load_dotenv("config/.env")
+
+from flask import Flask  # noqa: E402
+from flask_cors import CORS  # noqa: E402
+from .db.setup import db_connect  # noqa: E402
+from api.user import views as user  # noqa: E402
+from api.alert import views as alert  # noqa: E402
+from api.record import views as record  # noqa: E402
+from api.event import views as event  # noqa: E402
+from api.analysis import views as analysis  # noqa: E402
+from api.rate_limiter.rate_limiter import limiter  # noqa: E402
+from api.exception.models import (  # noqa: E402
+    UnauthorizedException,
+    BadRequestException,
+)
 
 
 app = Flask(__name__)
