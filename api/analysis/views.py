@@ -218,6 +218,7 @@ def handle_pubsub_subscription_push():
             AnalysisJob.update_analysis_job_by_id(
                 analysis_job_id=job_id,
                 data={
+                    "most_recent_fear_greed_index": most_recent_fear_greed_index,
                     "fair_value": generate_stock_fair_value(
                         most_recent_close, most_recent_fear_greed_index
                     ),
