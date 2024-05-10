@@ -17,7 +17,7 @@ The list of repositories are as follow:
 - Run app on host machine:
 
 ```bash
-virtualenv -p /usr/bin/python3 venv
+python -m venv venv
 source venv/bin/activate
 pip3 install -r requirements.txt
 python3 manage.py
