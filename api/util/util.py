@@ -1,6 +1,7 @@
 from functools import cache
 from flask import jsonify
 from datetime import datetime, timezone
+from typing import List
 from api.common.constants import DATETIME_FORMATE_CODE
 import json
 
@@ -50,6 +51,10 @@ def validate_date_string(date_text):
 
 def value_is_true(value: str):
     return value.lower() == "true"
+
+
+def return_union_set(first_list: List[int], second_list: List[int]):
+    return set(first_list) | set(second_list)
 
 
 @cache

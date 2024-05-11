@@ -1,11 +1,12 @@
 import os
 import logging
+import certifi
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 
 def mongo_client():
     mongodb_url = os.environ.get("MONGO_DB_CONNECTION_STRING")
-    client = MongoClient(mongodb_url)
+    client = MongoClient(mongodb_url, tlsCAFile=certifi.where())
     return client
 
 def shutdown():

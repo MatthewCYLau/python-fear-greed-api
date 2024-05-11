@@ -6,6 +6,7 @@ from api.util.util import (
     generate_stock_fair_value,
     is_allowed_file,
     value_is_true,
+    return_union_set
 )
 
 
@@ -57,3 +58,6 @@ def test_value_is_true():
     assert value_is_true("true")
     assert not value_is_true("False")
     assert not value_is_true("false")
+
+def test_return_union_set():
+    assert return_union_set(['foo', 'bar'], ['bar', 'fooo']) == {'foo', 'bar', 'fooo'}
