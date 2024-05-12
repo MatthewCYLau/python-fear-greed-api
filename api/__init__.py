@@ -1,10 +1,12 @@
 import os
 import logging
+import random
+import asyncio
 from dotenv import load_dotenv
 
 load_dotenv("config/.env")
 
-from flask import Flask  # noqa: E402
+from flask import Flask, jsonify  # noqa: E402
 from flask_cors import CORS  # noqa: E402
 from .db.setup import db_connect  # noqa: E402
 from api.user import views as user  # noqa: E402
@@ -42,6 +44,17 @@ def handle_unauthorized_exception(e):
 if os.environ.get("MONGO_DB_CONNECTION_STRING"):
     db_connect()
 
+async def return_random_int(x: int) -> int:
+    logging.info(f"Called coroutine with {x}")
+    await asyncio.sleep(3)
+    return {"res": random.randint(1, 10) * x}
+
+@app.route("/async")
+async def get_random_int():
+    futures = [return_random_int(x) for x in range(random.randint(1, 5))]
+    results = await asyncio.gather(*futures)
+    response = list(results)
+    return jsonify(response)
 
 @app.route("/ping")
 def ping():
