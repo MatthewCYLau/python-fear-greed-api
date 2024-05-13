@@ -3,6 +3,8 @@ from flask import jsonify
 from datetime import datetime, timezone
 from typing import List
 from api.common.constants import DATETIME_FORMATE_CODE
+import asyncio
+import random
 import json
 
 
@@ -55,6 +57,11 @@ def value_is_true(value: str):
 
 def return_union_set(first_list: List[int], second_list: List[int]):
     return set(first_list) | set(second_list)
+
+
+async def return_random_int(x: int) -> int:
+    await asyncio.sleep(3)
+    return random.randint(1, 10) * x
 
 
 @cache

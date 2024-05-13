@@ -6,7 +6,8 @@ from api.util.util import (
     generate_stock_fair_value,
     is_allowed_file,
     value_is_true,
-    return_union_set
+    return_union_set,
+    return_random_int,
 )
 
 
@@ -59,5 +60,10 @@ def test_value_is_true():
     assert not value_is_true("False")
     assert not value_is_true("false")
 
+
+async def test_return_random_int():
+    assert isinstance(await return_random_int(1), int)
+
+
 def test_return_union_set():
-    assert return_union_set(['foo', 'bar'], ['bar', 'fooo']) == {'foo', 'bar', 'fooo'}
+    assert return_union_set(["foo", "bar"], ["bar", "fooo"]) == {"foo", "bar", "fooo"}

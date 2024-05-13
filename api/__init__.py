@@ -15,6 +15,7 @@ from api.record import views as record  # noqa: E402
 from api.event import views as event  # noqa: E402
 from api.analysis import views as analysis  # noqa: E402
 from api.rate_limiter.rate_limiter import limiter  # noqa: E402
+from api.util.util import return_random_int  # noqa: E402
 from api.exception.models import (  # noqa: E402
     UnauthorizedException,
     BadRequestException,
@@ -44,17 +45,14 @@ def handle_unauthorized_exception(e):
 if os.environ.get("MONGO_DB_CONNECTION_STRING"):
     db_connect()
 
-async def return_random_int(x: int) -> int:
-    logging.info(f"Called coroutine with {x}")
-    await asyncio.sleep(3)
-    return {"res": random.randint(1, 10) * x}
 
 @app.route("/async")
 async def get_random_int():
     futures = [return_random_int(x) for x in range(random.randint(1, 5))]
     results = await asyncio.gather(*futures)
-    response = list(results)
+    response = [{"result": i} for i in results]
     return jsonify(response)
+
 
 @app.route("/ping")
 def ping():
