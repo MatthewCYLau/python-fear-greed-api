@@ -1,5 +1,6 @@
 import os
 import logging
+import time
 import random
 import asyncio
 from dotenv import load_dotenv
@@ -48,9 +49,13 @@ if os.environ.get("MONGO_DB_CONNECTION_STRING"):
 
 @app.route("/async")
 async def get_random_int():
+    start_time = time.perf_counter()
     futures = [return_random_int(x) for x in range(random.randint(1, 5))]
     results = await asyncio.gather(*futures)
     response = [{"result": i} for i in results]
+    end_time = time.perf_counter()
+    formatted_time_taken = "{:.2f}".format(round(end_time - start_time, 2))
+    logging.info(f"Time taken: {formatted_time_taken}")
     return jsonify(response)
 
 
