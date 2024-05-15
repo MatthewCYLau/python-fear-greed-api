@@ -62,7 +62,7 @@ def test_value_is_true():
 
 
 async def test_return_random_int():
-    assert isinstance(await return_random_int(1), int)
+    assert isinstance(await return_random_int(x=1), int)
 
 
 def test_return_union_set():

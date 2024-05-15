@@ -50,7 +50,7 @@ if os.environ.get("MONGO_DB_CONNECTION_STRING"):
 @app.route("/async")
 async def get_random_int():
     start_time = time.perf_counter()
-    futures = [return_random_int(x) for x in range(random.randint(1, 5))]
+    futures = [return_random_int(x=x) for x in range(random.randint(1, 5))]
     results = await asyncio.gather(*futures)
     response = [{"result": i} for i in results]
     end_time = time.perf_counter()
