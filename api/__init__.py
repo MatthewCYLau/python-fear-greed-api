@@ -3,6 +3,7 @@ import logging
 import time
 import random
 import asyncio
+import requests
 from dotenv import load_dotenv
 
 load_dotenv("config/.env")
@@ -57,6 +58,18 @@ async def get_random_int():
     formatted_time_taken = "{:.2f}".format(round(end_time - start_time, 2))
     logging.info(f"Time taken: {formatted_time_taken}")
     return jsonify(response)
+
+
+@app.route("/random")
+def get_random_int_http_request():
+    response = requests.get(
+        "https://www.randomnumberapi.com/api/v1.0/random?min=100&max=1000"
+    )
+    if response.status_code == 200:
+        random_num = response.json()[0]
+        return jsonify({"random_num": random_num}), 200
+    else:
+        raise BadRequestException("Get random number failed!", status_code=400)
 
 
 @app.route("/ping")
