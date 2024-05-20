@@ -40,6 +40,11 @@ def get_stock_analysis(_):
     logging.info(f"Analysing stock with ticker symbol {stock_symbol}...")
     try:
         data = yf.Ticker(stock_symbol)
+        stock_info = data.info
+        current_price = stock_info["currentPrice"]
+        EPS = stock_info["trailingEps"]
+        PE_ratio = float("{:.2f}".format(current_price / EPS))
+        logging.info(f"{stock_symbol} has PE ratio of {PE_ratio}")
         df = data.history(period="1mo")
 
         for index, row in df.tail().iterrows():
