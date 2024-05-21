@@ -49,6 +49,15 @@ def test_generate_stock_fair_value():
         == 60.28
     )
 
+    assert (
+        generate_stock_fair_value(
+            most_recent_close=195.58,
+            most_recent_fear_greed_index=45,
+            current_pe_ratio=24.31,
+        )
+        == 107.27
+    )
+
 
 def test_generate_stock_fair_value_value_error():
     with pytest.raises(ValueError):
