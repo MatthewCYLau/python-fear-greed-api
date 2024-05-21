@@ -38,7 +38,7 @@ def get_stock_analysis(_):
     target_fear_greed_index = request.args.get(
         "targetFearGreedIndex", default=None, type=int
     )
-    target_pe_ratio = request.args.get("targePeRatio", default=None, type=float)
+    target_pe_ratio = request.args.get("targetPeRatio", default=None, type=float)
 
     if not stock_symbol:
         raise BadRequestException("Provide a stock symbol", status_code=400)
@@ -114,6 +114,8 @@ def create_analysis_job(user):
 
     new_analysis_job = AnalysisJob(
         stock_symbol=data["stock"],
+        target_fear_greed_index=data["targetFearGreedIndex"],
+        target_pe_ratio=data["targetPeRatio"],
         created_by=user["_id"],
     )
     try:
@@ -124,7 +126,12 @@ def create_analysis_job(user):
         return jsonify({"errors": [{"message": "Failed to create analysis job"}]}), 500
     try:
         publisher = pubsub_v1.PublisherClient()
-        job_data_dict = {"StockSymbol": data["stock"], "JobId": str(analysis_job_id)}
+        job_data_dict = {
+            "StockSymbol": data["stock"],
+            "TargetFearGreedIndex": data["targetFearGreedIndex"],
+            "TargetPeRatio": data["targetPeRatio"],
+            "JobId": str(analysis_job_id),
+        }
         job_data_encode = json.dumps(job_data_dict, indent=2).encode("utf-8")
         future = publisher.publish(topic_name, job_data_encode)
         message_id = future.result()
@@ -215,14 +222,21 @@ def handle_pubsub_subscription_push():
         )
         message_json = json.loads(message_string)
         stock_symbol = message_json["StockSymbol"]
+        target_fear_greed_index = message_json["TargetFearGreedIndex"]
+        target_pe_ratio = message_json["TargetPeRatio"]
         job_id = message_json["JobId"]
         logging.info(
-            f"Received Pub Sub message with for stock {stock_symbol} with job ID {job_id}"
+            f"Received Pub Sub message with for stock {stock_symbol} with job ID {job_id}; {target_fear_greed_index} and {target_pe_ratio}"
         )
         try:
             start_time = time.perf_counter()
             data = yf.Ticker(stock_symbol)
             df = data.history(period="1mo")
+            stock_info = data.info
+            current_price = stock_info["currentPrice"]
+            EPS = stock_info["trailingEps"]
+            PE_ratio = float("{:.2f}".format(current_price / EPS))
+            logging.info(f"{stock_symbol} has PE ratio of {PE_ratio}")
             most_recent_close = df.tail(1)["Close"].values[0]
             logging.info(
                 f"Most recent close for stock {stock_symbol} is {most_recent_close}"
@@ -233,7 +247,11 @@ def handle_pubsub_subscription_push():
                 data={
                     "most_recent_fear_greed_index": most_recent_fear_greed_index,
                     "fair_value": generate_stock_fair_value(
-                        most_recent_close, most_recent_fear_greed_index
+                        most_recent_close,
+                        most_recent_fear_greed_index,
+                        PE_ratio,
+                        target_fear_greed_index=target_fear_greed_index,
+                        target_pe_ratio=target_pe_ratio,
                     ),
                     "complete": True,
                 },
