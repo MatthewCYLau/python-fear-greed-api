@@ -21,4 +21,5 @@ def test_new_alert():
         created_by="bar",
     )
     assert alert.view_count == 0
+    assert alert.index == 40
     assert type(alert.created) is datetime
