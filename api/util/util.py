@@ -66,10 +66,23 @@ async def return_random_int(*, x: int) -> int:
 
 @cache
 def generate_stock_fair_value(
-    most_recent_close: float, most_recent_fear_greed_index: int
+    most_recent_close: float,
+    most_recent_fear_greed_index: int,
+    current_pe_ratio: float,
+    target_fear_greed_index: int = 40,
+    target_pe_ratio: int = 15,
 ) -> float:
-    if not isinstance(most_recent_close, float):
-        raise ValueError("Recent close must be instance of float")
-    if not isinstance(most_recent_fear_greed_index, int):
-        raise ValueError("Index must be instance of int")
-    return round(most_recent_close * ((100 - most_recent_fear_greed_index) / 100), 2)
+    if not isinstance(most_recent_close, float) or not isinstance(
+        current_pe_ratio, float
+    ):
+        raise ValueError("Recent close and current PE ratio must be instance of float")
+    if not isinstance(most_recent_fear_greed_index, int) or not isinstance(
+        target_fear_greed_index, int
+    ):
+        raise ValueError("Fear and greed index must be instance of int")
+    return round(
+        most_recent_close
+        * (target_pe_ratio / current_pe_ratio)
+        * (target_fear_greed_index / most_recent_fear_greed_index),
+        2,
+    )

@@ -40,13 +40,19 @@ def test_validate_date_string():
 
 
 def test_generate_stock_fair_value():
-    assert generate_stock_fair_value(100.12, 80) == 20.02
-    assert generate_stock_fair_value(80.21, 34) == 52.94
+    assert (
+        generate_stock_fair_value(
+            most_recent_close=191.04,
+            most_recent_fear_greed_index=64,
+            current_pe_ratio=29.71,
+        )
+        == 60.28
+    )
 
 
 def test_generate_stock_fair_value_value_error():
     with pytest.raises(ValueError):
-        generate_stock_fair_value("foo", 34)
+        generate_stock_fair_value("foo", 34, 10.00)
 
 
 def test_is_allowed_filename():

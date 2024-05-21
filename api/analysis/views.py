@@ -58,6 +58,8 @@ def get_stock_analysis(_):
                 generate_stock_fair_value,
                 most_recent_close,
                 most_recent_fear_greed_index,
+                PE_ratio,
+                target_pe_ratio=21,
             )
             fair_value = future.result()
         return (
