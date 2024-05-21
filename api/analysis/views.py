@@ -246,6 +246,9 @@ def handle_pubsub_subscription_push():
                 analysis_job_id=job_id,
                 data={
                     "most_recent_fear_greed_index": most_recent_fear_greed_index,
+                    "current_pe_ratio": PE_ratio,
+                    "target_fear_greed_index": target_fear_greed_index,
+                    "target_pe_ratio": target_pe_ratio,
                     "fair_value": generate_stock_fair_value(
                         most_recent_close,
                         most_recent_fear_greed_index,

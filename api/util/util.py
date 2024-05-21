@@ -1,4 +1,3 @@
-from functools import cache
 from flask import jsonify
 from datetime import datetime, timezone
 from typing import List
@@ -64,7 +63,6 @@ async def return_random_int(*, x: int) -> int:
     return random.randint(1, 10) * x
 
 
-@cache
 def generate_stock_fair_value(
     most_recent_close: float,
     most_recent_fear_greed_index: int,
