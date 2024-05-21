@@ -35,6 +35,11 @@ topic_name = f"projects/{GCP_PROJECT_ID}/topics/{PUB_SUB_TOPIC}"
 @auth_required
 def get_stock_analysis(_):
     stock_symbol = request.args.get("stock", default=None, type=None)
+    target_fear_greed_index = request.args.get(
+        "targetFearGreedIndex", default=None, type=int
+    )
+    target_pe_ratio = request.args.get("targePeRatio", default=None, type=float)
+
     if not stock_symbol:
         raise BadRequestException("Provide a stock symbol", status_code=400)
     logging.info(f"Analysing stock with ticker symbol {stock_symbol}...")
@@ -59,7 +64,8 @@ def get_stock_analysis(_):
                 most_recent_close,
                 most_recent_fear_greed_index,
                 PE_ratio,
-                target_pe_ratio=21,
+                target_fear_greed_index=target_fear_greed_index,
+                target_pe_ratio=target_pe_ratio,
             )
             fair_value = future.result()
         return (
