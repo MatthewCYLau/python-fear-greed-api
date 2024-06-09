@@ -84,6 +84,20 @@ def get_stock_analysis(_):
         return jsonify({"message": "Get stock analysis failed"}), 500
 
 
+@bp.route("/analysis-jobs/<analysis_id>", methods=["DELETE"])
+@auth_required
+def delete_alert_by_id(_, analysis_id):
+    try:
+        res = db["analysis_jobs"].delete_one({"_id": ObjectId(analysis_id)})
+        if res.deleted_count:
+            return jsonify({"message": "Analysis job deleted"}), 200
+
+        else:
+            return jsonify({"message": "Analysis job not found"}), 404
+    except Exception:
+        return jsonify({"message": "Delete alert by ID failed"}), 500
+
+
 @bp.route("/analysis-jobs", methods=(["POST"]))
 @auth_required
 def create_analysis_job(user):
