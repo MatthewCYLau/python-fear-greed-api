@@ -1,6 +1,8 @@
+import pytest
 from datetime import datetime
 from api.user.models import User
 from api.alert.models import Alert
+from api.record.models import Record
 
 
 def test_new_user():
@@ -23,3 +25,12 @@ def test_new_alert():
     assert alert.view_count == 0
     assert alert.index == 40
     assert type(alert.created) is datetime
+
+@pytest.fixture(scope='module')
+def new_record():
+    record = Record(42)
+    return record
+
+def test_new_record_with_fixture(new_record):
+    assert new_record.index == 42
+    assert type(new_record.creatd) is str
