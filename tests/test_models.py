@@ -3,6 +3,7 @@ from datetime import datetime
 from api.user.models import User
 from api.alert.models import Alert
 from api.record.models import Record
+from api.exception.models import BadRequestException
 
 
 def test_new_user():
@@ -34,3 +35,11 @@ def new_record():
 def test_new_record_with_fixture(new_record):
     assert new_record.index == 42
     assert type(new_record.creatd) is str
+
+@pytest.fixture(scope='module')
+def new_bad_request_exception():
+    bad_request_exception = BadRequestException("Custom exception message", 400)
+    return bad_request_exception
+
+def test_new_bad_request_exceptions_with_fixture(new_bad_request_exception):
+    assert new_bad_request_exception.status_code == 400
