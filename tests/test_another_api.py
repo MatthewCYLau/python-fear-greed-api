@@ -14,3 +14,10 @@ def test_random_number_with_fixture(test_client):
     assert response.status_code == 200
     assert b"random_num" in response.data
     assert isinstance(json.loads(response.data)['random_num'], int)
+
+def test_async_with_fixture(test_client):
+    response = test_client.get('/async')
+    assert response.status_code == 200
+    response_json = json.loads(response.data)
+    assert isinstance(response_json, list)
+    assert isinstance(response_json[0]['result'], int)
