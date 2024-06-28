@@ -15,6 +15,7 @@ def test_new_user():
     )
     assert user.email == "foo@bar.com"
     assert user.name == "foo"
+    assert not user.isEmailVerified
 
 
 def test_new_alert():
@@ -27,19 +28,23 @@ def test_new_alert():
     assert alert.index == 40
     assert type(alert.created) is datetime
 
-@pytest.fixture(scope='module')
+
+@pytest.fixture(scope="module")
 def new_record():
     record = Record(42)
     return record
+
 
 def test_new_record_with_fixture(new_record):
     assert new_record.index == 42
     assert type(new_record.creatd) is str
 
-@pytest.fixture(scope='module')
+
+@pytest.fixture(scope="module")
 def new_bad_request_exception():
     bad_request_exception = BadRequestException("Custom exception message", 400)
     return bad_request_exception
+
 
 def test_new_bad_request_exceptions_with_fixture(new_bad_request_exception):
     assert new_bad_request_exception.status_code == 400
