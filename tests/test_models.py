@@ -16,6 +16,7 @@ def test_new_user():
     assert user.email == "foo@bar.com"
     assert user.name == "foo"
     assert not user.isEmailVerified
+    assert user.avatarImageUrl == ""
 
 
 def test_new_alert():
