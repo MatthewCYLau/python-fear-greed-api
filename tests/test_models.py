@@ -3,7 +3,7 @@ from datetime import datetime
 from api.user.models import User
 from api.alert.models import Alert
 from api.record.models import Record
-from api.exception.models import BadRequestException
+from api.exception.models import BadRequestException, UnauthorizedException
 
 
 def test_new_user():
@@ -49,3 +49,13 @@ def new_bad_request_exception():
 
 def test_new_bad_request_exceptions_with_fixture(new_bad_request_exception):
     assert new_bad_request_exception.status_code == 400
+
+
+@pytest.fixture(scope="module")
+def new_unauthorized_exception():
+    unauthorized_exception = UnauthorizedException("Unauthorized request")
+    return unauthorized_exception
+
+
+def test_new_unauthorized_exception_with_fixture(new_unauthorized_exception):
+    assert new_unauthorized_exception.status_code == 401
