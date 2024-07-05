@@ -36,6 +36,15 @@ def test_records_export_csv_invalid_start_date(test_client):
     assert b"Invalid date input" in response.data
 
 
+def test_records_export_csv_invalid_end_date(test_client):
+    end_date = "FOO"
+    response = test_client.post(
+        f"/api/records/export-csv?startDate=01-10-2023&endDate={end_date}"
+    )
+    assert response.status_code == 400
+    assert b"Invalid date input" in response.data
+
+
 def test_get_auth_user_with_fixture_unauthorized(test_client):
     response = test_client.get("/api/auth")
     assert response.status_code == 401
