@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from api.db.setup import db
 from bson.objectid import ObjectId
 from concurrent.futures import ProcessPoolExecutor
+from pydantic import BaseModel, ValidationError
 import time
 import os
 import base64
@@ -29,6 +30,12 @@ PUB_SUB_TOPIC = gcp_config["PUB_SUB_TOPIC"]
 
 
 topic_name = f"projects/{GCP_PROJECT_ID}/topics/{PUB_SUB_TOPIC}"
+
+
+class AnalysisJobRequest(BaseModel):
+    stock: str
+    targetFearGreedIndex: int
+    targetPeRatio: int
 
 
 @bp.route("/analysis", methods=(["GET"]))
@@ -125,16 +132,18 @@ def create_analysis_job(user):
             ),
             500,
         )
-
-    new_analysis_job = AnalysisJob(
-        stock_symbol=data["stock"],
-        target_fear_greed_index=data["targetFearGreedIndex"],
-        target_pe_ratio=data["targetPeRatio"],
-        created_by=user["_id"],
-    )
     try:
+        analysis_job_request = AnalysisJobRequest.model_validate_json(request.data)
+        new_analysis_job = AnalysisJob(
+            stock_symbol=analysis_job_request.stock,
+            target_fear_greed_index=analysis_job_request.targetFearGreedIndex,
+            target_pe_ratio=analysis_job_request.targetFearGreedIndex,
+            created_by=user["_id"],
+        )
         analysis_job_id = new_analysis_job.save_analysis_job_to_db()
         logging.info(f"Created analysis job with id: {analysis_job_id}")
+    except ValidationError as e:
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
         logging.error(e)
         return jsonify({"errors": [{"message": "Failed to create analysis job"}]}), 500
