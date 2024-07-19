@@ -1,3 +1,4 @@
+annotated-types==0.7.0
 appdirs==1.4.4
 asgiref==3.8.1
 beautifulsoup4==4.12.3
@@ -54,6 +55,8 @@ pyasn1==0.5.0
 pyasn1-modules==0.3.0
 pycodestyle==2.11.1
 pycparser==2.21
+pydantic==2.8.2
+pydantic_core==2.20.1
 pyflakes==3.2.0
 Pygments==2.18.0
 PyJWT==2.7.0
