@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from api.db.setup import db
 from bson.objectid import ObjectId
 from concurrent.futures import ProcessPoolExecutor
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, field_validator, ValidationInfo
 import time
 import os
 import base64
@@ -36,6 +36,13 @@ class AnalysisJobRequest(BaseModel):
     stock: str
     targetFearGreedIndex: int
     targetPeRatio: int
+
+    @field_validator("targetFearGreedIndex", "targetPeRatio")
+    @classmethod
+    def check_alphanumeric(cls, v: int, info: ValidationInfo) -> str:
+        if v < 1 or v > 99:
+            raise ValueError(f"{info.field_name} must be between 1 and 99 inclusive")
+        return v
 
 
 @bp.route("/analysis", methods=(["GET"]))
