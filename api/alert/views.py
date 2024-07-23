@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 import logging
+from pydantic import BaseModel, field_validator, ValidationInfo
 from bson.objectid import ObjectId
 from api.db.setup import db
 from api.util.util import (
@@ -10,6 +11,18 @@ from .models import Alert
 from api.exception.models import UnauthorizedException, BadRequestException
 
 bp = Blueprint("alert", __name__)
+
+
+class CreateAlertRequest(BaseModel):
+    index: int
+    note: str
+
+    @field_validator("index")
+    @classmethod
+    def check_alphanumeric(cls, v: int, info: ValidationInfo) -> str:
+        if v < 1 or v > 99:
+            raise ValueError(f"{info.field_name} must be between 1 and 99 inclusive")
+        return v
 
 
 @bp.route("/alerts", methods=(["GET"]))
@@ -49,15 +62,10 @@ def get_alert_by_id(_, alert_id):
 @bp.route("/alerts", methods=(["POST"]))
 @auth_required
 def create_alert(user):
-    data = request.get_json()
-    index = data["index"]
-    if int(index) > 100 or int(index) <= 0:
-        raise BadRequestException(
-            "Index must be between 1 and 100 inclusive", status_code=400
-        )
+    create_alert_request = CreateAlertRequest.model_validate_json(request.data)
     new_alert = Alert(
-        index=index,
-        note=data["note"],
+        create_alert_request.index,
+        create_alert_request.note,
         created_by=user["_id"],
     )
     res = db.alerts.insert_one(vars(new_alert))
