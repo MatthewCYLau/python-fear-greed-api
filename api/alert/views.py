@@ -8,7 +8,7 @@ from api.util.util import (
 )
 from api.auth.auth import auth_required
 from .models import Alert
-from api.exception.models import UnauthorizedException, BadRequestException
+from api.exception.models import UnauthorizedException
 
 bp = Blueprint("alert", __name__)
 
