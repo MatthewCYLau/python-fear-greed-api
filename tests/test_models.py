@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime
-from api.user.models import User
+from api.user.models import User, TestUserType, UserType
 from api.alert.models import Alert
 from api.record.models import Record
 from api.exception.models import BadRequestException, UnauthorizedException
@@ -59,3 +59,8 @@ def new_unauthorized_exception():
 
 def test_new_unauthorized_exception_with_fixture(new_unauthorized_exception):
     assert new_unauthorized_exception.status_code == 401
+
+
+def test_user_type():
+    test_user = TestUserType(UserType.INDIVIDUAL_INVESTOR)
+    assert test_user.userType == "INDIVIDUAL_INVESTOR"

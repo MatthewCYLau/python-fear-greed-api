@@ -4,6 +4,18 @@ from bson.objectid import ObjectId
 from api.common.models import BaseModel
 from api.db.setup import db
 from api.util.util import get_current_time_utc
+from enum import Enum
+from dataclasses import dataclass
+
+
+class UserType(str, Enum):
+    INDIVIDUAL_INVESTOR = "INDIVIDUAL_INVESTOR"
+    INSTITUTIONAL_INVESTOR = "INSTITUTIONAL_INVESTOR"
+
+
+@dataclass
+class TestUserType:
+    userType: UserType
 
 
 class User(BaseModel):
@@ -13,7 +25,8 @@ class User(BaseModel):
         password,
         name,
         isEmailVerified,
-        avatarImageUrl = '',
+        avatarImageUrl="",
+        userType=UserType.INDIVIDUAL_INVESTOR,
     ):
         super().__init__()
         self.email = email
@@ -21,6 +34,7 @@ class User(BaseModel):
         self.name = name
         self.isEmailVerified = isEmailVerified
         self.avatarImageUrl = avatarImageUrl
+        self.userType = userType
 
     def save_user_to_db(self):
         self.password = generate_password_hash(self.password, method="sha256")
@@ -41,8 +55,10 @@ class User(BaseModel):
                 "avatarImageUrl": data["avatarImageUrl"],
             }
         }
-        if 'password' in data:
-            updated_user["$set"]["password"] = generate_password_hash(data["password"], method="sha256")
+        if "password" in data:
+            updated_user["$set"]["password"] = generate_password_hash(
+                data["password"], method="sha256"
+            )
         return db["users"].update_one({"_id": ObjectId(user_id)}, updated_user, True)
 
     def update_user_as_email_verified(email):
