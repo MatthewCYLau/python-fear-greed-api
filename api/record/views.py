@@ -5,9 +5,12 @@ from api.util.util import generate_response, validate_date_string, is_allowed_fi
 from api.exception.models import BadRequestException
 from datetime import datetime
 from api.rate_limiter.rate_limiter import limiter
+from google.cloud import storage
 import logging
 import yaml
 import os
+import io
+import json
 import pandas as pd
 import numpy as np
 
@@ -18,6 +21,12 @@ with open(
     os.path.dirname(os.path.dirname(__file__)) + "/config/columns.yaml", "r"
 ) as f:
     yaml_content = yaml.safe_load(f)
+
+with open(
+    os.path.dirname(os.path.dirname(__file__)) + "/config/gcp_config.json"
+) as gcp_config_json:
+    gcp_config = json.load(gcp_config_json)
+ASSET_BUCKET_NAME = gcp_config["ASSET_BUCKET_NAME"]
 
 
 @bp.route("/records", methods=(["GET"]))
@@ -145,6 +154,21 @@ def upload_records_csv():
     if "fear_greed_index" in df.columns:
         logging.info("CSV has required columns.")
     logging.info(df.index)
+    response = make_response(df.to_json(orient="table"))
+    response.headers["Content-Type"] = "application/json"
+    return response
+
+
+@bp.route("/records/import-from-csv", methods=(["POST"]))
+def import_records_from_csv():
+    object_url = request.get_json()["objectUrl"]
+    storage_client = storage.Client()
+    blob_name = object_url.split("/")[-1]
+    bucket = storage_client.bucket(ASSET_BUCKET_NAME)
+    blob = bucket.blob(blob_name)
+    data = blob.download_as_bytes()
+    df = pd.read_csv(io.BytesIO(data), delimiter=",")
+    logging.info(df)
     response = make_response(df.to_json(orient="table"))
     response.headers["Content-Type"] = "application/json"
     return response
