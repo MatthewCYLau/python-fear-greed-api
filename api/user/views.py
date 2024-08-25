@@ -120,7 +120,7 @@ def update_user_by_id(current_user, user_id):
         user = db["users"].find_one({"email": data["email"]})
         if user:
             raise BadRequestException("Email already registered", status_code=400)
-    if 'password' in data and not data["password"]:
+    if "password" in data and not data["password"]:
         raise BadRequestException("New password cannot be empty", status_code=400)
     try:
         res = User.update_user_by_id(user_id=user_id, data=data)
@@ -133,7 +133,7 @@ def update_user_by_id(current_user, user_id):
         return jsonify({"message": "Update user failed"}), 500
 
 
-@bp.route("/upload-image", methods=(["POST"]))
+@bp.route("/upload-file", methods=(["POST"]))
 def upload_image():
     try:
         storage_client = storage.Client(project="open-source-apps-001")
@@ -146,4 +146,4 @@ def upload_image():
         return jsonify({"asset_url": blob.public_url}), 200
     except Exception as e:
         logging.error(e)
-        return jsonify({"message": "Upload image failed"}), 500
+        return jsonify({"message": "Upload file failed"}), 500
