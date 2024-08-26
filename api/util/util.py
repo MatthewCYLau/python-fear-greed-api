@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from typing import List
 from api.common.constants import DATETIME_FORMATE_CODE
 import asyncio
+import pandas as pd
 import random
 import json
 
@@ -83,4 +84,17 @@ def generate_stock_fair_value(
         * (target_pe_ratio / current_pe_ratio)
         * (target_fear_greed_index / most_recent_fear_greed_index),
         2,
+    )
+
+
+def generate_df_from_csv(data):
+    date_cols = [
+        "Date",
+    ]
+    return pd.read_csv(
+        data,
+        sep=",",
+        header=0,
+        parse_dates=date_cols,
+        dayfirst=True,
     )

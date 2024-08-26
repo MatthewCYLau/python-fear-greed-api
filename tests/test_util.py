@@ -8,6 +8,7 @@ from api.util.util import (
     value_is_true,
     return_union_set,
     return_random_int,
+    generate_df_from_csv,
 )
 
 
@@ -82,3 +83,9 @@ async def test_return_random_int():
 
 def test_return_union_set():
     assert return_union_set(["foo", "bar"], ["bar", "fooo"]) == {"foo", "bar", "fooo"}
+
+
+def test_generate_df_from_csv():
+    df = generate_df_from_csv("data/example.csv")
+    assert "Date" in df.columns
+    assert "Index" in df.columns

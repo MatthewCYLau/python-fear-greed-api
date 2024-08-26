@@ -1,7 +1,12 @@
 from flask import Blueprint, request, make_response, jsonify
 from api.common.constants import DATETIME_FORMATE_CODE
 from api.db.setup import db
-from api.util.util import generate_response, validate_date_string, is_allowed_file
+from api.util.util import (
+    generate_response,
+    validate_date_string,
+    is_allowed_file,
+    generate_df_from_csv,
+)
 from api.exception.models import BadRequestException
 from datetime import datetime
 from api.rate_limiter.rate_limiter import limiter
@@ -27,19 +32,6 @@ with open(
 ) as gcp_config_json:
     gcp_config = json.load(gcp_config_json)
 ASSET_BUCKET_NAME = gcp_config["ASSET_BUCKET_NAME"]
-
-
-def generate_df_from_csv(data):
-    date_cols = [
-        "Date",
-    ]
-    return pd.read_csv(
-        data,
-        sep=",",
-        header=0,
-        parse_dates=date_cols,
-        dayfirst=True,
-    )
 
 
 @bp.route("/records", methods=(["GET"]))
