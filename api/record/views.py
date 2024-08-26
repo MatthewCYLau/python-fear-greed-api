@@ -29,6 +29,19 @@ with open(
 ASSET_BUCKET_NAME = gcp_config["ASSET_BUCKET_NAME"]
 
 
+def generate_df_from_csv(data):
+    date_cols = [
+        "Date",
+    ]
+    return pd.read_csv(
+        data,
+        sep=",",
+        header=0,
+        parse_dates=date_cols,
+        dayfirst=True,
+    )
+
+
 @bp.route("/records", methods=(["GET"]))
 def get_records():
     count = int(request.args["count"]) if "count" in request.args else 0
@@ -167,7 +180,7 @@ def import_records_from_csv():
     bucket = storage_client.bucket(ASSET_BUCKET_NAME)
     blob = bucket.blob(blob_name)
     data = blob.download_as_bytes()
-    df = pd.read_csv(io.BytesIO(data), delimiter=",")
+    df = generate_df_from_csv(io.BytesIO(data))
     logging.info(df)
     response = make_response(df.to_json(orient="table"))
     response.headers["Content-Type"] = "application/json"
