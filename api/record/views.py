@@ -173,7 +173,7 @@ def import_records_from_csv():
     blob = bucket.blob(blob_name)
     data = blob.download_as_bytes()
     df = generate_df_from_csv(io.BytesIO(data))
-    logging.info(df)
+    [logging.info(f"{x} - {y}") for x, y in zip(df["Date"], df["Index"])]
     response = make_response(df.to_json(orient="table"))
     response.headers["Content-Type"] = "application/json"
     return response
