@@ -91,3 +91,4 @@ def test_generate_df_from_csv():
     assert "Date" in df.columns
     assert "Index" in df.columns
     assert df["Index"].dtype, pd.Int64Dtype()
+    assert df["Date"].dtype, pd.DatetimeTZDtype()
