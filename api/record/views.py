@@ -8,6 +8,7 @@ from api.util.util import (
     generate_df_from_csv,
 )
 from api.exception.models import BadRequestException
+from api.record.models import Record
 from datetime import datetime
 from api.rate_limiter.rate_limiter import limiter
 from google.cloud import storage
@@ -173,7 +174,12 @@ def import_records_from_csv():
     blob = bucket.blob(blob_name)
     data = blob.download_as_bytes()
     df = generate_df_from_csv(io.BytesIO(data))
-    [logging.info(f"{x} - {y}") for x, y in zip(df["Date"], df["Index"])]
+    [
+        logging.info(
+            f"{x} - {y} - count of records next day: {len(Record.get_records_created_within_next_days(x, 1))}"
+        )
+        for x, y in zip(df["Date"], df["Index"])
+    ]
     response = make_response(df.to_json(orient="table"))
     response.headers["Content-Type"] = "application/json"
     return response
