@@ -1,4 +1,5 @@
 import pytz
+import logging
 from datetime import datetime, timezone, timedelta
 from api.db.setup import db
 
@@ -10,12 +11,16 @@ class Record:
         self.index = index
         self.creatd = datetime.now(timezone.utc).astimezone(GB).isoformat()
 
+    def save_to_database(self):
+        db["records"].insert_one(vars(self))
+        logging.info(f"Saved record to database - {self.index}")
+
     @staticmethod
     def get_most_recent_record():
         return list(db["records"].find().sort("created", -1).limit(0))[0]
 
     @staticmethod
-    def get_records_created_within_next_days(start_date: datetime, next_days: int):
+    def _get_records_created_within_next_days(start_date: datetime, next_days: int = 1):
         return list(
             db["records"].find(
                 {
@@ -26,3 +31,17 @@ class Record:
                 }
             )
         )
+
+    @staticmethod
+    def import_from_dataframe(df) -> int:
+        inserted = 0
+        for x, y in zip(df["Date"], df["Index"]):
+            count = len(Record._get_records_created_within_next_days(x))
+            if count:
+                logging.info(
+                    f"Skipping inserting record for {x} - {y} - count of records next day: {count}"
+                )
+            else:
+                logging.info(f"Inserting record for {x} - {y}")
+                inserted += 1
+        return inserted
