@@ -4,7 +4,7 @@ from google.cloud import storage
 from bson.objectid import ObjectId
 from api.db.setup import db
 from api.util.util import generate_response
-from api.auth.auth import auth_required
+from api.auth.auth import auth_required, validate_google_oauth_token
 from api.exception.models import UnauthorizedException, BadRequestException
 import os
 import jwt
@@ -147,3 +147,28 @@ def upload_image():
     except Exception as e:
         logging.error(e)
         return jsonify({"message": "Upload file failed"}), 500
+
+
+@bp.route("/validate-token", methods=["POST"])
+def validate_oauth_token():
+    token = request.json.get("token")
+
+    if not token:
+        return jsonify({"error": "Missing token"}), 400
+
+    is_valid, user_id, email, name = validate_google_oauth_token(token)
+
+    if is_valid:
+        return (
+            jsonify(
+                {
+                    "message": "Token is valid",
+                    "user_id": user_id,
+                    "email": email,
+                    "name": name,
+                }
+            ),
+            200,
+        )
+    else:
+        return jsonify({"error": "Invalid token"}), 401
