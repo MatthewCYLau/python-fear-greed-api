@@ -52,6 +52,7 @@ ordered-set==4.1.0
 packaging==23.1
 pandas==2.2.0
 peewee==3.17.3
+platformdirs==4.3.6
 pluggy==1.0.0
 proto-plus==1.23.0
 protobuf==4.23.4
@@ -86,5 +87,5 @@ urllib3==1.26.16
 webencodings==0.5.1
 Werkzeug==2.3.4
 wrapt==1.16.0
-yfinance==0.2.36
+yfinance==0.2.43
 zipp==3.15.0
