@@ -136,6 +136,15 @@ def get_records_csv():
         (df["fear_greed_index"] >= min_index) & (df["fear_greed_index"] <= max_index)
     ]
 
+    mean_index = filtered_df.loc[:, "fear_greed_index"].mean()
+    logging.info(f"Mean index is {mean_index:.2f}")
+
+    logging.info(
+        filtered_df.groupby([df.index.strftime("%b %Y")])["fear_greed_index"]
+        .mean()
+        .reset_index(name="Monthly Average")
+    )
+
     response = make_response(filtered_df.to_csv())
     response.headers["Content-Disposition"] = (
         f"attachment; filename={datetime.today().strftime(DATETIME_FORMATE_CODE)}.csv"
