@@ -1,3 +1,4 @@
+import base64
 from flask import Blueprint, request, make_response, jsonify
 from api.common.constants import DATETIME_FORMATE_CODE
 from api.db.setup import db
@@ -9,7 +10,8 @@ from api.util.util import (
 )
 from api.exception.models import BadRequestException
 from api.record.models import Record
-from datetime import datetime
+import pytz
+from datetime import datetime, timezone, timedelta
 from api.rate_limiter.rate_limiter import limiter
 from google.cloud import storage
 import logging
@@ -19,6 +21,13 @@ import io
 import json
 import pandas as pd
 import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+matplotlib.use("agg")
+
 
 bp = Blueprint("records", __name__)
 limiter.limit("25/minute")(bp)
@@ -184,3 +193,37 @@ def import_records_from_csv():
     data = blob.download_as_bytes()
     df = generate_df_from_csv(io.BytesIO(data))
     return jsonify({"count": Record.import_from_dataframe(df)})
+
+
+@bp.route("/records/export-image", methods=(["POST"]))
+def export_image_gcs_blob():
+
+    dates = pd.date_range(
+        (datetime.today() - timedelta(days=10)).strftime("%Y-%m-%d"), periods=10
+    )
+
+    values = np.random.randint(1, 100, size=10)
+    df = pd.DataFrame({"Date": dates, "Value": values})
+
+    plt.figure(figsize=(10, 6))
+
+    # Scatter plot
+    sns.scatterplot(x=df["Date"], y=df["Value"], color="blue", label="Data Points")
+
+    # Set titles and labels
+    plt.title("Scatter Plot", fontsize=14)
+    plt.xlabel("Date", fontsize=12)
+    plt.ylabel("Value", fontsize=12)
+
+    fig_to_upload = plt.gcf()
+
+    buf = io.BytesIO()
+    fig_to_upload.savefig(buf, format="png")
+
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(ASSET_BUCKET_NAME)
+    GB = pytz.timezone("Europe/London")
+    timestamp = datetime.now(timezone.utc).astimezone(GB).timestamp()
+    blob = bucket.blob(f"{timestamp}-plot.png")
+    blob.upload_from_file(buf, content_type="image/png", rewind=True)
+    return jsonify({"image_url": blob.public_url}), 200
