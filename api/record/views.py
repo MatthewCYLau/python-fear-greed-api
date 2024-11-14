@@ -1,4 +1,3 @@
-import base64
 from flask import Blueprint, request, make_response, jsonify
 from api.common.constants import DATETIME_FORMATE_CODE
 from api.db.setup import db
