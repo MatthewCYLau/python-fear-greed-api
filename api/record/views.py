@@ -73,6 +73,87 @@ def get_records_count_bin():
 
 @bp.route("/records/export-csv", methods=(["POST"]))
 def get_records_csv():
+    filtered_df = _generate_filtered_dataframe()
+    mean_index = filtered_df.loc[:, "fear_greed_index"].mean()
+    logging.info(f"Mean index is {mean_index:.2f}")
+
+    logging.info(
+        filtered_df.groupby([filtered_df.index.strftime("%b %Y")])["fear_greed_index"]
+        .mean()
+        .reset_index(name="Monthly Average")
+    )
+
+    response = make_response(filtered_df.to_csv())
+    response.headers["Content-Disposition"] = (
+        f"attachment; filename={datetime.today().strftime(DATETIME_FORMATE_CODE)}.csv"
+    )
+    response.mimetype = "text/csv"
+    return response
+
+
+@bp.route("/records/upload-csv", methods=(["POST"]))
+def upload_records_csv():
+    file = request.files.get("file")
+
+    if not file or not is_allowed_file(file.filename):
+        raise BadRequestException("Please upload a CSV file", status_code=400)
+
+    try:
+        df = pd.read_csv(
+            file, encoding="utf-8", index_col=["created"], parse_dates=["created"]
+        )
+    except Exception as e:
+        raise BadRequestException(f"Failed to read CSV {e}", status_code=400)
+    if "fear_greed_index" in df.columns:
+        logging.info("CSV has required columns.")
+    logging.info(df.index)
+    response = make_response(df.to_json(orient="table"))
+    response.headers["Content-Type"] = "application/json"
+    return response
+
+
+@bp.route("/records/import-from-csv", methods=(["POST"]))
+def import_records_from_csv():
+    object_url = request.get_json()["objectUrl"]
+    storage_client = storage.Client()
+    blob_name = object_url.split("/")[-1]
+    bucket = storage_client.bucket(ASSET_BUCKET_NAME)
+    blob = bucket.blob(blob_name)
+    data = blob.download_as_bytes()
+    df = generate_df_from_csv(io.BytesIO(data))
+    return jsonify({"count": Record.import_from_dataframe(df)})
+
+
+@bp.route("/records/generate-plot", methods=(["POST"]))
+def generate_plot_gcs_blob():
+
+    df = _generate_filtered_dataframe()
+
+    plt.figure(figsize=(10, 6))
+
+    # Scatter plot
+    sns.scatterplot(x=df.index, y=df["fear_greed_index"], color="blue", label="Index")
+
+    # Set titles and labels
+    plt.title("Fear & Greed Index", fontsize=14)
+    plt.xlabel("Created", fontsize=12)
+    plt.ylabel("Index", fontsize=12)
+
+    fig_to_upload = plt.gcf()
+
+    buf = io.BytesIO()
+    fig_to_upload.savefig(buf, format="png")
+
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(ASSET_BUCKET_NAME)
+    GB = pytz.timezone("Europe/London")
+    timestamp = datetime.now(timezone.utc).astimezone(GB).timestamp()
+    blob = bucket.blob(f"{timestamp}-plot.png")
+    blob.upload_from_file(buf, content_type="image/png", rewind=True)
+    return jsonify({"image_url": blob.public_url}), 200
+
+
+def _generate_filtered_dataframe():
     min_index = int(request.args["min"]) if "min" in request.args else 0
     max_index = int(request.args["max"]) if "max" in request.args else 100
 
@@ -140,89 +221,15 @@ def get_records_csv():
         count = row["count"]
         logging.info(f"{description} has count {count}")
 
-    filtered_df = df.loc[
+    return df.loc[
         (df["fear_greed_index"] >= min_index) & (df["fear_greed_index"] <= max_index)
     ]
 
-    mean_index = filtered_df.loc[:, "fear_greed_index"].mean()
-    logging.info(f"Mean index is {mean_index:.2f}")
 
-    logging.info(
-        filtered_df.groupby([df.index.strftime("%b %Y")])["fear_greed_index"]
-        .mean()
-        .reset_index(name="Monthly Average")
-    )
-
-    response = make_response(filtered_df.to_csv())
-    response.headers["Content-Disposition"] = (
-        f"attachment; filename={datetime.today().strftime(DATETIME_FORMATE_CODE)}.csv"
-    )
-    response.mimetype = "text/csv"
-    return response
-
-
-@bp.route("/records/upload-csv", methods=(["POST"]))
-def upload_records_csv():
-    file = request.files.get("file")
-
-    if not file or not is_allowed_file(file.filename):
-        raise BadRequestException("Please upload a CSV file", status_code=400)
-
-    try:
-        df = pd.read_csv(
-            file, encoding="utf-8", index_col=["created"], parse_dates=["created"]
-        )
-    except Exception as e:
-        raise BadRequestException(f"Failed to read CSV {e}", status_code=400)
-    if "fear_greed_index" in df.columns:
-        logging.info("CSV has required columns.")
-    logging.info(df.index)
-    response = make_response(df.to_json(orient="table"))
-    response.headers["Content-Type"] = "application/json"
-    return response
-
-
-@bp.route("/records/import-from-csv", methods=(["POST"]))
-def import_records_from_csv():
-    object_url = request.get_json()["objectUrl"]
-    storage_client = storage.Client()
-    blob_name = object_url.split("/")[-1]
-    bucket = storage_client.bucket(ASSET_BUCKET_NAME)
-    blob = bucket.blob(blob_name)
-    data = blob.download_as_bytes()
-    df = generate_df_from_csv(io.BytesIO(data))
-    return jsonify({"count": Record.import_from_dataframe(df)})
-
-
-@bp.route("/records/export-image", methods=(["POST"]))
-def export_image_gcs_blob():
-
+def _generate_random_dataframe():
     dates = pd.date_range(
         (datetime.today() - timedelta(days=10)).strftime("%Y-%m-%d"), periods=10
     )
 
     values = np.random.randint(1, 100, size=10)
-    df = pd.DataFrame({"Date": dates, "Value": values})
-
-    plt.figure(figsize=(10, 6))
-
-    # Scatter plot
-    sns.scatterplot(x=df["Date"], y=df["Value"], color="blue", label="Data Points")
-
-    # Set titles and labels
-    plt.title("Scatter Plot", fontsize=14)
-    plt.xlabel("Date", fontsize=12)
-    plt.ylabel("Value", fontsize=12)
-
-    fig_to_upload = plt.gcf()
-
-    buf = io.BytesIO()
-    fig_to_upload.savefig(buf, format="png")
-
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(ASSET_BUCKET_NAME)
-    GB = pytz.timezone("Europe/London")
-    timestamp = datetime.now(timezone.utc).astimezone(GB).timestamp()
-    blob = bucket.blob(f"{timestamp}-plot.png")
-    blob.upload_from_file(buf, content_type="image/png", rewind=True)
-    return jsonify({"image_url": blob.public_url}), 200
+    return pd.DataFrame({"Date": dates, "Value": values})
