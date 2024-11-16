@@ -192,6 +192,9 @@ def _generate_filtered_dataframe():
     else:
         records = list(db["records"].find())
 
+    if not records:
+        raise BadRequestException("No records found for date range", status_code=400)
+
     df = pd.DataFrame(records)
 
     # drop redundant columns
