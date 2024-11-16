@@ -171,6 +171,9 @@ def _generate_filtered_dataframe():
             "Invalid date input. Must be in format DD-MM-YYYY", status_code=400
         )
 
+    if datetime.strptime(end_date, DATETIME_FORMATE_CODE) > datetime.today():
+        raise BadRequestException("End date cannot be after today", status_code=400)
+
     if start_date and end_date:
         records = list(
             db["records"].find(
