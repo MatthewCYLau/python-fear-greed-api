@@ -89,6 +89,11 @@ def get_stock_analysis(_):
                     "close": most_recent_close,
                     "mostRecentFearGreedIndex": most_recent_fear_greed_index,
                     "fairValue": fair_value,
+                    "delta": float(
+                        "{:.2f}".format(
+                            (fair_value - most_recent_close) / most_recent_close
+                        )
+                    ),
                 }
             ),
             200,
