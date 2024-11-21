@@ -277,6 +277,13 @@ def handle_pubsub_subscription_push():
                 f"Most recent close for stock {stock_symbol} is {most_recent_close}"
             )
             most_recent_fear_greed_index = int(Record.get_most_recent_record()["index"])
+            fair_value = generate_stock_fair_value(
+                most_recent_close,
+                most_recent_fear_greed_index,
+                PE_ratio,
+                target_fear_greed_index=target_fear_greed_index,
+                target_pe_ratio=target_pe_ratio,
+            )
             AnalysisJob.update_analysis_job_by_id(
                 analysis_job_id=job_id,
                 data={
@@ -284,12 +291,11 @@ def handle_pubsub_subscription_push():
                     "current_pe_ratio": PE_ratio,
                     "target_fear_greed_index": target_fear_greed_index,
                     "target_pe_ratio": target_pe_ratio,
-                    "fair_value": generate_stock_fair_value(
-                        most_recent_close,
-                        most_recent_fear_greed_index,
-                        PE_ratio,
-                        target_fear_greed_index=target_fear_greed_index,
-                        target_pe_ratio=target_pe_ratio,
+                    "fair_value": fair_value,
+                    "delta": float(
+                        "{:.2f}".format(
+                            (fair_value - most_recent_close) / most_recent_close
+                        )
                     ),
                     "complete": True,
                 },
