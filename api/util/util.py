@@ -98,3 +98,7 @@ def generate_df_from_csv(data):
         parse_dates=date_cols,
         dayfirst=True,
     )
+
+
+def return_delta(fair_value: int, most_recent_close: int) -> float:
+    return float("{:.2f}".format((fair_value - most_recent_close) / most_recent_close))

@@ -10,6 +10,7 @@ from api.util.util import (
     return_union_set,
     return_random_int,
     generate_df_from_csv,
+    return_delta,
 )
 
 
@@ -92,3 +93,8 @@ def test_generate_df_from_csv():
     assert "Index" in df.columns
     assert df["Index"].dtype, pd.Int64Dtype()
     assert df["Date"].dtype, pd.DatetimeTZDtype()
+
+
+def test_return_delta():
+    assert return_delta(10.54, 30.23) == -0.65
+    assert return_delta(40.54, 30.23) == 0.34

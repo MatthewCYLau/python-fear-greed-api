@@ -13,7 +13,7 @@ import math
 from google.cloud import pubsub_v1
 from api.auth.auth import auth_required
 from api.common.constants import ANALYSIS_JOB_CREATION_DAILY_LIMIT
-from api.util.util import generate_response, generate_stock_fair_value
+from api.util.util import generate_response, generate_stock_fair_value, return_delta
 from api.exception.models import BadRequestException
 from api.analysis.models import AnalysisJob
 from api.record.models import Record
@@ -89,11 +89,7 @@ def get_stock_analysis(_):
                     "close": most_recent_close,
                     "mostRecentFearGreedIndex": most_recent_fear_greed_index,
                     "fairValue": fair_value,
-                    "delta": float(
-                        "{:.2f}".format(
-                            (fair_value - most_recent_close) / most_recent_close
-                        )
-                    ),
+                    "delta": return_delta(fair_value, most_recent_close),
                 }
             ),
             200,
@@ -292,11 +288,7 @@ def handle_pubsub_subscription_push():
                     "target_fear_greed_index": target_fear_greed_index,
                     "target_pe_ratio": target_pe_ratio,
                     "fair_value": fair_value,
-                    "delta": float(
-                        "{:.2f}".format(
-                            (fair_value - most_recent_close) / most_recent_close
-                        )
-                    ),
+                    "delta": return_delta(fair_value, most_recent_close),
                     "complete": True,
                 },
             )
