@@ -126,18 +126,28 @@ def import_records_from_csv():
 
 @bp.route("/records/generate-plot", methods=(["POST"]))
 def generate_plot_gcs_blob():
+    chart_type = request.args["chartType"] if "chartType" in request.args else "scatter"
 
     df = _generate_filtered_dataframe()
 
     plt.figure(figsize=(10, 6))
 
-    # Scatter plot
-    sns.scatterplot(x=df.index, y=df["fear_greed_index"], color="blue", label="Index")
+    if chart_type == "scatter":
+        sns.scatterplot(
+            x=df.index, y=df["fear_greed_index"], color="blue", label="Index"
+        )
+        plt.title("Fear & Greed Index Scatter Plot", fontsize=14)
+        plt.xlabel("Created", fontsize=12)
+        plt.ylabel("Index", fontsize=12)
 
-    # Set titles and labels
-    plt.title("Fear & Greed Index", fontsize=14)
-    plt.xlabel("Created", fontsize=12)
-    plt.ylabel("Index", fontsize=12)
+    elif chart_type == "histogram":
+        plt.hist(df["fear_greed_index"], bins=5)
+        plt.title("Fear & Greed Index Histogram", fontsize=12)
+        plt.xlabel("Index", fontsize=12)
+        plt.ylabel("Count", fontsize=12)
+
+    else:
+        return jsonify({"message": f"Invalid chart type {chart_type}"}), 500
 
     fig_to_upload = plt.gcf()
 
