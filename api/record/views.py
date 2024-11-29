@@ -146,6 +146,16 @@ def generate_plot_gcs_blob():
         plt.xlabel("Index", fontsize=12)
         plt.ylabel("Count", fontsize=12)
 
+    elif chart_type == "pie":
+        description_counts = df["description"].value_counts()
+        description_proportions = description_counts / description_counts.sum()
+        plt.pie(
+            description_proportions,
+            labels=["Extreme greed", "Greed", "Neutral", "Fear", "Extreme fear"],
+            autopct="%1.1f%%",
+        )
+        plt.title("Distribution of index by labels")
+
     else:
         return jsonify({"message": f"Invalid chart type {chart_type}"}), 500
 
