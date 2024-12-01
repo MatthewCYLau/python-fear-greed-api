@@ -333,7 +333,7 @@ def generate_stock_plot_gcs_blob(_):
 
     if target_price:
         plt.axhline(
-            y=int(target_price),
+            y=float(target_price),
             color="r",
             linestyle="--",
             label=f"Target Price: ${target_price}",
