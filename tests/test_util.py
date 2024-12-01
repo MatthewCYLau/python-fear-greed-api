@@ -11,6 +11,7 @@ from api.util.util import (
     return_random_int,
     generate_df_from_csv,
     return_delta,
+    generate_figure_blob_filename,
 )
 
 
@@ -98,3 +99,8 @@ def test_generate_df_from_csv():
 def test_return_delta():
     assert return_delta(10.54, 30.23) == -0.65
     assert return_delta(40.54, 30.23) == 0.34
+
+
+def test_generate_figure_blob_filename():
+    assert "pie" in generate_figure_blob_filename("pie")
+    assert "scatter" in generate_figure_blob_filename("scatter")

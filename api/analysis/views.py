@@ -9,18 +9,21 @@ import base64
 import logging
 import json
 import yfinance as yf
-import pytz
 import matplotlib
 import matplotlib.pyplot as plt
 import math
-from google.cloud import storage
-import io
-from datetime import datetime, timezone
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from google.cloud import pubsub_v1
 from api.auth.auth import auth_required
 from api.common.constants import ANALYSIS_JOB_CREATION_DAILY_LIMIT
-from api.util.util import generate_response, generate_stock_fair_value, return_delta
+from api.util.util import (
+    generate_response,
+    generate_stock_fair_value,
+    return_delta,
+    generate_figure_blob_filename,
+)
+from api.util.cloud_storage_connector import CloudStorageConnector
 from api.exception.models import BadRequestException
 from api.analysis.models import AnalysisJob
 from api.record.models import Record
@@ -347,14 +350,9 @@ def generate_stock_plot_gcs_blob(_):
     plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
 
     fig_to_upload = plt.gcf()
-
-    buf = io.BytesIO()
-    fig_to_upload.savefig(buf, format="png")
-
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(ASSET_BUCKET_NAME)
-    GB = pytz.timezone("Europe/London")
-    timestamp = datetime.now(timezone.utc).astimezone(GB).timestamp()
-    blob = bucket.blob(f"{timestamp}-{stock_symbol}-plot.png")
-    blob.upload_from_file(buf, content_type="image/png", rewind=True)
-    return jsonify({"image_url": blob.public_url}), 200
+    cloud_storage_connector = CloudStorageConnector(bucket_name=ASSET_BUCKET_NAME)
+    file_name = generate_figure_blob_filename("time-series")
+    blob_public_url = cloud_storage_connector.upload_pyplot_figure(
+        fig_to_upload, file_name
+    )
+    return jsonify({"image_url": blob_public_url}), 200

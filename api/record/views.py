@@ -6,11 +6,12 @@ from api.util.util import (
     validate_date_string,
     is_allowed_file,
     generate_df_from_csv,
+    generate_figure_blob_filename,
 )
+from api.util.cloud_storage_connector import CloudStorageConnector
 from api.exception.models import BadRequestException
 from api.record.models import Record
-import pytz
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 from api.rate_limiter.rate_limiter import limiter
 from google.cloud import storage
 import logging
@@ -160,17 +161,12 @@ def generate_plot_gcs_blob():
         return jsonify({"message": f"Invalid chart type {chart_type}"}), 500
 
     fig_to_upload = plt.gcf()
-
-    buf = io.BytesIO()
-    fig_to_upload.savefig(buf, format="png")
-
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(ASSET_BUCKET_NAME)
-    GB = pytz.timezone("Europe/London")
-    timestamp = datetime.now(timezone.utc).astimezone(GB).timestamp()
-    blob = bucket.blob(f"{timestamp}-plot.png")
-    blob.upload_from_file(buf, content_type="image/png", rewind=True)
-    return jsonify({"image_url": blob.public_url}), 200
+    cloud_storage_connector = CloudStorageConnector(bucket_name=ASSET_BUCKET_NAME)
+    file_name = generate_figure_blob_filename(chart_type)
+    blob_public_url = cloud_storage_connector.upload_pyplot_figure(
+        fig_to_upload, file_name
+    )
+    return jsonify({"image_url": blob_public_url}), 200
 
 
 def _generate_filtered_dataframe():

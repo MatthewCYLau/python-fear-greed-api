@@ -6,6 +6,7 @@ import asyncio
 import pandas as pd
 import random
 import json
+import pytz
 
 
 def generate_response(input):
@@ -102,3 +103,9 @@ def generate_df_from_csv(data):
 
 def return_delta(fair_value: int, most_recent_close: int) -> float:
     return float("{:.2f}".format((fair_value - most_recent_close) / most_recent_close))
+
+
+def generate_figure_blob_filename(chart_type: str) -> str:
+    GB = pytz.timezone("Europe/London")
+    timestamp = datetime.now(timezone.utc).astimezone(GB).timestamp()
+    return f"{timestamp}-{chart_type}.png"
