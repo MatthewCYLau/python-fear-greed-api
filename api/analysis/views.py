@@ -9,7 +9,14 @@ import base64
 import logging
 import json
 import yfinance as yf
+import pytz
+import matplotlib
+import matplotlib.pyplot as plt
 import math
+from google.cloud import storage
+import io
+from datetime import datetime, timezone
+from dateutil.relativedelta import relativedelta
 from google.cloud import pubsub_v1
 from api.auth.auth import auth_required
 from api.common.constants import ANALYSIS_JOB_CREATION_DAILY_LIMIT
@@ -18,6 +25,7 @@ from api.exception.models import BadRequestException
 from api.analysis.models import AnalysisJob
 from api.record.models import Record
 
+matplotlib.use("agg")
 
 bp = Blueprint("analysis", __name__)
 
@@ -27,7 +35,7 @@ with open(
     gcp_config = json.load(gcp_config_json)
 GCP_PROJECT_ID = gcp_config["GCP_PROJECT_ID"]
 PUB_SUB_TOPIC = gcp_config["PUB_SUB_TOPIC"]
-
+ASSET_BUCKET_NAME = gcp_config["ASSET_BUCKET_NAME"]
 
 topic_name = f"projects/{GCP_PROJECT_ID}/topics/{PUB_SUB_TOPIC}"
 
@@ -301,3 +309,52 @@ def handle_pubsub_subscription_push():
             logging.info(f"Time taken: {formatted_time_taken}")
 
     return ("", 204)
+
+
+@bp.route("/generate-stock-plot", methods=(["POST"]))
+@auth_required
+def generate_stock_plot_gcs_blob(_):
+    stock_symbol = request.args.get("stock", default=None, type=None)
+    target_price = request.args.get("targetPrice", default=None, type=None)
+
+    if not stock_symbol:
+        raise BadRequestException("Provide a stock symbol", status_code=400)
+
+    today = datetime.today()
+    one_year_ago = today - relativedelta(years=1)
+    formatted_date = one_year_ago.strftime("%Y-%m-%d")
+    data = yf.download([stock_symbol], formatted_date)["Close"]
+
+    y_label = "Close Value"
+    data.plot(figsize=(10, 6))
+
+    if target_price:
+        plt.axhline(
+            y=int(target_price),
+            color="r",
+            linestyle="--",
+            label=f"Target Price: ${target_price}",
+        )
+
+    plt.legend()
+    plt.title("Stock Charts Plot", fontsize=16)
+
+    # Define the labels
+    plt.ylabel(y_label, fontsize=14)
+    plt.xlabel("Time", fontsize=14)
+
+    # Plot the grid lines
+    plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
+
+    fig_to_upload = plt.gcf()
+
+    buf = io.BytesIO()
+    fig_to_upload.savefig(buf, format="png")
+
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(ASSET_BUCKET_NAME)
+    GB = pytz.timezone("Europe/London")
+    timestamp = datetime.now(timezone.utc).astimezone(GB).timestamp()
+    blob = bucket.blob(f"{timestamp}-{stock_symbol}-plot.png")
+    blob.upload_from_file(buf, content_type="image/png", rewind=True)
+    return jsonify({"image_url": blob.public_url}), 200
