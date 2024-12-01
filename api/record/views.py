@@ -41,7 +41,7 @@ with open(
     os.path.dirname(os.path.dirname(__file__)) + "/config/gcp_config.json"
 ) as gcp_config_json:
     gcp_config = json.load(gcp_config_json)
-ASSET_BUCKET_NAME = gcp_config["ASSET_BUCKET_NAME"]
+ASSETS_PLOTS_BUCKET_NAME = gcp_config["ASSETS_PLOTS_BUCKET_NAME"]
 
 
 @bp.route("/records", methods=(["GET"]))
@@ -118,7 +118,7 @@ def import_records_from_csv():
     object_url = request.get_json()["objectUrl"]
     storage_client = storage.Client()
     blob_name = object_url.split("/")[-1]
-    bucket = storage_client.bucket(ASSET_BUCKET_NAME)
+    bucket = storage_client.bucket("python-fear-greed-assets-uploads")
     blob = bucket.blob(blob_name)
     data = blob.download_as_bytes()
     df = generate_df_from_csv(io.BytesIO(data))
@@ -161,7 +161,9 @@ def generate_plot_gcs_blob():
         return jsonify({"message": f"Invalid chart type {chart_type}"}), 500
 
     fig_to_upload = plt.gcf()
-    cloud_storage_connector = CloudStorageConnector(bucket_name=ASSET_BUCKET_NAME)
+    cloud_storage_connector = CloudStorageConnector(
+        bucket_name=ASSETS_PLOTS_BUCKET_NAME
+    )
     file_name = generate_figure_blob_filename(chart_type)
     blob_public_url = cloud_storage_connector.upload_pyplot_figure(
         fig_to_upload, file_name

@@ -137,7 +137,7 @@ def update_user_by_id(current_user, user_id):
 def upload_image():
     try:
         storage_client = storage.Client(project="open-source-apps-001")
-        bucket = storage_client.get_bucket("python-fear-greed-client-assets")
+        bucket = storage_client.get_bucket("python-fear-greed-assets-uploads")
         file = request.files["file"]
         GB = pytz.timezone("Europe/London")
         timestamp = datetime.now(timezone.utc).astimezone(GB).timestamp()

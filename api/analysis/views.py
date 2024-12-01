@@ -38,7 +38,7 @@ with open(
     gcp_config = json.load(gcp_config_json)
 GCP_PROJECT_ID = gcp_config["GCP_PROJECT_ID"]
 PUB_SUB_TOPIC = gcp_config["PUB_SUB_TOPIC"]
-ASSET_BUCKET_NAME = gcp_config["ASSET_BUCKET_NAME"]
+ASSETS_PLOTS_BUCKET_NAME = gcp_config["ASSETS_PLOTS_BUCKET_NAME"]
 
 topic_name = f"projects/{GCP_PROJECT_ID}/topics/{PUB_SUB_TOPIC}"
 
@@ -350,7 +350,9 @@ def generate_stock_plot_gcs_blob(_):
     plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
 
     fig_to_upload = plt.gcf()
-    cloud_storage_connector = CloudStorageConnector(bucket_name=ASSET_BUCKET_NAME)
+    cloud_storage_connector = CloudStorageConnector(
+        bucket_name=ASSETS_PLOTS_BUCKET_NAME
+    )
     file_name = generate_figure_blob_filename("time-series")
     blob_public_url = cloud_storage_connector.upload_pyplot_figure(
         fig_to_upload, file_name
