@@ -107,5 +107,5 @@ def return_delta(fair_value: int, most_recent_close: int) -> float:
 
 def generate_figure_blob_filename(chart_type: str) -> str:
     GB = pytz.timezone("Europe/London")
-    timestamp = datetime.now(timezone.utc).astimezone(GB).timestamp()
+    timestamp = datetime.now(timezone.utc).astimezone(GB).strftime("%Y%m%d%H%M%S")
     return f"{timestamp}-{chart_type}.png"
