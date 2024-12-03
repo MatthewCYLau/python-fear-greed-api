@@ -232,7 +232,8 @@ def get_analysis_jobs(_):
 
 
 @bp.route("/analysis-jobs/<analysis_job_id>", methods=(["GET"]))
-def get_analysis_jobs_by_id(analysis_job_id):
+@auth_required
+def get_analysis_jobs_by_id(_, analysis_job_id):
     try:
         analysis_job = db["analysis_jobs"].find_one({"_id": ObjectId(analysis_job_id)})
         if analysis_job:

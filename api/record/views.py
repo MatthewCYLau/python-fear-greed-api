@@ -11,6 +11,7 @@ from api.util.util import (
 from api.util.cloud_storage_connector import CloudStorageConnector
 from api.exception.models import BadRequestException
 from api.record.models import Record
+from api.auth.auth import auth_required
 from datetime import datetime, timedelta
 from api.rate_limiter.rate_limiter import limiter
 from google.cloud import storage
@@ -45,7 +46,8 @@ ASSETS_PLOTS_BUCKET_NAME = gcp_config["ASSETS_PLOTS_BUCKET_NAME"]
 
 
 @bp.route("/records", methods=(["GET"]))
-def get_records():
+@auth_required
+def get_records(_):
     count = int(request.args["count"]) if "count" in request.args else 0
     sort_direction = (
         1 if "order" in request.args and request.args["order"] == "asc" else -1
@@ -73,7 +75,8 @@ def get_records_count_bin():
 
 
 @bp.route("/records/export-csv", methods=(["POST"]))
-def get_records_csv():
+@auth_required
+def get_records_csv(_):
     filtered_df = _generate_filtered_dataframe()
     mean_index = filtered_df.loc[:, "fear_greed_index"].mean()
     logging.info(f"Mean index is {mean_index:.2f}")
@@ -93,7 +96,8 @@ def get_records_csv():
 
 
 @bp.route("/records/upload-csv", methods=(["POST"]))
-def upload_records_csv():
+@auth_required
+def upload_records_csv(_):
     file = request.files.get("file")
 
     if not file or not is_allowed_file(file.filename):
@@ -114,7 +118,8 @@ def upload_records_csv():
 
 
 @bp.route("/records/import-from-csv", methods=(["POST"]))
-def import_records_from_csv():
+@auth_required
+def import_records_from_csv(_):
     object_url = request.get_json()["objectUrl"]
     storage_client = storage.Client()
     blob_name = object_url.split("/")[-1]
@@ -126,7 +131,8 @@ def import_records_from_csv():
 
 
 @bp.route("/records/generate-plot", methods=(["POST"]))
-def generate_plot_gcs_blob():
+@auth_required
+def generate_plot_gcs_blob(_):
     chart_type = request.args["chartType"] if "chartType" in request.args else "scatter"
 
     df = _generate_filtered_dataframe()
