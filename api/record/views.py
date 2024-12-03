@@ -75,8 +75,7 @@ def get_records_count_bin():
 
 
 @bp.route("/records/export-csv", methods=(["POST"]))
-@auth_required
-def get_records_csv(_):
+def get_records_csv():
     filtered_df = _generate_filtered_dataframe()
     mean_index = filtered_df.loc[:, "fear_greed_index"].mean()
     logging.info(f"Mean index is {mean_index:.2f}")
