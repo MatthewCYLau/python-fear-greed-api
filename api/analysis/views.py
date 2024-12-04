@@ -329,8 +329,13 @@ def generate_stock_plot_gcs_blob(_):
     formatted_date = one_year_ago.strftime("%Y-%m-%d")
     data = yf.download([stock_symbol], formatted_date)["Close"]
 
-    y_label = "Close Value"
-    data.plot(figsize=(10, 6))
+    y_label = "Close Price"
+    data["rolling_avg"] = data[stock_symbol].rolling(window=50).mean()
+
+    # data.plot(figsize=(10, 6))
+    plt.figure(figsize=(10, 6))
+    plt.plot(data.index, data[stock_symbol], label="Close Price")
+    plt.plot(data.index, data["rolling_avg"], label="50-Day Rolling Average")
 
     if target_price:
         plt.axhline(
