@@ -346,7 +346,7 @@ def generate_stock_plot_gcs_blob(_):
         )
 
     plt.legend()
-    plt.title("Stock Charts Plot", fontsize=16)
+    plt.title(f"{stock_symbol} Stock Chart", fontsize=16)
 
     # Define the labels
     plt.ylabel(y_label, fontsize=14)
