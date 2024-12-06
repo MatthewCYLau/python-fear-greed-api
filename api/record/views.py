@@ -133,6 +133,7 @@ def import_records_from_csv(_):
 @auth_required
 def generate_plot_gcs_blob(_):
     chart_type = request.args["chartType"] if "chartType" in request.args else "scatter"
+    bins_size = request.args["binSize"] if "chartType" in request.args else 5
 
     df = _generate_filtered_dataframe()
 
@@ -147,7 +148,7 @@ def generate_plot_gcs_blob(_):
         plt.ylabel("Index", fontsize=12)
 
     elif chart_type == "histogram":
-        plt.hist(df["fear_greed_index"], bins=5)
+        plt.hist(df["fear_greed_index"], bins=int(bins_size))
         plt.title("Fear & Greed Index Histogram", fontsize=12)
         plt.xlabel("Index", fontsize=12)
         plt.ylabel("Count", fontsize=12)
