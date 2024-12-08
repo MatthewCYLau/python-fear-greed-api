@@ -148,7 +148,9 @@ def generate_plot_gcs_blob(_):
         plt.ylabel("Index", fontsize=12)
 
     elif chart_type == "histogram":
-        plt.hist(df["fear_greed_index"], bins=int(bins_size))
+        n, x, _ = plt.hist(df["fear_greed_index"], bins=int(bins_size), histtype="step")
+        bin_centers = 0.5 * (x[1:] + x[:-1])
+        plt.plot(bin_centers, n)
         plt.title("Fear & Greed Index Histogram", fontsize=12)
         plt.xlabel("Index", fontsize=12)
         plt.ylabel("Count", fontsize=12)
