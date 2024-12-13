@@ -27,6 +27,8 @@ from api.util.cloud_storage_connector import CloudStorageConnector
 from api.exception.models import BadRequestException
 from api.analysis.models import AnalysisJob
 from api.record.models import Record
+from sklearn.linear_model import LinearRegression
+
 
 matplotlib.use("agg")
 
@@ -344,6 +346,15 @@ def generate_stock_plot_gcs_blob(_):
             linestyle="--",
             label=f"Target Price: ${target_price}",
         )
+
+    x = data.index
+    y = data[stock_symbol].values.reshape(-1, 1)
+
+    lm = LinearRegression()
+    lm.fit(x.values.reshape(-1, 1), y)
+
+    predictions = lm.predict(x.values.astype(float).reshape(-1, 1))
+    plt.plot(x, predictions, label="Linear fit", lw=3, color="red")
 
     plt.legend()
     plt.title(f"{stock_symbol} Stock Chart", fontsize=16)
