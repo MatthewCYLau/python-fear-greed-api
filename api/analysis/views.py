@@ -343,7 +343,6 @@ def generate_stock_plot_gcs_blob(_):
         plt.axhline(
             y=float(target_price),
             color="r",
-            linestyle="--",
             label=f"Target Price: ${target_price}",
         )
 
@@ -354,7 +353,7 @@ def generate_stock_plot_gcs_blob(_):
     lm.fit(x.values.reshape(-1, 1), y)
 
     predictions = lm.predict(x.values.astype(float).reshape(-1, 1))
-    plt.plot(x, predictions, label="Linear fit", lw=3, color="red")
+    plt.plot(x, predictions, label="Linear fit", linestyle="--", lw=1, color="red")
 
     plt.legend()
     plt.title(f"{stock_symbol} Stock Chart", fontsize=16)
