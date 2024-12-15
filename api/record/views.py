@@ -104,16 +104,22 @@ def upload_records_csv(_):
 
     try:
         df = pd.read_csv(
-            file, encoding="utf-8", index_col=["created"], parse_dates=["created"]
+            file, encoding="utf-8", index_col=["Date"], parse_dates=["Date"]
         )
     except Exception as e:
         raise BadRequestException(f"Failed to read CSV {e}", status_code=400)
     if "fear_greed_index" in df.columns:
         logging.info("CSV has required columns.")
-    logging.info(df.index)
-    response = make_response(df.to_json(orient="table"))
-    response.headers["Content-Type"] = "application/json"
-    return response
+    logging.info(
+        f"Count of records: {len(df.index)} Start date: {df.index.min().strftime(DATETIME_FORMATE_CODE)} End date: {df.index.max().strftime(DATETIME_FORMATE_CODE)}"
+    )
+    return jsonify(
+        {
+            "recordsCount": len(df.index),
+            "startDate": df.index.min(),
+            "endDate": df.index.max(),
+        }
+    )
 
 
 @bp.route("/records/import-from-csv", methods=(["POST"]))
