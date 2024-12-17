@@ -35,13 +35,15 @@ class Record:
     @staticmethod
     def import_from_dataframe(df) -> int:
         inserted = 0
-        for x, y in zip(df["Date"], df["Index"]):
-            count = len(Record._get_records_created_within_next_days(x))
+        for index, row in df.iterrows():
+            date = index
+            index_value = row["Index"]
+            count = len(Record._get_records_created_within_next_days(date))
             if count:
                 logging.info(
-                    f"Skipping inserting record for {x} - {y} - count of records next day: {count}"
+                    f"Skipping inserting record for {date} - {index_value} - count of records next day: {count}"
                 )
             else:
-                logging.info(f"Inserting record for {x} - {y}")
+                logging.info(f"Inserting record for {date} - {index_value}")
                 inserted += 1
         return inserted
