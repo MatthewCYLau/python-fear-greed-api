@@ -97,6 +97,7 @@ def generate_df_from_csv(data):
         sep=",",
         header=0,
         parse_dates=date_cols,
+        index_col=["Date"],
         dayfirst=True,
     )
 

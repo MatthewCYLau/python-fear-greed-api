@@ -90,10 +90,9 @@ def test_return_union_set():
 
 def test_generate_df_from_csv():
     df = generate_df_from_csv("data/example.csv")
-    assert "Date" in df.columns
     assert "Index" in df.columns
     assert df["Index"].dtype, pd.Int64Dtype()
-    assert df["Date"].dtype, pd.DatetimeTZDtype()
+    assert df.index.inferred_type == "datetime64"
 
 
 def test_return_delta():
