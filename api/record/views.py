@@ -132,7 +132,15 @@ def import_records_from_csv(_):
     blob = bucket.blob(blob_name)
     data = blob.download_as_bytes()
     df = generate_df_from_csv(io.BytesIO(data))
-    return jsonify({"count": Record.import_from_dataframe(df)})
+    records_imported = Record.import_from_dataframe(df)
+    return jsonify(
+        {
+            "recordsImported": records_imported,
+            "recordsCount": len(df.index),
+            "startDate": df.index.min(),
+            "endDate": df.index.max(),
+        }
+    )
 
 
 @bp.route("/records/generate-plot", methods=(["POST"]))
