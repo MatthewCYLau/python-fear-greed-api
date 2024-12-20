@@ -12,12 +12,14 @@ class Alert(BaseModel):
         note,
         created_by,
         view_count=0,
+        have_actioned=False,
     ):
         super().__init__()
         self.index = index
         self.note = note
         self.created_by = created_by
         self.view_count = view_count
+        self.have_actioned = have_actioned
 
     @staticmethod
     def get_alerts(count: int = 0, max_index: int = 100):
@@ -56,6 +58,7 @@ class Alert(BaseModel):
             "$set": {
                 "index": data["index"],
                 "note": data["note"],
+                "have_actioned": data["have_actioned"],
                 "last_modified": get_current_time_utc(),
             }
         }

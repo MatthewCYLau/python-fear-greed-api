@@ -27,6 +27,7 @@ def test_new_alert():
     )
     assert alert.view_count == 0
     assert alert.index == 40
+    assert not alert.have_actioned
     assert type(alert.created) is datetime
 
 
