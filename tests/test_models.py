@@ -8,15 +8,20 @@ from api.exception.models import BadRequestException, UnauthorizedException
 
 def test_new_user():
     user = User(
-        "foo@bar.com",
-        "password",
-        "foo",
-        False,
+        "foo@bar.com", "password", "foo", False, regularContributionAmount=210.50
     )
     assert user.email == "foo@bar.com"
     assert user.name == "foo"
     assert not user.isEmailVerified
     assert user.avatarImageUrl == ""
+    assert user.regularContributionAmount == 210.50
+
+
+def test_new_user_invalid_regular_contribution():
+    with pytest.raises(TypeError):
+        _ = User(
+            "foo@bar.com", "password", "foo", False, regularContributionAmount="foo"
+        )
 
 
 def test_new_alert():

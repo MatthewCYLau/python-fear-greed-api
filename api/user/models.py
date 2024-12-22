@@ -6,6 +6,7 @@ from api.db.setup import db
 from api.util.util import get_current_time_utc
 from enum import Enum
 from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 
 
 class UserType(str, Enum):
@@ -26,6 +27,7 @@ class User(BaseModel):
         name,
         isEmailVerified,
         avatarImageUrl="",
+        regularContributionAmount=0,
         userType=UserType.INDIVIDUAL_INVESTOR,
     ):
         super().__init__()
@@ -35,6 +37,12 @@ class User(BaseModel):
         self.isEmailVerified = isEmailVerified
         self.avatarImageUrl = avatarImageUrl
         self.userType = userType
+        try:
+            self.regularContributionAmount = Decimal(regularContributionAmount)
+        except InvalidOperation:
+            raise TypeError("Regular contribution amount must be a valid number.")
+        except ValueError as e:
+            raise e
 
     def save_user_to_db(self):
         self.password = generate_password_hash(self.password, method="sha256")
@@ -47,12 +55,19 @@ class User(BaseModel):
 
     @staticmethod
     def update_user_by_id(user_id: uuid.UUID, data: dict):
+        try:
+            Decimal(data["regularContributionAmount"])
+        except InvalidOperation:
+            raise TypeError("Regular contribution amount must be a valid number.")
+        except ValueError as e:
+            raise e
         updated_user = {
             "$set": {
                 "email": data["email"],
                 "name": data["name"],
                 "last_modified": get_current_time_utc(),
                 "avatarImageUrl": data["avatarImageUrl"],
+                "regularContributionAmount": data["regularContributionAmount"],
             }
         }
         if "password" in data:
