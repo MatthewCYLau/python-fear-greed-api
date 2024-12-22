@@ -55,8 +55,9 @@ class User(BaseModel):
 
     @staticmethod
     def update_user_by_id(user_id: uuid.UUID, data: dict):
+        regular_contribution_amount = data.get("regularContributionAmount", 0)
         try:
-            Decimal(data["regularContributionAmount"])
+            Decimal(regular_contribution_amount)
         except InvalidOperation:
             raise TypeError("Regular contribution amount must be a valid number.")
         except ValueError as e:
@@ -67,7 +68,7 @@ class User(BaseModel):
                 "name": data["name"],
                 "last_modified": get_current_time_utc(),
                 "avatarImageUrl": data["avatarImageUrl"],
-                "regularContributionAmount": data["regularContributionAmount"],
+                "regularContributionAmount": regular_contribution_amount,
             }
         }
         if "password" in data:
