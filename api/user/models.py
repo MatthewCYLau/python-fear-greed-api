@@ -14,6 +14,12 @@ class UserType(str, Enum):
     INSTITUTIONAL_INVESTOR = "INSTITUTIONAL_INVESTOR"
 
 
+class Currency(Enum):
+    GBP = 1
+    USD = 2
+    EUR = 3
+
+
 @dataclass
 class TestUserType:
     userType: UserType
@@ -28,6 +34,7 @@ class User(BaseModel):
         isEmailVerified,
         avatarImageUrl="",
         regularContributionAmount=0,
+        currency=Currency.GBP,
         userType=UserType.INDIVIDUAL_INVESTOR,
     ):
         super().__init__()
@@ -43,6 +50,9 @@ class User(BaseModel):
             raise TypeError("Regular contribution amount must be a valid number.")
         except ValueError as e:
             raise e
+        if not isinstance(currency, Currency):
+            raise TypeError("Invalid currency.")
+        self.currency = currency
 
     def save_user_to_db(self):
         self.password = generate_password_hash(self.password, method="sha256")

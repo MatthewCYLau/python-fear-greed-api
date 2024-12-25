@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime
-from api.user.models import User, TestUserType, UserType
+from api.user.models import User, TestUserType, UserType, Currency
 from api.alert.models import Alert
 from api.record.models import Record
 from api.exception.models import BadRequestException, UnauthorizedException
@@ -15,12 +15,25 @@ def test_new_user():
     assert not user.isEmailVerified
     assert user.avatarImageUrl == ""
     assert user.regularContributionAmount == 210.50
+    assert user.currency == Currency.GBP
 
 
 def test_new_user_invalid_regular_contribution():
     with pytest.raises(TypeError):
         _ = User(
             "foo@bar.com", "password", "foo", False, regularContributionAmount="foo"
+        )
+
+
+def test_new_user_invalid_currency():
+    with pytest.raises(TypeError):
+        _ = User(
+            "foo@bar.com",
+            "password",
+            "foo",
+            False,
+            regularContributionAmount=10,
+            currency="FOO",
         )
 
 
