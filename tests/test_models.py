@@ -15,7 +15,7 @@ def test_new_user():
     assert not user.isEmailVerified
     assert user.avatarImageUrl == ""
     assert user.regularContributionAmount == 210.50
-    assert user.currency == Currency.GBP
+    assert user.currency == Currency.GBP.name
 
 
 def test_new_user_invalid_regular_contribution():

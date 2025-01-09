@@ -45,14 +45,15 @@ class User(BaseModel):
         self.avatarImageUrl = avatarImageUrl
         self.userType = userType
         try:
-            self.regularContributionAmount = Decimal(regularContributionAmount)
+            Decimal(regularContributionAmount)
+            self.regularContributionAmount = regularContributionAmount
         except InvalidOperation:
             raise TypeError("Regular contribution amount must be a valid number.")
         except ValueError as e:
             raise e
         if not isinstance(currency, Currency):
             raise TypeError("Invalid currency.")
-        self.currency = currency
+        self.currency = currency.name
 
     def save_user_to_db(self):
         self.password = generate_password_hash(self.password, method="sha256")
