@@ -37,6 +37,18 @@ def test_new_user_invalid_currency():
         )
 
 
+def test_new_user_valid_currency():
+    user = User(
+        "foo@bar.com",
+        "password",
+        "foo",
+        False,
+        regularContributionAmount=210.50,
+        currency=Currency["EUR"],
+    )
+    assert user.currency == Currency.EUR.name
+
+
 def test_new_alert():
     alert = Alert(
         index=40,
