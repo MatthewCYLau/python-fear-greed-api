@@ -128,7 +128,7 @@ def update_user_by_id(current_user, user_id):
         Currency.USD.name,
     ]:
         raise BadRequestException(
-            f"Invalid current {data["currency"]}", status_code=400
+            f"Invalid current {data['currency']}", status_code=400
         )
     try:
         res = User.update_user_by_id(user_id=user_id, data=data)
