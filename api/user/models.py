@@ -80,6 +80,7 @@ class User(BaseModel):
                 "last_modified": get_current_time_utc(),
                 "avatarImageUrl": data["avatarImageUrl"],
                 "regularContributionAmount": regular_contribution_amount,
+                "currency": data.get("currency", Currency["GBP"].name),
             }
         }
         if "password" in data:

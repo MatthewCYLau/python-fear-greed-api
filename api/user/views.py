@@ -11,7 +11,7 @@ import jwt
 import logging
 from datetime import datetime, timedelta, timezone
 import pytz
-from .models import User
+from .models import User, Currency
 
 bp = Blueprint("user", __name__)
 
@@ -122,6 +122,14 @@ def update_user_by_id(current_user, user_id):
             raise BadRequestException("Email already registered", status_code=400)
     if "password" in data and not data["password"]:
         raise BadRequestException("New password cannot be empty", status_code=400)
+    if "currency" in data and data["currency"] not in [
+        Currency.EUR.name,
+        Currency.GBP.name,
+        Currency.USD.name,
+    ]:
+        raise BadRequestException(
+            f"Invalid current {data["currency"]}", status_code=400
+        )
     try:
         res = User.update_user_by_id(user_id=user_id, data=data)
         if res.matched_count:
