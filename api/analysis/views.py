@@ -77,7 +77,7 @@ def get_stock_analysis(_):
         EPS = stock_info["trailingEps"]
         PE_ratio = float("{:.2f}".format(current_price / EPS))
         logging.info(f"{stock_symbol} has PE ratio of {PE_ratio}")
-        df = data.history(period="1mo")
+        df = data.history(period="1y")
 
         for index, row in df.tail().iterrows():
             logging.info(f"Most recent close with index {index} is {row.Close}")
@@ -85,6 +85,14 @@ def get_stock_analysis(_):
         most_recent_close = df.tail(1)["Close"].values[0]
         most_recent_close = float("{:.2f}".format(most_recent_close))
         most_recent_fear_greed_index = int(Record.get_most_recent_record()["index"])
+
+        rolling_averages = {}
+
+        for i in (50, 100, 200):
+            rolling_avg = df.rolling(window=i).mean()
+            current_rolling_avg = rolling_avg.iloc[-1]["Close"]
+            logging.info(f"{i} day rolling average is: {current_rolling_avg:.2f}")
+            rolling_averages[i] = float("{:.2f}".format(current_rolling_avg))
         with ProcessPoolExecutor(1) as exe:
             future = exe.submit(
                 generate_stock_fair_value,
@@ -103,6 +111,7 @@ def get_stock_analysis(_):
                     "mostRecentFearGreedIndex": most_recent_fear_greed_index,
                     "fairValue": fair_value,
                     "delta": return_delta(fair_value, most_recent_close),
+                    "rolling_averages": rolling_averages,
                 }
             ),
             200,
