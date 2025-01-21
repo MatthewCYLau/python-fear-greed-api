@@ -383,3 +383,46 @@ def generate_stock_plot_gcs_blob(_):
         fig_to_upload, file_name
     )
     return jsonify({"image_url": blob_public_url}), 200
+
+
+@bp.route("/generate-stocks-cumulative-returns-plot", methods=(["POST"]))
+@auth_required
+def generate_stock_cumulative_returns_plot_gcs_blob(_):
+
+    data = request.get_json()
+    if not data or not data.get("stocks"):
+        return jsonify({"message": "Missing field"}), 400
+
+    tickers_list = data.get("stocks").split(";")
+
+    if len(tickers_list) > 5:
+        return jsonify({"message": "Maximum five stocks!"}), 400
+
+    if len(tickers_list) != len(set(tickers_list)):
+        return jsonify({"message": "Duplicated stock symbol!"}), 400
+
+    today = datetime.today()
+    one_year_ago = today - relativedelta(years=1)
+    formatted_date = one_year_ago.strftime("%Y-%m-%d")
+    data = yf.download(tickers_list, formatted_date)["Close"]
+
+    y_label = "Cumulative Returns"
+    ((data.pct_change() + 1).cumprod()).plot(figsize=(10, 7))
+    plt.legend()
+    plt.title("Stocks Cumulative Returns", fontsize=16)
+
+    # Define the labels
+    plt.ylabel(y_label, fontsize=14)
+    plt.xlabel("Time", fontsize=14)
+
+    # Plot the grid lines
+    plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
+    fig_to_upload = plt.gcf()
+    cloud_storage_connector = CloudStorageConnector(
+        bucket_name=ASSETS_PLOTS_BUCKET_NAME
+    )
+    file_name = generate_figure_blob_filename("time-series")
+    blob_public_url = cloud_storage_connector.upload_pyplot_figure(
+        fig_to_upload, file_name
+    )
+    return jsonify({"image_url": blob_public_url}), 200
