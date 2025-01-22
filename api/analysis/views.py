@@ -12,8 +12,6 @@ import yfinance as yf
 import matplotlib
 import matplotlib.pyplot as plt
 import math
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from google.cloud import pubsub_v1
 from api.auth.auth import auth_required
 from api.common.constants import ANALYSIS_JOB_CREATION_DAILY_LIMIT
@@ -22,6 +20,7 @@ from api.util.util import (
     generate_stock_fair_value,
     return_delta,
     generate_figure_blob_filename,
+    get_years_ago_formatted,
 )
 from api.util.cloud_storage_connector import CloudStorageConnector
 from api.exception.models import BadRequestException
@@ -335,10 +334,7 @@ def generate_stock_plot_gcs_blob(_):
     if not stock_symbol:
         raise BadRequestException("Provide a stock symbol", status_code=400)
 
-    today = datetime.today()
-    one_year_ago = today - relativedelta(years=1)
-    formatted_date = one_year_ago.strftime("%Y-%m-%d")
-    data = yf.download([stock_symbol], formatted_date)["Close"]
+    data = yf.download([stock_symbol], get_years_ago_formatted(1))["Close"]
 
     y_label = "Close Price"
     data["rolling_avg"] = data[stock_symbol].rolling(window=50).mean()
@@ -401,10 +397,7 @@ def generate_stock_cumulative_returns_plot_gcs_blob(_):
     if len(tickers_list) != len(set(tickers_list)):
         return jsonify({"message": "Duplicated stock symbol!"}), 400
 
-    today = datetime.today()
-    one_year_ago = today - relativedelta(years=1)
-    formatted_date = one_year_ago.strftime("%Y-%m-%d")
-    data = yf.download(tickers_list, formatted_date)["Close"]
+    data = yf.download(tickers_list, get_years_ago_formatted(1))["Close"]
 
     y_label = "Cumulative Returns"
     ((data.pct_change() + 1).cumprod()).plot(figsize=(10, 7))

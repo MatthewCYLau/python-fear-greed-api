@@ -1,5 +1,6 @@
 from flask import jsonify
 from datetime import datetime, timezone
+from dateutil.relativedelta import relativedelta
 from typing import List
 from api.common.constants import DATETIME_FORMATE_CODE
 import asyncio
@@ -110,3 +111,9 @@ def generate_figure_blob_filename(chart_type: str) -> str:
     GB = pytz.timezone("Europe/London")
     timestamp = datetime.now(timezone.utc).astimezone(GB).strftime("%Y%m%d%H%M%S")
     return f"{timestamp}-{chart_type}.png"
+
+
+def get_years_ago_formatted(years: int = 1) -> str:
+    current_date = datetime.today()
+    one_year_ago = current_date - relativedelta(years=years)
+    return one_year_ago.strftime("%Y-%m-%d")
