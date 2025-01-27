@@ -13,7 +13,6 @@ from api.util.util import (
     return_delta,
     generate_figure_blob_filename,
 )
-from api.util.cloud_storage_connector import CloudStorageConnector
 from api.auth.auth import validate_google_oauth_token
 
 
