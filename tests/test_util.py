@@ -13,6 +13,8 @@ from api.util.util import (
     return_delta,
     generate_figure_blob_filename,
 )
+from api.util.cloud_storage_connector import CloudStorageConnector
+from api.auth.auth import validate_google_oauth_token
 
 
 def test_return_duplicated_items_in_list_one_duplicate():
@@ -103,3 +105,21 @@ def test_return_delta():
 def test_generate_figure_blob_filename():
     assert "pie" in generate_figure_blob_filename("pie")
     assert "scatter" in generate_figure_blob_filename("scatter")
+
+
+@pytest.fixture
+def cloud_storage_connector():
+    return CloudStorageConnector("my_bucket")
+
+
+def test_cloud_storage_connector(cloud_storage_connector):
+    assert cloud_storage_connector.bucket_name == "my_bucket"
+    assert type(cloud_storage_connector.storage_client)
+
+
+def test_validate_google_oauth_token_invalid_token():
+    valid, user_id, email, name = validate_google_oauth_token("foo")
+    assert not valid
+    assert not user_id
+    assert not email
+    assert not name
