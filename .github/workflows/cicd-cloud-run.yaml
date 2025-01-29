@@ -37,6 +37,8 @@ jobs:
       - name: Run unit tests
         env:
           TEST_USER_PASSWORD: "${{ secrets.TEST_USER_PASSWORD }}"
+          MONGO_DB_CONNECTION_STRING: "${{ secrets.MONGO_DB_CONNECTION_STRING }}"
+          JWT_SECRET: "${{ secrets.JWT_SECRET }}"
         run: |
           python -m pytest tests
           python -m pytest --cov=api
