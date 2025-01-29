@@ -35,6 +35,8 @@ jobs:
         run: |
           flake8
       - name: Run unit tests
+        env:
+          TEST_USER_PASSWORD: "${{ secrets.TEST_USER_PASSWORD }}"
         run: |
           python -m pytest tests
           python -m pytest --cov=api

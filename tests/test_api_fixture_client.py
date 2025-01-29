@@ -1,4 +1,10 @@
 import json
+from dotenv import load_dotenv
+import os
+
+config_file_path = "config/.env"
+if os.path.exists(config_file_path):
+    load_dotenv(config_file_path)
 
 
 def test_ping_with_fixture(test_client):
@@ -57,3 +63,14 @@ def test_login_with_fixture_unauthorized(test_client):
         content_type="application/json",
     )
     assert response.status_code == 401
+
+
+def test_login_with_fixture_authorized(test_client):
+    response = test_client.post(
+        "/api/auth",
+        data=json.dumps(
+            dict(email="test@example.com", password=os.getenv("TEST_USER_PASSWORD"))
+        ),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
