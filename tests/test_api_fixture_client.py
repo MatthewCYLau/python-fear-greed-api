@@ -74,3 +74,21 @@ def test_login_with_fixture_authorized(test_client):
         content_type="application/json",
     )
     assert response.status_code == 200
+    assert "token" in response.json
+
+
+def test_get_alerts_authorized(test_client):
+    response = test_client.post(
+        "/api/auth",
+        data=json.dumps(
+            dict(email="test@example.com", password=os.getenv("TEST_USER_PASSWORD"))
+        ),
+        content_type="application/json",
+    )
+    token = response.json.get("token")
+    response = test_client.get(
+        "/api/alerts",
+        headers={"x-auth-token": token},
+        content_type="application/json",
+    )
+    assert response.status_code == 200
