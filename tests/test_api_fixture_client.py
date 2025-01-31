@@ -1,6 +1,8 @@
 import json
 from dotenv import load_dotenv
 import os
+import pytest
+import random
 
 config_file_path = "config/.env"
 if os.path.exists(config_file_path):
@@ -92,3 +94,28 @@ def test_get_alerts_authorized(test_client):
         content_type="application/json",
     )
     assert response.status_code == 200
+
+
+@pytest.fixture(scope="module")
+def create_alert_dict():
+    payload_dict = {"index": random.randint(80, 99), "note": "Test alert"}
+    return payload_dict
+
+
+def test_create_alert_authorized(test_client, create_alert_dict):
+    response = test_client.post(
+        "/api/auth",
+        data=json.dumps(
+            dict(email="test@example.com", password=os.getenv("TEST_USER_PASSWORD"))
+        ),
+        content_type="application/json",
+    )
+    token = response.json.get("token")
+    response = test_client.post(
+        "/api/alerts",
+        headers={"x-auth-token": token},
+        content_type="application/json",
+        data=json.dumps(create_alert_dict),
+    )
+    assert response.status_code == 201
+    assert "alert_id" in response.json
