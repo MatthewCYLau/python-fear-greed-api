@@ -3,6 +3,7 @@ from datetime import datetime
 from api.user.models import User, TestUserType, UserType, Currency
 from api.alert.models import Alert
 from api.record.models import Record
+from api.analysis.models import AnalysisJob
 from api.exception.models import BadRequestException, UnauthorizedException
 
 
@@ -59,6 +60,15 @@ def test_new_alert():
     assert alert.index == 40
     assert not alert.have_actioned
     assert type(alert.created) is datetime
+
+
+def test_new_analysis_job():
+    analysis_job = AnalysisJob(
+        stock_symbol="AAPL",
+        created_by="bar",
+    )
+    assert analysis_job.stock_symbol == "AAPL"
+    assert not analysis_job.complete
 
 
 @pytest.fixture(scope="module")
