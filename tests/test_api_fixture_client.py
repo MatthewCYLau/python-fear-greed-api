@@ -102,7 +102,7 @@ def create_alert_dict():
     return payload_dict
 
 
-def test_create_alert_authorized(test_client, create_alert_dict):
+def test_create_delete_alert_authorized(test_client, create_alert_dict):
     response = test_client.post(
         "/api/auth",
         data=json.dumps(
@@ -111,11 +111,18 @@ def test_create_alert_authorized(test_client, create_alert_dict):
         content_type="application/json",
     )
     token = response.json.get("token")
-    response = test_client.post(
+    create_alert_response = test_client.post(
         "/api/alerts",
         headers={"x-auth-token": token},
         content_type="application/json",
         data=json.dumps(create_alert_dict),
     )
-    assert response.status_code == 201
-    assert "alert_id" in response.json
+    assert create_alert_response.status_code == 201
+    assert "alert_id" in create_alert_response.json
+
+    delete_alert_response = test_client.delete(
+        f"/api/alerts/{create_alert_response.json["alert_id"]}",
+        headers={"x-auth-token": token},
+        content_type="application/json",
+    )
+    assert delete_alert_response.status_code == 200
