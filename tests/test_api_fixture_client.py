@@ -121,7 +121,7 @@ def test_create_delete_alert_authorized(test_client, create_alert_dict):
     assert "alert_id" in create_alert_response.json
 
     delete_alert_response = test_client.delete(
-        f"/api/alerts/{create_alert_response.json["alert_id"]}",
+        f'/api/alerts/{create_alert_response.json["alert_id"]}',
         headers={"x-auth-token": token},
         content_type="application/json",
     )
