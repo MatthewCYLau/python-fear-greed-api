@@ -62,7 +62,10 @@ def get_alert_by_id(_, alert_id):
 @bp.route("/alerts", methods=(["POST"]))
 @auth_required
 def create_alert(user):
-    create_alert_request = CreateAlertRequest.model_validate_json(request.data)
+    try:
+        create_alert_request = CreateAlertRequest.model_validate_json(request.data)
+    except Exception as e:
+        return jsonify({"message": f"Invalid payload {e}"}), 400
     new_alert = Alert(
         create_alert_request.index,
         create_alert_request.note,

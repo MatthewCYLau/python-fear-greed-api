@@ -102,6 +102,12 @@ def create_alert_dict():
     return payload_dict
 
 
+@pytest.fixture(scope="module")
+def create_alert_dict_invalid():
+    payload_dict = {"index": 101, "note": "Test alert"}
+    return payload_dict
+
+
 def test_create_delete_alert_authorized(test_client, create_alert_dict):
     response = test_client.post(
         "/api/auth",
@@ -126,3 +132,22 @@ def test_create_delete_alert_authorized(test_client, create_alert_dict):
         content_type="application/json",
     )
     assert delete_alert_response.status_code == 200
+
+
+def test_create_alert_invalid_payload(test_client, create_alert_dict_invalid):
+    response = test_client.post(
+        "/api/auth",
+        data=json.dumps(
+            dict(email="test@example.com", password=os.getenv("TEST_USER_PASSWORD"))
+        ),
+        content_type="application/json",
+    )
+    token = response.json.get("token")
+
+    create_alert_response = test_client.post(
+        "/api/alerts",
+        headers={"x-auth-token": token},
+        content_type="application/json",
+        data=json.dumps(create_alert_dict_invalid),
+    )
+    assert create_alert_response.status_code == 400
