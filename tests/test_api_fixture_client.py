@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 import pytest
 import random
+import time
 
 config_file_path = "config/.env"
 if os.path.exists(config_file_path):
@@ -151,3 +152,38 @@ def test_create_alert_invalid_payload(test_client, create_alert_dict_invalid):
         data=json.dumps(create_alert_dict_invalid),
     )
     assert create_alert_response.status_code == 400
+
+
+@pytest.fixture(scope="module")
+def create_analysis_job_dict():
+    payload_dict = {"stock": "TSLA", "targetFearGreedIndex": 45, "targetPeRatio": 40}
+    return payload_dict
+
+
+def test_create_delete_analysis_job_authorized(test_client, create_analysis_job_dict):
+    response = test_client.post(
+        "/api/auth",
+        data=json.dumps(
+            dict(email="test@example.com", password=os.getenv("TEST_USER_PASSWORD"))
+        ),
+        content_type="application/json",
+    )
+    token = response.json.get("token")
+    create_analysis_job_response = test_client.post(
+        "/api/analysis-jobs",
+        headers={"x-auth-token": token},
+        content_type="application/json",
+        data=json.dumps(create_analysis_job_dict),
+    )
+    assert create_analysis_job_response.status_code == 200
+    assert "analysisJobId" in create_analysis_job_response.json
+    assert "messageId" in create_analysis_job_response.json
+
+    time.sleep(60)
+
+    delete_analysis_job_response = test_client.delete(
+        f'/api/analysis-jobs/{create_analysis_job_response.json["analysisJobId"]}',
+        headers={"x-auth-token": token},
+        content_type="application/json",
+    )
+    assert delete_analysis_job_response.status_code == 200
