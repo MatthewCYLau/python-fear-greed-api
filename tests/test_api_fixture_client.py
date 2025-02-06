@@ -109,6 +109,19 @@ def create_alert_dict_invalid():
     return payload_dict
 
 
+@pytest.fixture(scope="module")
+def generate_auth_token(test_client):
+    response = test_client.post(
+        "/api/auth",
+        data=json.dumps(
+            dict(email="test@example.com", password=os.getenv("TEST_USER_PASSWORD"))
+        ),
+        content_type="application/json",
+    )
+    token = response.json.get("token")
+    return token
+
+
 def test_create_delete_alert_authorized(test_client, create_alert_dict):
     response = test_client.post(
         "/api/auth",
@@ -188,3 +201,12 @@ def test_create_delete_analysis_job_authorized(test_client, create_analysis_job_
         content_type="application/json",
     )
     assert delete_analysis_job_response.status_code == 200
+
+
+def test_get_analysis_jobs_authorized(test_client, generate_auth_token):
+    get_analysis_jobs_response = test_client.get(
+        "/api/analysis-jobs",
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    assert get_analysis_jobs_response.status_code == 200
