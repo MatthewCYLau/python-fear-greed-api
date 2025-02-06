@@ -2,6 +2,7 @@ import pytest
 from datetime import datetime
 from api.user.models import User, TestUserType, UserType, Currency
 from api.alert.models import Alert
+from api.common.models import BaseModel
 from api.record.models import Record
 from api.analysis.models import AnalysisJob
 from api.exception.models import BadRequestException, UnauthorizedException
@@ -105,3 +106,9 @@ def test_new_unauthorized_exception_with_fixture(new_unauthorized_exception):
 def test_user_type():
     test_user = TestUserType(UserType.INDIVIDUAL_INVESTOR)
     assert test_user.userType == "INDIVIDUAL_INVESTOR"
+
+
+def test_new_base_model():
+    base = BaseModel()
+    assert type(base.created) is datetime
+    assert base.created == base.last_modified
