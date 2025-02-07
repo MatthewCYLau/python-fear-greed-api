@@ -210,3 +210,14 @@ def test_get_analysis_jobs_authorized(test_client, generate_auth_token):
         content_type="application/json",
     )
     assert get_analysis_jobs_response.status_code == 200
+
+
+def test_get_events_invalid_arguments(test_client, generate_auth_token):
+    startDate = "foo"
+    endDate = "bar"
+    response = test_client.get(
+        f"/api/events/me?startDate={startDate}&endDate={endDate}",
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    assert response.status_code == 400
