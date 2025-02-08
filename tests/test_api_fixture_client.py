@@ -221,3 +221,14 @@ def test_get_events_invalid_arguments(test_client, generate_auth_token):
         content_type="application/json",
     )
     assert response.status_code == 400
+
+
+def test_get_events(test_client, generate_auth_token):
+    startDate = "01-01-2024"
+    endDate = "01-01-2025"
+    response = test_client.get(
+        f"/api/events/me?startDate={startDate}&endDate={endDate}",
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    assert response.status_code == 200
