@@ -1,5 +1,4 @@
 import pytest
-import pandas as pd
 from datetime import datetime
 from api.user.models import User, TestUserType, UserType, Currency
 from api.alert.models import Alert
