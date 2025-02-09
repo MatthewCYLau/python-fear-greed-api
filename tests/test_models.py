@@ -1,4 +1,5 @@
 import pytest
+import pandas as pd
 from datetime import datetime
 from api.user.models import User, TestUserType, UserType, Currency
 from api.alert.models import Alert
@@ -6,6 +7,9 @@ from api.common.models import BaseModel
 from api.record.models import Record
 from api.analysis.models import AnalysisJob
 from api.exception.models import BadRequestException, UnauthorizedException
+from api.util.util import (
+    generate_df_from_csv,
+)
 
 
 def test_new_user():
@@ -112,3 +116,9 @@ def test_new_base_model():
     base = BaseModel()
     assert type(base.created) is datetime
     assert base.created == base.last_modified
+
+
+def test_import_from_dataframe():
+    df = generate_df_from_csv("data/example.csv")
+    records_imported = Record.import_from_dataframe(df)
+    assert records_imported == 2
