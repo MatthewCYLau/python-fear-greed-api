@@ -43,6 +43,7 @@ with open(
 ) as gcp_config_json:
     gcp_config = json.load(gcp_config_json)
 ASSETS_PLOTS_BUCKET_NAME = gcp_config["ASSETS_PLOTS_BUCKET_NAME"]
+CHART_LABELS = ["Extreme greed", "Greed", "Neutral", "Fear", "Extreme fear"]
 
 
 @bp.route("/records", methods=(["GET"]))
@@ -147,7 +148,7 @@ def import_records_from_csv(_):
 @auth_required
 def generate_plot_gcs_blob(_):
     chart_type = request.args["chartType"] if "chartType" in request.args else "scatter"
-    bins_size = request.args["binSize"] if "chartType" in request.args else 5
+    bins_size = request.args["binSize"] if "binSize" in request.args else 5
 
     df = _generate_filtered_dataframe()
 
@@ -174,9 +175,19 @@ def generate_plot_gcs_blob(_):
         description_proportions = description_counts / description_counts.sum()
         plt.pie(
             description_proportions,
-            labels=["Extreme greed", "Greed", "Neutral", "Fear", "Extreme fear"],
+            labels=CHART_LABELS,
             autopct="%1.1f%%",
         )
+        plt.title("Distribution of index by labels")
+
+    elif chart_type == "bar":
+        description_counts = df["description"].value_counts()
+        plt.bar(
+            CHART_LABELS,
+            description_counts,
+        )
+        plt.xlabel("Index", fontsize=12)
+        plt.ylabel("Count", fontsize=12)
         plt.title("Distribution of index by labels")
 
     else:
