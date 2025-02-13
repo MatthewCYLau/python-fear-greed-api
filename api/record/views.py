@@ -150,6 +150,12 @@ def generate_plot_gcs_blob(_):
     chart_type = request.args["chartType"] if "chartType" in request.args else "scatter"
     bins_size = request.args["binSize"] if "binSize" in request.args else 5
 
+    try:
+        assert bins_size.isdigit() and int(bins_size) in (3, 4, 5)
+    except AssertionError as e:
+        logging.error(e)
+        raise BadRequestException(f"Invalid bin size", status_code=400)
+
     df = _generate_filtered_dataframe()
 
     plt.figure(figsize=(10, 6))
