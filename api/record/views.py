@@ -14,6 +14,7 @@ from api.record.models import Record
 from api.auth.auth import auth_required
 from datetime import datetime, timedelta
 from api.rate_limiter.rate_limiter import limiter
+from dateutil.relativedelta import relativedelta
 from google.cloud import storage
 import logging
 import yaml
@@ -154,7 +155,7 @@ def generate_plot_gcs_blob(_):
         assert bins_size.isdigit() and int(bins_size) in (3, 4, 5)
     except AssertionError as e:
         logging.error(e)
-        raise BadRequestException(f"Invalid bin size", status_code=400)
+        raise BadRequestException("Invalid bin size", status_code=400)
 
     df = _generate_filtered_dataframe()
 
@@ -214,8 +215,16 @@ def _generate_filtered_dataframe():
     min_index = int(request.args["min"]) if "min" in request.args else 0
     max_index = int(request.args["max"]) if "max" in request.args else 100
 
-    start_date = request.args["startDate"] if "startDate" in request.args else None
-    end_date = request.args["endDate"] if "endDate" in request.args else None
+    start_date = (
+        request.args["startDate"]
+        if "startDate" in request.args
+        else (datetime.today() - relativedelta(years=1)).strftime(DATETIME_FORMATE_CODE)
+    )
+    end_date = (
+        request.args["endDate"]
+        if "endDate" in request.args
+        else datetime.today().strftime(DATETIME_FORMATE_CODE)
+    )
 
     dates_input = [start_date, end_date]
 
