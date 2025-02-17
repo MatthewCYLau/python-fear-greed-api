@@ -232,3 +232,27 @@ def test_get_events(test_client, generate_auth_token):
         content_type="application/json",
     )
     assert response.status_code == 200
+
+
+def test_get_users_authorized(test_client, generate_auth_token):
+    response = test_client.get(
+        "/api/users",
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+
+
+def test_get_user_by_id_authorized(test_client, generate_auth_token):
+    get_users_response = test_client.get(
+        "/api/users",
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    user_id = get_users_response.json[0].get("_id")
+    get_user_response = test_client.get(
+        f"/api/users/{user_id}",
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    assert get_user_response.status_code == 200
