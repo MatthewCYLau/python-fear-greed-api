@@ -81,6 +81,10 @@ def get_stock_analysis(_):
         for index, row in df.tail().iterrows():
             logging.info(f"Most recent close with index {index} is {row.Close}")
 
+        df_tail = df.tail().copy()
+        df_tail["Close Doubled"] = df_tail["Close"].apply(lambda x: 2 * x)
+        logging.info(df_tail)
+
         most_recent_close = df.tail(1)["Close"].values[0]
         most_recent_close = float("{:.2f}".format(most_recent_close))
         most_recent_fear_greed_index = int(Record.get_most_recent_record()["index"])
