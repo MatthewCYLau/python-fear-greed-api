@@ -61,10 +61,26 @@ class AnalysisJobRequest(BaseModel):
 @auth_required
 def get_stock_analysis(_):
     stock_symbol = request.args.get("stock", default=None, type=None)
+    index_symbol = request.args.get("index", default=None, type=None)
+
     target_fear_greed_index = request.args.get(
         "targetFearGreedIndex", default=None, type=int
     )
     target_pe_ratio = request.args.get("targetPeRatio", default=None, type=float)
+
+    if index_symbol:
+        data = yf.Ticker(index_symbol)
+        index_info = data.info
+        return (
+            jsonify(
+                {
+                    "index": index_info.get("symbol"),
+                    "open": index_info.get("open"),
+                    "previousClose": index_info.get("previousClose"),
+                }
+            ),
+            200,
+        )
 
     if not stock_symbol:
         raise BadRequestException("Provide a stock symbol", status_code=400)
