@@ -2,7 +2,7 @@ from flask import jsonify
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 from typing import List
-from api.common.constants import DATETIME_FORMATE_CODE
+from api.common.constants import DATETIME_FORMATE_CODE, PANDAS_DF_DATE_FORMATE_CODE
 import asyncio
 import pandas as pd
 import random
@@ -48,6 +48,17 @@ def validate_date_string(date_text):
             DATETIME_FORMATE_CODE
         ):
             raise ValueError("Invalid date input. Must be in format DD-MM-YYYY")
+        return True
+    except ValueError:
+        return False
+
+
+def validate_date_string_for_pandas_df(date_text):
+    try:
+        if date_text != datetime.strptime(
+            date_text, PANDAS_DF_DATE_FORMATE_CODE
+        ).strftime(PANDAS_DF_DATE_FORMATE_CODE):
+            raise ValueError("Invalid date input. Must be in format YYYY-MM-DD")
         return True
     except ValueError:
         return False

@@ -7,6 +7,7 @@ from api.util.util import (
     is_allowed_file,
     generate_df_from_csv,
     generate_figure_blob_filename,
+    validate_date_string_for_pandas_df,
 )
 from api.util.cloud_storage_connector import CloudStorageConnector
 from api.exception.models import BadRequestException
@@ -50,6 +51,28 @@ CHART_LABELS = ["Extreme greed", "Greed", "Neutral", "Fear", "Extreme fear"]
 @bp.route("/records", methods=(["GET"]))
 @auth_required
 def get_records(_):
+    if request.args.get("date"):
+        record_date = request.args["date"]
+
+        if not validate_date_string_for_pandas_df(record_date):
+            raise BadRequestException(
+                "Invalid date input. Must be in format YYYY-MM-DD", status_code=400
+            )
+        logging.info(f"Getting record for {record_date}")
+        filtered_df = _generate_filtered_dataframe()
+        filtered_df["created_date"] = filtered_df.index.date
+        logging.info(filtered_df.tail())
+        filtered_series = filtered_df.loc[record_date:record_date, "fear_greed_index"]
+        logging.info(filtered_series)
+        if not len(filtered_series):
+            return jsonify({"message": "Record for date not found"}), 404
+        return jsonify(
+            {
+                "date": record_date,
+                "index": int(filtered_series.values[0]),
+            }
+        )
+
     count = int(request.args["count"]) if "count" in request.args else 0
     sort_direction = (
         1 if "order" in request.args and request.args["order"] == "asc" else -1
