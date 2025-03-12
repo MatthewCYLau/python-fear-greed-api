@@ -256,3 +256,15 @@ def test_get_user_by_id_authorized(test_client, generate_auth_token):
         content_type="application/json",
     )
     assert get_user_response.status_code == 200
+
+
+def test_get_records_authorized_valid_date(test_client, generate_auth_token):
+    requested_date = "2024-11-08"
+    response = test_client.get(
+        f"/api/records?date={requested_date}",
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert "index" in response.json
+    assert isinstance(response.json.get("index"), int)
