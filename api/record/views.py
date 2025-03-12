@@ -69,7 +69,9 @@ def get_records(_):
         return jsonify(
             {
                 "date": record_date,
-                "index": int(filtered_series.values[0]),
+                "index": int(
+                    filtered_series.iloc[0]
+                ),  # or int(filtered_series.values[0]),
             }
         )
 
