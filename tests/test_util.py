@@ -12,6 +12,7 @@ from api.util.util import (
     generate_df_from_csv,
     return_delta,
     generate_figure_blob_filename,
+    validate_date_string_for_pandas_df,
 )
 from api.auth.auth import validate_google_oauth_token
 
@@ -42,6 +43,11 @@ def test_is_valid_sector():
 def test_validate_date_string():
     assert not validate_date_string("06-22-2023")
     assert validate_date_string("26-06-2023")
+
+
+def test_validate_date_string_for_pandas_df():
+    assert not validate_date_string_for_pandas_df("2024-25-03")
+    assert validate_date_string_for_pandas_df("2024-03-03")
 
 
 def test_generate_stock_fair_value():
