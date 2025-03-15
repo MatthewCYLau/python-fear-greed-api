@@ -267,4 +267,5 @@ def test_get_records_authorized_valid_date(test_client, generate_auth_token):
     )
     assert response.status_code == 200
     assert "index" in response.json
+    assert "description" in response.json
     assert isinstance(response.json.get("index"), int)
