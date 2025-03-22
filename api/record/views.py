@@ -1,5 +1,5 @@
 from flask import Blueprint, request, make_response, jsonify
-from api.common.constants import DATETIME_FORMATE_CODE
+from api.common.constants import DATETIME_FORMATE_CODE, PANDAS_DF_DATE_FORMATE_CODE
 from api.db.setup import db
 from api.util.util import (
     generate_response,
@@ -57,6 +57,16 @@ def get_records(_):
         if not validate_date_string_for_pandas_df(record_date):
             raise BadRequestException(
                 "Invalid date input. Must be in format YYYY-MM-DD", status_code=400
+            )
+
+        now = datetime.now()
+        if (
+            now - datetime.strptime(record_date, PANDAS_DF_DATE_FORMATE_CODE)
+        ).days > 365:
+            one_year_ago = now - relativedelta(days=365)
+            raise BadRequestException(
+                f"{record_date} is too far behind! Oldest date is one year ago from current time {one_year_ago.strftime(PANDAS_DF_DATE_FORMATE_CODE)}",
+                status_code=400,
             )
         logging.info(f"Getting record for {record_date}")
         filtered_df = _generate_filtered_dataframe()

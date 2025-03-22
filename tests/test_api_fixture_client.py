@@ -4,6 +4,11 @@ import os
 import pytest
 import random
 import time
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+
+from api.common.constants import PANDAS_DF_DATE_FORMATE_CODE
+
 
 config_file_path = "config/.env"
 if os.path.exists(config_file_path):
@@ -269,3 +274,15 @@ def test_get_records_authorized_valid_date(test_client, generate_auth_token):
     assert "index" in response.json
     assert "description" in response.json
     assert isinstance(response.json.get("index"), int)
+
+
+def test_get_records_authorized_date_too_old(test_client, generate_auth_token):
+    requested_date = (datetime.now() - relativedelta(days=500)).strftime(
+        PANDAS_DF_DATE_FORMATE_CODE
+    )
+    response = test_client.get(
+        f"/api/records?date={requested_date}",
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    assert response.status_code == 400
