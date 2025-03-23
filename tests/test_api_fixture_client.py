@@ -286,3 +286,16 @@ def test_get_records_authorized_date_too_old(test_client, generate_auth_token):
         content_type="application/json",
     )
     assert response.status_code == 400
+
+
+def test_generate_stock_plot_gcs_blob_invalid_roling_average(
+    test_client, generate_auth_token
+):
+    stock_symbol = "SPY"
+    rolling_average_days = 200
+    response = test_client.post(
+        f"/api/generate-stock-plot?stock={stock_symbol}&rollingAverageDays={rolling_average_days}",
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    assert response.status_code == 400

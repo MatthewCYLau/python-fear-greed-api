@@ -350,19 +350,31 @@ def handle_pubsub_subscription_push():
 def generate_stock_plot_gcs_blob(_):
     stock_symbol = request.args.get("stock", default=None, type=None)
     target_price = request.args.get("targetPrice", default=None, type=None)
+    rolling_average_days = request.args.get("rollingAverageDays", default=50, type=int)
 
     if not stock_symbol:
         raise BadRequestException("Provide a stock symbol", status_code=400)
 
+    if rolling_average_days and (
+        rolling_average_days > 100 or rolling_average_days < 50
+    ):
+        raise BadRequestException(
+            "Rolling average days must be between 50 and 100 inclusive", status_code=400
+        )
+
     data = yf.download([stock_symbol], get_years_ago_formatted(1))["Close"]
 
     y_label = "Close Price"
-    data["rolling_avg"] = data[stock_symbol].rolling(window=50).mean()
+    data["rolling_avg"] = data[stock_symbol].rolling(window=rolling_average_days).mean()
 
     # data.plot(figsize=(10, 6))
     plt.figure(figsize=(10, 6))
     plt.plot(data.index, data[stock_symbol], label="Close Price")
-    plt.plot(data.index, data["rolling_avg"], label="50-Day Rolling Average")
+    plt.plot(
+        data.index,
+        data["rolling_avg"],
+        label=f"{rolling_average_days}-Day Rolling Average",
+    )
 
     if target_price:
         plt.axhline(
