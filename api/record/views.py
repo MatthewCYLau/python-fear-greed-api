@@ -73,7 +73,7 @@ def get_records(_):
         filtered_df["created_date"] = filtered_df.index.date
         logging.info(filtered_df.tail())
         logging.info(
-            f"Max index: {filtered_df["fear_greed_index"].max()}; min index {filtered_df["fear_greed_index"].min()}"
+            f"Max index: {filtered_df['fear_greed_index'].max()}; min index {filtered_df['fear_greed_index'].min()}"
         )
         filtered_series = filtered_df.loc[record_date:record_date, "fear_greed_index"]
         logging.info(filtered_series)
