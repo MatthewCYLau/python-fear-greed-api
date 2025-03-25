@@ -76,7 +76,7 @@ def get_records(_):
         logging.info(f"{'Max index:':<20}{filtered_df['fear_greed_index'].max()}")
         logging.info(f"{'Min index:':<20}{filtered_df['fear_greed_index'].min()}")
         logging.info(
-            f"{'Mean index:':<20}{"{:.2f}".format(filtered_df['fear_greed_index'].mean())}"
+            f"{'Mean index:':<20}{'{:.2f}'.format(filtered_df['fear_greed_index'].mean())}"
         )
 
         filtered_series = filtered_df.loc[record_date:record_date, "fear_greed_index"]
