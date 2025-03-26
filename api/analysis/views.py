@@ -131,6 +131,14 @@ def get_stock_analysis(_):
                     "fairValue": fair_value,
                     "delta": return_delta(fair_value, most_recent_close),
                     "rolling_averages": rolling_averages,
+                    "data": json.loads(
+                        df.tail(10)
+                        .sort_values(
+                            by="Date",
+                            ascending=False,
+                        )
+                        .to_json(orient="table")
+                    )["data"],
                 }
             ),
             200,
