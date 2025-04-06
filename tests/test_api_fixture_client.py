@@ -304,7 +304,7 @@ def test_generate_stock_plot_gcs_blob_invalid_roling_average(
 def test_get_stock_analysis_authorized_valid_stock(test_client, generate_auth_token):
     stock_symbol = "AAPL"
     response = test_client.get(
-        f"/api/analysis?stock={stock_symbol}&targetFearGreedIndex=50&targetPeRatio=25",
+        f"/api/analysis?stock={stock_symbol}",
         headers={"x-auth-token": generate_auth_token},
         content_type="application/json",
     )

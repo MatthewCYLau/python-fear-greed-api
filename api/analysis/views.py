@@ -14,7 +14,10 @@ import matplotlib.pyplot as plt
 import math
 from google.cloud import pubsub_v1
 from api.auth.auth import auth_required
-from api.common.constants import ANALYSIS_JOB_CREATION_DAILY_LIMIT
+from api.common.constants import (
+    ANALYSIS_JOB_CREATION_DAILY_LIMIT,
+    DEFAULT_TARGET_PE_RATIO,
+)
 from api.util.util import (
     generate_response,
     generate_stock_fair_value,
@@ -64,9 +67,11 @@ def get_stock_analysis(_):
     index_symbol = request.args.get("index", default=None, type=None)
 
     target_fear_greed_index = request.args.get(
-        "targetFearGreedIndex", default=None, type=int
+        "targetFearGreedIndex", default=50, type=int
     )
-    target_pe_ratio = request.args.get("targetPeRatio", default=None, type=float)
+    target_pe_ratio = request.args.get(
+        "targetPeRatio", default=DEFAULT_TARGET_PE_RATIO, type=float
+    )
 
     if index_symbol:
         data = yf.Ticker(index_symbol)
