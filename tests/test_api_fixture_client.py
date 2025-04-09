@@ -309,3 +309,7 @@ def test_get_stock_analysis_authorized_valid_stock(test_client, generate_auth_to
         content_type="application/json",
     )
     assert response.status_code == 200
+    assert "close" in response.json
+    assert isinstance(response.json.get("close"), float)
+    assert "fairValue" in response.json
+    assert isinstance(response.json.get("fairValue"), float)
