@@ -313,3 +313,13 @@ def test_get_stock_analysis_authorized_valid_stock(test_client, generate_auth_to
     assert isinstance(response.json.get("close"), float)
     assert "fairValue" in response.json
     assert isinstance(response.json.get("fairValue"), float)
+
+
+def test_get_stock_analysis_authorized_invalid_stock(test_client, generate_auth_token):
+    stock_symbol = "FOO"
+    response = test_client.get(
+        f"/api/analysis?stock={stock_symbol}",
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    assert response.status_code == 500
