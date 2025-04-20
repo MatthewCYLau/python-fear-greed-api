@@ -1,4 +1,5 @@
-from flask import Blueprint, jsonify, request
+from datetime import datetime
+from flask import Blueprint, jsonify, make_response, request
 from api.db.setup import db
 from bson.objectid import ObjectId
 from concurrent.futures import ProcessPoolExecutor
@@ -16,6 +17,7 @@ from google.cloud import pubsub_v1
 from api.auth.auth import auth_required
 from api.common.constants import (
     ANALYSIS_JOB_CREATION_DAILY_LIMIT,
+    DATETIME_FORMATE_CODE,
     DEFAULT_TARGET_PE_RATIO,
 )
 from api.util.util import (
@@ -471,3 +473,22 @@ def generate_stock_cumulative_returns_plot_gcs_blob(_):
         fig_to_upload, file_name
     )
     return jsonify({"image_url": blob_public_url}), 200
+
+
+@bp.route("/analysis/export-csv", methods=(["POST"]))
+def get_records_csv():
+
+    stock_symbol = request.args.get("stock", default=None, type=None)
+
+    if not stock_symbol:
+        raise BadRequestException("Provide a stock symbol", status_code=400)
+
+    data = yf.Ticker(stock_symbol)
+    df = data.history(period="1y")
+
+    response = make_response(df.to_csv())
+    response.headers["Content-Disposition"] = (
+        f"attachment; filename={datetime.today().strftime(DATETIME_FORMATE_CODE)}.csv"
+    )
+    response.mimetype = "text/csv"
+    return response
