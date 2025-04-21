@@ -323,3 +323,9 @@ def test_get_stock_analysis_authorized_invalid_stock(test_client, generate_auth_
         content_type="application/json",
     )
     assert response.status_code == 500
+
+
+def test_export_stock_analysis_csv(test_client):
+    stock_symbol = "AAPL"
+    response = test_client.post(f"/api/analysis/export-csv?stock={stock_symbol}")
+    assert response.status_code == 200

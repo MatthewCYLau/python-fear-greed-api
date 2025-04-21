@@ -476,7 +476,7 @@ def generate_stock_cumulative_returns_plot_gcs_blob(_):
 
 
 @bp.route("/analysis/export-csv", methods=(["POST"]))
-def get_records_csv():
+def export_stock_analysis_csv():
 
     stock_symbol = request.args.get("stock", default=None, type=None)
 
