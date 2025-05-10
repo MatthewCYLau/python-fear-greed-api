@@ -329,3 +329,4 @@ def test_export_stock_analysis_csv(test_client):
     stock_symbol = "AAPL"
     response = test_client.post(f"/api/analysis/export-csv?stock={stock_symbol}")
     assert response.status_code == 200
+    assert response.mimetype == "text/csv"
