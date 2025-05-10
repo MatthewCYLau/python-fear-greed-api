@@ -127,6 +127,12 @@ def generate_auth_token(test_client):
     return token
 
 
+@pytest.fixture(scope="module")
+def sleep():
+    time.sleep(1 * 60)
+    yield
+
+
 def test_create_delete_alert_authorized(test_client, create_alert_dict):
     response = test_client.post(
         "/api/auth",
@@ -301,7 +307,10 @@ def test_generate_stock_plot_gcs_blob_invalid_roling_average(
     assert response.status_code == 400
 
 
-def test_get_stock_analysis_authorized_valid_stock(test_client, generate_auth_token):
+def test_get_stock_analysis_authorized_valid_stock(
+    test_client, generate_auth_token, sleep
+):
+    sleep
     stock_symbol = "AAPL"
     response = test_client.get(
         f"/api/analysis?stock={stock_symbol}",
@@ -315,7 +324,10 @@ def test_get_stock_analysis_authorized_valid_stock(test_client, generate_auth_to
     assert isinstance(response.json.get("fairValue"), float)
 
 
-def test_get_stock_analysis_authorized_invalid_stock(test_client, generate_auth_token):
+def test_get_stock_analysis_authorized_invalid_stock(
+    test_client, generate_auth_token, sleep
+):
+    sleep
     stock_symbol = "FOO"
     response = test_client.get(
         f"/api/analysis?stock={stock_symbol}",
@@ -325,7 +337,8 @@ def test_get_stock_analysis_authorized_invalid_stock(test_client, generate_auth_
     assert response.status_code == 500
 
 
-def test_export_stock_analysis_csv(test_client):
+def test_export_stock_analysis_csv(test_client, sleep):
+    sleep
     stock_symbol = "AAPL"
     response = test_client.post(f"/api/analysis/export-csv?stock={stock_symbol}")
     assert response.status_code == 200
