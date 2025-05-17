@@ -137,6 +137,7 @@ def get_stock_analysis(_):
                     "mostRecentFearGreedIndex": most_recent_fear_greed_index,
                     "fairValue": fair_value,
                     "delta": return_delta(fair_value, most_recent_close),
+                    "peRatio": PE_ratio,
                     "rolling_averages": rolling_averages,
                     "data": json.loads(
                         df.tail(10)

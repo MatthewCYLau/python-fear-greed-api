@@ -322,6 +322,8 @@ def test_get_stock_analysis_authorized_valid_stock(
     assert isinstance(response.json.get("close"), float)
     assert "fairValue" in response.json
     assert isinstance(response.json.get("fairValue"), float)
+    assert "peRatio" in response.json
+    assert isinstance(response.json.get("peRatio"), float)
 
 
 def test_get_stock_analysis_authorized_invalid_stock(
