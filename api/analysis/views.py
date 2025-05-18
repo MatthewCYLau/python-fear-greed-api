@@ -364,12 +364,22 @@ def handle_pubsub_subscription_push():
 @bp.route("/generate-stock-plot", methods=(["POST"]))
 @auth_required
 def generate_stock_plot_gcs_blob(_):
-    stock_symbol = request.args.get("stock", default=None, type=None)
+    stocks = request.args.get("stocks", default=None, type=None)
+    if not stocks:
+        raise BadRequestException(
+            "Provide a stock ticker symbols in comma separated list",
+            status_code=400,
+        )
+
+    tickers_list = stocks.split(",")
+
+    if len(tickers_list) > 5:
+        return jsonify({"message": "Maximum five stocks!"}), 400
+
+    first_stock_ticker = tickers_list[0]
+
     target_price = request.args.get("targetPrice", default=None, type=None)
     rolling_average_days = request.args.get("rollingAverageDays", default=50, type=int)
-
-    if not stock_symbol:
-        raise BadRequestException("Provide a stock symbol", status_code=400)
 
     if rolling_average_days and (
         rolling_average_days > 100 or rolling_average_days < 50
@@ -378,38 +388,42 @@ def generate_stock_plot_gcs_blob(_):
             "Rolling average days must be between 50 and 100 inclusive", status_code=400
         )
 
-    data = yf.download([stock_symbol], get_years_ago_formatted(1))["Close"]
-
+    data = yf.download(tickers_list, get_years_ago_formatted(1))["Close"]
     y_label = "Close Price"
-    data["rolling_avg"] = data[stock_symbol].rolling(window=rolling_average_days).mean()
 
     # data.plot(figsize=(10, 6))
     plt.figure(figsize=(10, 6))
-    plt.plot(data.index, data[stock_symbol], label="Close Price")
-    plt.plot(
-        data.index,
-        data["rolling_avg"],
-        label=f"{rolling_average_days}-Day Rolling Average",
-    )
-
-    if target_price:
-        plt.axhline(
-            y=float(target_price),
-            color="r",
-            label=f"Target Price: ${target_price}",
-        )
+    plt.plot(data.index, data[tickers_list], label="Close Price")
 
     x = data.index
-    y = data[stock_symbol].values.reshape(-1, 1)
 
-    lm = LinearRegression()
-    lm.fit(x.values.reshape(-1, 1), y)
+    if len(tickers_list) == 1:
+        data["rolling_avg"] = (
+            data[first_stock_ticker].rolling(window=rolling_average_days).mean()
+        )
+        plt.plot(
+            data.index,
+            data["rolling_avg"],
+            label=f"{rolling_average_days}-Day Rolling Average",
+        )
+        if target_price:
+            plt.axhline(
+                y=float(target_price),
+                color="r",
+                label=f"Target Price: ${target_price}",
+            )
+        y = data[first_stock_ticker].values.reshape(-1, 1)
 
-    predictions = lm.predict(x.values.astype(float).reshape(-1, 1))
-    plt.plot(x, predictions, label="Linear fit", linestyle="--", lw=1, color="red")
+        lm = LinearRegression()
+        lm.fit(x.values.reshape(-1, 1), y)
 
-    plt.legend()
-    plt.title(f"{stock_symbol} Stock Chart", fontsize=16)
+        predictions = lm.predict(x.values.astype(float).reshape(-1, 1))
+        plt.plot(x, predictions, label="Linear fit", linestyle="--", lw=1, color="red")
+        plt.legend()
+    else:
+        plt.legend(tickers_list)
+
+    plt.title(f"{','.join(tickers_list)} Stock Chart", fontsize=16)
 
     # Define the labels
     plt.ylabel(y_label, fontsize=14)
@@ -437,7 +451,7 @@ def generate_stock_cumulative_returns_plot_gcs_blob(_):
     if not data or not data.get("stocks") or not data.get("years"):
         return jsonify({"message": "Missing field"}), 400
 
-    tickers_list = data.get("stocks").split(";")
+    tickers_list = data.get("stocks").split(",")
     years = data.get("years")
 
     if not isinstance(years, int):
