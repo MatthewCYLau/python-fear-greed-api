@@ -365,6 +365,13 @@ def handle_pubsub_subscription_push():
 @auth_required
 def generate_stock_plot_gcs_blob(_):
     stocks = request.args.get("stocks", default=None, type=None)
+    years_ago = request.args.get("years", default=1, type=int)
+
+    if not isinstance(years_ago, int):
+        return jsonify({"message": "Invalid value for years!"}), 400
+    if int(years_ago) > 3:
+        return jsonify({"message": "Maximum three years!"}), 400
+
     if not stocks:
         raise BadRequestException(
             "Provide a stock ticker symbols in comma separated list",
@@ -388,7 +395,7 @@ def generate_stock_plot_gcs_blob(_):
             "Rolling average days must be between 50 and 100 inclusive", status_code=400
         )
 
-    data = yf.download(tickers_list, get_years_ago_formatted(1))["Close"]
+    data = yf.download(tickers_list, get_years_ago_formatted(years_ago))["Close"]
     y_label = "Close Price"
 
     # data.plot(figsize=(10, 6))
