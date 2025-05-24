@@ -300,7 +300,7 @@ def test_generate_stock_plot_gcs_blob_invalid_roling_average(
     stock_symbol = "SPY"
     rolling_average_days = 200
     response = test_client.post(
-        f"/api/generate-stock-plot?stock={stock_symbol}&rollingAverageDays={rolling_average_days}",
+        f"/api/generate-stock-plot?stocks={stock_symbol}&rollingAverageDays={rolling_average_days}",
         headers={"x-auth-token": generate_auth_token},
         content_type="application/json",
     )
@@ -345,3 +345,29 @@ def test_export_stock_analysis_csv(test_client, sleep):
     response = test_client.post(f"/api/analysis/export-csv?stock={stock_symbol}")
     assert response.status_code == 200
     assert response.mimetype == "text/csv"
+
+
+def test_generate_stock_plot_gcs_blob_invalid_years_ago(
+    test_client, generate_auth_token
+):
+    stock_symbol = "SPY"
+    years_ago = 5
+    response = test_client.post(
+        f"/api/generate-stock-plot?stocks={stock_symbol}&years={years_ago}",
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    assert response.status_code == 400
+
+
+def test_generate_stock_plot_gcs_blob_valid(test_client, generate_auth_token, sleep):
+    sleep
+    stock_symbol = "SPY"
+    years_ago = 2
+    response = test_client.post(
+        f"/api/generate-stock-plot?stocks={stock_symbol}&years={years_ago}",
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert "image_url" in response.json
