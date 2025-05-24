@@ -360,6 +360,7 @@ def test_generate_stock_plot_gcs_blob_invalid_years_ago(
     assert response.status_code == 400
 
 
+@pytest.mark.skip(reason="Cannot set-up Application Default Credential")
 def test_generate_stock_plot_gcs_blob_valid(test_client, generate_auth_token, sleep):
     sleep
     stock_symbol = "SPY"
