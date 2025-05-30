@@ -364,6 +364,10 @@ def handle_pubsub_subscription_push():
 @bp.route("/generate-stock-plot", methods=(["POST"]))
 @auth_required
 def generate_stock_plot_gcs_blob(_):
+
+    base_currency = request.args.get("baseCurrency", default=None, type=None)
+    quote_currency = request.args.get("quoteCurrency", default=None, type=None)
+
     stocks = request.args.get("stocks", default=None, type=None)
     years_ago = request.args.get("years", default=1, type=int)
 
@@ -372,13 +376,15 @@ def generate_stock_plot_gcs_blob(_):
     if int(years_ago) > 3:
         return jsonify({"message": "Maximum three years!"}), 400
 
-    if not stocks:
+    if base_currency and quote_currency:
+        tickers_list = [f"{base_currency}{quote_currency}=X"]
+    elif stocks:
+        tickers_list = stocks.split(",")
+    else:
         raise BadRequestException(
             "Provide a stock ticker symbols in comma separated list",
             status_code=400,
         )
-
-    tickers_list = stocks.split(",")
 
     if len(tickers_list) > 5:
         return jsonify({"message": "Maximum five stocks!"}), 400
@@ -430,7 +436,7 @@ def generate_stock_plot_gcs_blob(_):
     else:
         plt.legend(tickers_list)
 
-    plt.title(f"{','.join(tickers_list)} Stock Chart", fontsize=16)
+    plt.title(f"{','.join(tickers_list)} Chart", fontsize=16)
 
     # Define the labels
     plt.ylabel(y_label, fontsize=14)
