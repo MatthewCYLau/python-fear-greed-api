@@ -19,6 +19,7 @@ from api.common.constants import (
     ANALYSIS_JOB_CREATION_DAILY_LIMIT,
     DATETIME_FORMATE_CODE,
     DEFAULT_TARGET_PE_RATIO,
+    VALID_CURRENCIES,
 )
 from api.util.util import (
     generate_response,
@@ -377,6 +378,14 @@ def generate_stock_plot_gcs_blob(_):
         return jsonify({"message": "Maximum three years!"}), 400
 
     if base_currency and quote_currency:
+        if any(
+            i.upper() not in VALID_CURRENCIES for i in [base_currency, quote_currency]
+        ):
+            raise BadRequestException(
+                "Provide a valid currency symbol",
+                status_code=400,
+            )
+
         tickers_list = [f"{base_currency}{quote_currency}=X"]
     elif stocks:
         tickers_list = stocks.split(",")
