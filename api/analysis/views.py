@@ -24,6 +24,7 @@ from api.common.constants import (
 from api.util.util import (
     generate_response,
     generate_stock_fair_value,
+    predict_price_linear_regression,
     return_delta,
     generate_figure_blob_filename,
     get_years_ago_formatted,
@@ -318,6 +319,11 @@ def handle_pubsub_subscription_push():
         logging.info(
             f"Received Pub Sub message with for stock {stock_symbol} with job ID {job_id}; {target_fear_greed_index} and {target_pe_ratio}"
         )
+
+        price_prediction = predict_price_linear_regression(
+            stock_symbol=stock_info, data_years_ago=1, prediction_years_future=1
+        )
+
         try:
             start_time = time.perf_counter()
             data = yf.Ticker(stock_symbol)
@@ -348,6 +354,7 @@ def handle_pubsub_subscription_push():
                     "target_pe_ratio": target_pe_ratio,
                     "fair_value": fair_value,
                     "delta": return_delta(fair_value, most_recent_close),
+                    "price_prediction": price_prediction,
                     "complete": True,
                 },
             )

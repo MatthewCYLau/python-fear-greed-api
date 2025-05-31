@@ -1,3 +1,4 @@
+import logging
 from flask import jsonify
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
@@ -8,6 +9,8 @@ import pandas as pd
 import random
 import json
 import pytz
+import yfinance as yf
+from sklearn.linear_model import LinearRegression
 
 
 def generate_response(input):
@@ -128,3 +131,35 @@ def get_years_ago_formatted(years: int = 1) -> str:
     current_date = datetime.today()
     one_year_ago = current_date - relativedelta(years=years)
     return one_year_ago.strftime("%Y-%m-%d")
+
+
+def predict_price_linear_regression(
+    stock_symbol: str, data_years_ago: int, prediction_years_future: int
+):
+    try:
+        data = yf.Ticker(stock_symbol)
+        df = data.history(period=f"{data_years_ago}y")
+
+        # Create a numerical representation of the time index
+        df["Days"] = (df.index - df.index.min()).days
+
+        # Prepare the data for the linear regression model
+        X = df[["Days"]]
+        y = df["Close"]
+
+        # Create and train the linear regression model
+        model = LinearRegression()
+        model.fit(X, y)
+
+        # Calculate the date one year in the future
+        last_date = df.index[-1]
+        future_date = last_date + pd.DateOffset(years=prediction_years_future)
+        future_days = (future_date - df.index.min()).days
+
+        # Predict the price for the future date
+        future_price = model.predict([[future_days]])[0]
+        return future_price
+
+    except Exception as e:
+        logging.error(e)
+        return 0

@@ -20,6 +20,7 @@ class AnalysisJob(BaseModel):
         target_pe_ratio=0,
         fair_value=0,
         delta=0,
+        price_prediction=0,
     ):
         super().__init__()
         self.stock_symbol = stock_symbol
@@ -30,6 +31,7 @@ class AnalysisJob(BaseModel):
         self.target_pe_ratio = target_pe_ratio
         self.fair_value = fair_value
         self.delta = delta
+        self.price_prediction = price_prediction
         self.complete = False
 
     def save_analysis_job_to_db(self):
@@ -46,6 +48,7 @@ class AnalysisJob(BaseModel):
                 "target_pe_ratio": data["target_pe_ratio"],
                 "fair_value": data["fair_value"],
                 "delta": data["delta"],
+                "price_prediction": data["price_prediction"],
                 "complete": data["complete"],
                 "last_modified": get_current_time_utc(),
             }
