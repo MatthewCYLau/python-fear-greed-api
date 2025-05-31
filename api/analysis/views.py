@@ -321,7 +321,7 @@ def handle_pubsub_subscription_push():
         )
 
         price_prediction = predict_price_linear_regression(
-            stock_symbol=stock_info, data_years_ago=1, prediction_years_future=1
+            stock_symbol=stock_symbol, data_years_ago=1, prediction_years_future=1
         )
 
         try:
