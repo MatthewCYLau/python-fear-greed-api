@@ -320,8 +320,11 @@ def handle_pubsub_subscription_push():
             f"Received Pub Sub message with for stock {stock_symbol} with job ID {job_id}; {target_fear_greed_index} and {target_pe_ratio}"
         )
 
-        price_prediction = predict_price_linear_regression(
-            stock_symbol=stock_symbol, data_years_ago=1, prediction_years_future=1
+        price_prediction = round(
+            predict_price_linear_regression(
+                stock_symbol=stock_symbol, data_years_ago=1, prediction_years_future=1
+            ),
+            2,
         )
 
         try:
