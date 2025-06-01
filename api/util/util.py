@@ -11,6 +11,7 @@ import json
 import pytz
 import yfinance as yf
 from sklearn.linear_model import LinearRegression
+import statistics
 
 
 def generate_response(input):
@@ -144,12 +145,12 @@ def predict_price_linear_regression(
         df["Days"] = (df.index - df.index.min()).days
 
         # Prepare the data for the linear regression model
-        X = df[["Days"]]
+        x = df[["Days"]]
         y = df["Close"]
 
         # Create and train the linear regression model
         model = LinearRegression()
-        model.fit(X, y)
+        model.fit(x, y)
 
         # Calculate the date one year in the future
         last_date = df.index[-1]
@@ -157,8 +158,29 @@ def predict_price_linear_regression(
         future_days = (future_date - df.index.min()).days
 
         # Predict the price for the future date
-        future_price = model.predict([[future_days]])[0]
-        return future_price
+        future_price1 = model.predict([[future_days]])[0]
+        logging.info(f"Price prediction 1: {future_price1}")
+
+        # Uses values.reshape
+        x = df.index
+        y = df["Close"].values.reshape(-1, 1)
+
+        lm = LinearRegression()
+        model = lm.fit(x.values.reshape(-1, 1), y)
+
+        last_date = df.index[-1]
+        future_date = last_date + pd.DateOffset(years=1)
+        extended_index = pd.date_range(
+            start=df.index[0], end=future_date, freq=df.index.freq
+        )
+
+        future_price2 = lm.predict(extended_index.values.astype(float).reshape(-1, 1))[
+            -1
+        ][0]
+
+        logging.info(f"Price prediction 2: {future_price2}")
+
+        return statistics.mean([future_price1, future_price2])
 
     except Exception as e:
         logging.error(e)
