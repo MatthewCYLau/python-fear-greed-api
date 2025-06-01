@@ -1,5 +1,6 @@
 import pytest
 import pandas as pd
+import time
 from api.util.util import (
     return_dupliucated_items_in_list,
     is_valid_sector,
@@ -13,6 +14,7 @@ from api.util.util import (
     return_delta,
     generate_figure_blob_filename,
     validate_date_string_for_pandas_df,
+    predict_price_linear_regression,
 )
 from api.auth.auth import validate_google_oauth_token
 
@@ -128,3 +130,9 @@ def test_validate_google_oauth_token_invalid_token():
     assert not user_id
     assert not email
     assert not name
+
+
+def test_predict_price_linear_regression():
+    prediction = predict_price_linear_regression("TSLA", 1, 1)
+    time.sleep(1 * 60)  # prevent rate limiting
+    assert isinstance(prediction, float)
