@@ -70,7 +70,7 @@ def get_stock_analysis(_):
     stock_symbol = request.args.get("stock", default=None, type=None)
     index_symbol = request.args.get("index", default=None, type=None)
     correlation_stock_symbol = request.args.get(
-        "correlationStock", default=None, type=None
+        "correlationStock", default="", type=None
     )
 
     target_fear_greed_index = request.args.get(
@@ -135,23 +135,7 @@ def get_stock_analysis(_):
             )
             fair_value = future.result()
 
-        result_dict = {
-            "stock": stock_symbol,
-            "close": most_recent_close,
-            "mostRecentFearGreedIndex": most_recent_fear_greed_index,
-            "fairValue": fair_value,
-            "delta": return_delta(fair_value, most_recent_close),
-            "peRatio": PE_ratio,
-            "rolling_averages": rolling_averages,
-            "data": json.loads(
-                df.tail(10)
-                .sort_values(
-                    by="Date",
-                    ascending=False,
-                )
-                .to_json(orient="table")
-            )["data"],
-        }
+        correlation = 0
 
         if correlation_stock_symbol:
             correlation_stock_data = yf.download(
@@ -171,10 +155,26 @@ def get_stock_analysis(_):
                 f"{stock_symbol} closing price correlation with {correlation_stock_symbol}: {correlation}"
             )
 
-            result_dict = result_dict | {
-                "correlationStock": correlation_stock_symbol,
-                "correlation": correlation,
-            }
+        result_dict = {
+            "stock": stock_symbol,
+            "close": most_recent_close,
+            "mostRecentFearGreedIndex": most_recent_fear_greed_index,
+            "fairValue": fair_value,
+            "delta": return_delta(fair_value, most_recent_close),
+            "peRatio": PE_ratio,
+            "rolling_averages": rolling_averages,
+            "data": json.loads(
+                df.tail(10)
+                .sort_values(
+                    by="Date",
+                    ascending=False,
+                )
+                .to_json(orient="table")
+            )["data"],
+            "correlationStock": correlation_stock_symbol,
+            "correlation": correlation,
+        }
+
         return (
             jsonify(result_dict),
             200,
