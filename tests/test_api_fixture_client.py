@@ -370,3 +370,19 @@ def test_generate_stock_plot_gcs_blob_valid(test_client, generate_auth_token, sl
     )
     assert response.status_code == 200
     assert "image_url" in response.json
+
+
+def test_generate_stock_plot_gcs_blob_valid_forex(
+    test_client, generate_auth_token, sleep
+):
+    sleep
+    base_currency = "GBP"
+    quote_currency = "USD"
+    years_ago = 2
+    response = test_client.post(
+        f"/api/generate-stock-plot?years={years_ago}&baseCurrency={base_currency}&quoteCurrency={quote_currency}",
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert "image_url" in response.json
