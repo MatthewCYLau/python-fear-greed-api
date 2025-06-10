@@ -117,6 +117,16 @@ def get_stock_analysis(_):
         most_recent_close = float("{:.2f}".format(most_recent_close))
         most_recent_fear_greed_index = int(Record.get_most_recent_record()["index"])
 
+        period_high = df["Close"].max()
+        logging.info(
+            f"Period high is {period_high:.2f} on {df['Close'].idxmax().strftime(DATETIME_FORMATE_CODE)}"
+        )
+
+        period_low = df["Close"].min()
+        logging.info(
+            f"Period low is {period_low:.2f} on {df['Close'].idxmin().strftime(DATETIME_FORMATE_CODE)}"
+        )
+
         rolling_averages = {}
 
         for i in (50, 100, 200):
