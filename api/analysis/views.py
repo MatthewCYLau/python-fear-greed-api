@@ -127,6 +127,13 @@ def get_stock_analysis(_):
             f"Period low is {period_low:.2f} on {df['Close'].idxmin().strftime(DATETIME_FORMATE_CODE)}"
         )
 
+        most_early_row = df.head(1)
+        most_early_row_date = most_early_row.index.strftime(DATETIME_FORMATE_CODE)[0]
+        most_early_close = most_early_row["Close"].values[0]
+
+        period_change = most_recent_close - most_early_close
+        logging.info(f"Period change is {period_change:.2f} from {most_early_row_date}")
+
         rolling_averages = {}
 
         for i in (50, 100, 200):
@@ -183,6 +190,9 @@ def get_stock_analysis(_):
             )["data"],
             "correlationStock": correlation_stock_symbol,
             "correlation": correlation,
+            "periodLow": period_low,
+            "periodHigh": period_high,
+            "periodChange": period_change,
         }
 
         return (
