@@ -117,22 +117,22 @@ def get_stock_analysis(_):
         most_recent_close = float("{:.2f}".format(most_recent_close))
         most_recent_fear_greed_index = int(Record.get_most_recent_record()["index"])
 
-        period_high = df["Close"].max()
+        period_high = float("{:.2f}".format(df["Close"].max()))
         logging.info(
-            f"Period high is {period_high:.2f} on {df['Close'].idxmax().strftime(DATETIME_FORMATE_CODE)}"
+            f"Period high is {period_high} on {df['Close'].idxmax().strftime(DATETIME_FORMATE_CODE)}"
         )
 
-        period_low = df["Close"].min()
+        period_low = float("{:.2f}".format(df["Close"].min()))
         logging.info(
-            f"Period low is {period_low:.2f} on {df['Close'].idxmin().strftime(DATETIME_FORMATE_CODE)}"
+            f"Period low is {period_low} on {df['Close'].idxmin().strftime(DATETIME_FORMATE_CODE)}"
         )
 
         most_early_row = df.head(1)
         most_early_row_date = most_early_row.index.strftime(DATETIME_FORMATE_CODE)[0]
         most_early_close = most_early_row["Close"].values[0]
 
-        period_change = most_recent_close - most_early_close
-        logging.info(f"Period change is {period_change:.2f} from {most_early_row_date}")
+        period_change = float("{:.2f}".format(most_recent_close - most_early_close))
+        logging.info(f"Period change is {period_change} from {most_early_row_date}")
 
         rolling_averages = {}
 
