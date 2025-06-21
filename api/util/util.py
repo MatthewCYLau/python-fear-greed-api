@@ -134,6 +134,21 @@ def get_years_ago_formatted(years: int = 1) -> str:
     return one_year_ago.strftime("%Y-%m-%d")
 
 
+def shock(func):
+    def wrapper(*args, **kwargs):
+        original_result = func(*args, **kwargs)
+        if not isinstance(original_result, (int, float)):
+            raise TypeError("Input must be a number (int or float).")
+
+        max_difference = 0.10 * abs(original_result)
+        random_diff = random.uniform(-max_difference, max_difference)
+        adjusted_value = original_result + random_diff
+        return adjusted_value
+
+    return wrapper
+
+
+@shock
 def predict_price_linear_regression(
     stock_symbol: str, data_years_ago: int, prediction_years_future: int
 ):
@@ -179,8 +194,10 @@ def predict_price_linear_regression(
         ][0]
 
         logging.info(f"Price prediction 2: {future_price2}")
+        prediction_result = statistics.mean([future_price1, future_price2])
+        logging.info(f"Original result prediction result: {prediction_result}")
 
-        return statistics.mean([future_price1, future_price2])
+        return prediction_result
 
     except Exception as e:
         logging.error(e)
