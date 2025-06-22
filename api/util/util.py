@@ -2,7 +2,7 @@ import logging
 from flask import jsonify
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
-from typing import List
+from typing import List, Tuple
 from api.common.constants import DATETIME_FORMATE_CODE, PANDAS_DF_DATE_FORMATE_CODE
 import asyncio
 import pandas as pd
@@ -138,14 +138,14 @@ def get_years_ago_formatted(years: int = 1) -> str:
 def shock(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        original_result = func(*args, **kwargs)
+        (original_result,) = func(*args, **kwargs)
         if not isinstance(original_result, (int, float)):
             raise TypeError("Input must be a number (int or float).")
 
         max_difference = 0.10 * abs(original_result)
         random_diff = random.uniform(-max_difference, max_difference)
         adjusted_value = original_result + random_diff
-        return adjusted_value
+        return (adjusted_value,)
 
     return wrapper
 
@@ -153,7 +153,7 @@ def shock(func):
 @shock
 def predict_price_linear_regression(
     stock_symbol: str, data_years_ago: int, prediction_years_future: int
-):
+) -> Tuple[float]:
     try:
         data = yf.Ticker(stock_symbol)
         df = data.history(period=f"{data_years_ago}y")
@@ -199,7 +199,7 @@ def predict_price_linear_regression(
         prediction_result = statistics.mean([future_price1, future_price2])
         logging.info(f"Original result prediction result: {prediction_result}")
 
-        return prediction_result
+        return (prediction_result,)
 
     except Exception as e:
         logging.error(e)
