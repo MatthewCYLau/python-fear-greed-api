@@ -135,7 +135,7 @@ def test_validate_google_oauth_token_invalid_token():
 def test_predict_price_linear_regression():
     prediction = predict_price_linear_regression("TSLA", 1, 1)
     time.sleep(1 * 60)  # prevent rate limiting
-    assert isinstance(prediction, float)
+    assert isinstance(prediction, tuple)
 
 
 def test_predict_price_linear_regression_function_name():
