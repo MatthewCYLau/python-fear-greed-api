@@ -136,3 +136,7 @@ def test_predict_price_linear_regression():
     prediction = predict_price_linear_regression("TSLA", 1, 1)
     time.sleep(1 * 60)  # prevent rate limiting
     assert isinstance(prediction, float)
+
+
+def test_predict_price_linear_regression_function_name():
+    assert predict_price_linear_regression.__name__ == "predict_price_linear_regression"

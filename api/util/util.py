@@ -12,6 +12,7 @@ import pytz
 import yfinance as yf
 from sklearn.linear_model import LinearRegression
 import statistics
+from functools import wraps
 
 
 def generate_response(input):
@@ -135,6 +136,7 @@ def get_years_ago_formatted(years: int = 1) -> str:
 
 
 def shock(func):
+    @wraps(func)
     def wrapper(*args, **kwargs):
         original_result = func(*args, **kwargs)
         if not isinstance(original_result, (int, float)):
