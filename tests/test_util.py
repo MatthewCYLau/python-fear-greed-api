@@ -1,6 +1,7 @@
 import pytest
 import pandas as pd
 import time
+from api.util.cloud_storage_connector import CloudStorageConnector
 from api.util.util import (
     return_dupliucated_items_in_list,
     is_valid_sector,
@@ -114,14 +115,14 @@ def test_generate_figure_blob_filename():
     assert "scatter" in generate_figure_blob_filename("scatter")
 
 
-# @pytest.fixture
-# def cloud_storage_connector():
-#     return CloudStorageConnector("my_bucket")
+@pytest.fixture
+def cloud_storage_connector():
+    return CloudStorageConnector("my_bucket")
 
 
-# def test_cloud_storage_connector(cloud_storage_connector):
-#     assert cloud_storage_connector.bucket_name == "my_bucket"
-#     assert type(cloud_storage_connector.storage_client)
+def test_cloud_storage_connector(cloud_storage_connector):
+    assert cloud_storage_connector.bucket_name == "my_bucket"
+    assert type(cloud_storage_connector.storage_client)
 
 
 def test_validate_google_oauth_token_invalid_token():
