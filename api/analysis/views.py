@@ -69,6 +69,7 @@ class AnalysisJobRequest(BaseModel):
 def get_stock_analysis(_):
     stock_symbol = request.args.get("stock", default=None, type=None)
     index_symbol = request.args.get("index", default=None, type=None)
+    years_ago = request.args.get("years", default=1, type=int)
     correlation_stock_symbol = request.args.get(
         "correlationStock", default="", type=None
     )
@@ -79,6 +80,9 @@ def get_stock_analysis(_):
     target_pe_ratio = request.args.get(
         "targetPeRatio", default=DEFAULT_TARGET_PE_RATIO, type=float
     )
+
+    if int(years_ago) > 3:
+        return jsonify({"message": "Maximum three years!"}), 400
 
     if index_symbol:
         data = yf.Ticker(index_symbol)
@@ -104,7 +108,7 @@ def get_stock_analysis(_):
         EPS = stock_info["trailingEps"]
         PE_ratio = float("{:.2f}".format(current_price / EPS))
         logging.info(f"{stock_symbol} has PE ratio of {PE_ratio}")
-        df = data.history(period="1y")
+        df = data.history(period=f"{years_ago}y")
 
         for index, row in df.tail().iterrows():
             logging.info(f"Most recent close with index {index} is {row.Close}")
