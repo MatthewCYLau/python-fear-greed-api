@@ -1,4 +1,7 @@
+import asyncio
 from datetime import datetime
+import random
+import statistics
 from flask import Blueprint, jsonify, make_response, request
 from api.db.setup import db
 from bson.objectid import ObjectId
@@ -373,7 +376,7 @@ def handle_pubsub_subscription_push():
         price_prediction = round(
             predict_price_linear_regression(
                 stock_symbol=stock_symbol, data_years_ago=1, prediction_years_future=1
-            ),
+            )[0],
             2,
         )
 
@@ -589,3 +592,39 @@ def export_stock_analysis_csv():
     )
     response.mimetype = "text/csv"
     return response
+
+
+async def predict_price_async(stock_symbol: str):
+    await asyncio.sleep(5)
+    price_prediction = round(
+        predict_price_linear_regression(
+            stock_symbol=stock_symbol, data_years_ago=1, prediction_years_future=1
+        )[0],
+        2,
+    )
+    return price_prediction
+
+
+@bp.route("/analysis/price-prediction-async", methods=(["GET"]))
+async def get_price_prediction_async():
+
+    stock_symbol = request.args.get("stock", default=None, type=None)
+    if not stock_symbol:
+        return jsonify({"message": "Missing field"}), 400
+
+    futures = [predict_price_async(stock_symbol) for _ in range(random.randint(0, 3))]
+    results = await asyncio.gather(*futures)
+
+    logging.info(f"Prediction results size: {len(results)}")
+
+    mean_result = round(statistics.mean(results), 2)
+    return (
+        jsonify(
+            {
+                "stock": stock_symbol,
+                "pricePredictionMean": mean_result,
+                "predictionRunCount": len(results),
+            }
+        ),
+        200,
+    )
