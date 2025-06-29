@@ -622,10 +622,7 @@ async def get_price_prediction_async():
         task = asyncio.create_task(predict_price_async(stock_symbol))
         result = await task
     else:
-        futures = [
-            predict_price_async(stock_symbol)
-            for _ in range(random.randint(0, runs_count))
-        ]
+        futures = [predict_price_async(stock_symbol) for _ in range(runs_count)]
         results = await asyncio.gather(*futures)
 
         logging.info(f"Prediction results size: {len(results)}")
