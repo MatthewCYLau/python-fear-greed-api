@@ -609,21 +609,33 @@ async def predict_price_async(stock_symbol: str):
 async def get_price_prediction_async():
 
     stock_symbol = request.args.get("stock", default=None, type=None)
+    runs_count = request.args.get("runsCount", default=1, type=int)
     if not stock_symbol:
         return jsonify({"message": "Missing field"}), 400
 
-    futures = [predict_price_async(stock_symbol) for _ in range(random.randint(0, 3))]
-    results = await asyncio.gather(*futures)
+    if not isinstance(runs_count, int):
+        return jsonify({"message": "Invalid value for runs count!"}), 400
+    if int(runs_count) > 3:
+        return jsonify({"message": "Maximum three runs!"}), 400
 
-    logging.info(f"Prediction results size: {len(results)}")
+    if runs_count < 2:
+        task = asyncio.create_task(predict_price_async(stock_symbol))
+        result = await task
+    else:
+        futures = [
+            predict_price_async(stock_symbol)
+            for _ in range(random.randint(0, runs_count))
+        ]
+        results = await asyncio.gather(*futures)
 
-    mean_result = round(statistics.mean(results), 2)
+        logging.info(f"Prediction results size: {len(results)}")
+        result = round(statistics.mean(results), 2)
     return (
         jsonify(
             {
                 "stock": stock_symbol,
-                "pricePredictionMean": mean_result,
-                "predictionRunCount": len(results),
+                "pricePredictionMean": result,
+                "predictionRunCount": runs_count,
             }
         ),
         200,

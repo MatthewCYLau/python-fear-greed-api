@@ -386,3 +386,14 @@ def test_generate_stock_plot_gcs_blob_valid_forex(
     )
     assert response.status_code == 200
     assert "image_url" in response.json
+
+
+def test_price_prediction_async_with_fixture(test_client):
+    stock = "AAPL"
+    runs_count = 3
+    response = test_client.get(
+        f"/api/analysis/price-prediction-async?stock={stock}&runsCount={runs_count}"
+    )
+    assert response.status_code == 200
+    assert "pricePredictionMean" in response.json
+    assert isinstance(response.json.get("pricePredictionMean"), float)
