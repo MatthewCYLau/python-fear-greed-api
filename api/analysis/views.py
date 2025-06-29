@@ -1,6 +1,5 @@
 import asyncio
 from datetime import datetime
-import random
 import statistics
 from flask import Blueprint, jsonify, make_response, request
 from api.db.setup import db
