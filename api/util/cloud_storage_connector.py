@@ -19,3 +19,10 @@ class CloudStorageConnector:
         blob = bucket.blob(blob_name)
         blob.upload_from_file(buf, content_type="image/png", rewind=True)
         return blob.public_url
+
+    def upload_json_file(self, json_file_name: str, json_file_path: str) -> str:
+        bucket = self.storage_client.bucket(self.bucket_name)
+        blob = bucket.blob(f"data/{json_file_name}")
+        with open(json_file_path, "rb") as f:
+            blob.upload_from_file(f, content_type="application/json")
+        return blob.public_url
