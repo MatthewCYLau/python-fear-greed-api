@@ -135,6 +135,12 @@ def get_records_csv():
         .reset_index(name="Monthly Average")
     )
 
+    logging.info(f"Unique description values: {filtered_df['description'].unique()}")
+
+    logging.info(
+        filtered_df.groupby("description").agg({"fear_greed_index": lambda x: list(x)})
+    )
+
     response = make_response(filtered_df.to_csv())
     response.headers["Content-Disposition"] = (
         f"attachment; filename={datetime.today().strftime(DATETIME_FORMATE_CODE)}.csv"
