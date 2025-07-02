@@ -137,8 +137,14 @@ def get_records_csv():
 
     logging.info(f"Unique description values: {filtered_df['description'].unique()}")
 
+    neutral_values_df = (
+        filtered_df.groupby("description")
+        .agg({"fear_greed_index": lambda x: list(x)})
+        .filter(items=["Neutral"], axis=0)
+    )
+
     logging.info(
-        filtered_df.groupby("description").agg({"fear_greed_index": lambda x: list(x)})
+        f"Neutral index values: {neutral_values_df['fear_greed_index'].values[0]}"
     )
 
     response = make_response(filtered_df.to_csv())
