@@ -140,6 +140,20 @@ def get_stock_analysis(_):
         period_change = float("{:.2f}".format(most_recent_close - most_early_close))
         logging.info(f"Period change is {period_change} from {most_early_row_date}")
 
+        monthly_average_close_df = (
+            df.groupby([df.index.strftime("%b %Y")])["Close"]
+            .mean()
+            .reset_index(name="Monthly Average")
+        )
+
+        max_monthly_average_close = monthly_average_close_df.loc[
+            monthly_average_close_df["Monthly Average"].idxmax()
+        ]
+
+        logging.info(
+            f"Max monthly average: {max_monthly_average_close['Date']} {round(max_monthly_average_close['Monthly Average'], 2)}"
+        )
+
         rolling_averages = {}
 
         for i in (50, 100, 200):
