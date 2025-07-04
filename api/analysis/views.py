@@ -146,12 +146,16 @@ def get_stock_analysis(_):
             .reset_index(name="Monthly Average")
         )
 
+        monthly_average_close_df["Monthly Average"] = monthly_average_close_df[
+            "Monthly Average"
+        ].apply(lambda x: float("{:.2f}".format(x)))
+
         max_monthly_average_close = monthly_average_close_df.loc[
             monthly_average_close_df["Monthly Average"].idxmax()
         ]
 
         logging.info(
-            f"Max monthly average: {max_monthly_average_close['Date']} {round(max_monthly_average_close['Monthly Average'], 2)}"
+            f"Max monthly average: {max_monthly_average_close['Date']} {max_monthly_average_close['Monthly Average']}"
         )
 
         rolling_averages = {}
@@ -213,6 +217,9 @@ def get_stock_analysis(_):
             "periodLow": period_low,
             "periodHigh": period_high,
             "periodChange": period_change,
+            "closeMonthlyAverage": json.loads(
+                monthly_average_close_df.to_json(orient="table")
+            ),
         }
 
         return (
