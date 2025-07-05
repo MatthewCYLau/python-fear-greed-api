@@ -79,11 +79,11 @@ def ping():
     return "pong!"
 
 
-cloud_storage_connector = CloudStorageConnector(
-    bucket_name=analysis.ASSETS_PLOTS_BUCKET_NAME
-)
-blob_public_url = cloud_storage_connector.upload_json_file(
-    "ticker_symbols.json", "data/ticker_symbols.json"
-)
+# cloud_storage_connector = CloudStorageConnector(
+#     bucket_name=analysis.ASSETS_PLOTS_BUCKET_NAME
+# )
+# blob_public_url = cloud_storage_connector.upload_json_file(
+#     "ticker_symbols.json", "data/ticker_symbols.json"
+# )
 
-logging.info(f"Uploaded ticket symbol JSON file blob: {blob_public_url}")
+# logging.info(f"Uploaded ticket symbol JSON file blob: {blob_public_url}")

@@ -219,7 +219,7 @@ def get_stock_analysis(_):
             "periodChange": period_change,
             "closeMonthlyAverage": json.loads(
                 monthly_average_close_df.to_json(orient="table")
-            ),
+            )["data"],
         }
 
         return (
