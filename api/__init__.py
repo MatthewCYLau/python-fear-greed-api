@@ -6,7 +6,6 @@ import asyncio
 import requests
 from dotenv import load_dotenv
 
-from api.util.cloud_storage_connector import CloudStorageConnector
 
 load_dotenv("config/.env")
 
