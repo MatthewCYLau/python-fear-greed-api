@@ -2,7 +2,6 @@ import asyncio
 from datetime import datetime
 import statistics
 from flask import Blueprint, jsonify, make_response, request
-import pandas as pd
 from api.db.setup import db
 from bson.objectid import ObjectId
 from concurrent.futures import ProcessPoolExecutor
@@ -25,6 +24,7 @@ from api.common.constants import (
     VALID_CURRENCIES,
 )
 from api.util.util import (
+    generate_monthly_mean_close_df,
     generate_response,
     generate_stock_fair_value,
     predict_price_linear_regression,
@@ -141,27 +141,7 @@ def get_stock_analysis(_):
         period_change = float("{:.2f}".format(most_recent_close - most_early_close))
         logging.info(f"Period change is {period_change} from {most_early_row_date}")
 
-        df_groupby_month_mean = df.groupby(pd.Grouper(freq="ME"))["Close"].mean()
-
-        df_monthly_mean_sorted = df_groupby_month_mean.sort_index(ascending=False)
-
-        df_monthly_mean_sorted.index = df_monthly_mean_sorted.index.strftime("%b %Y")
-
-        df_monthly_mean_reset = df_monthly_mean_sorted.reset_index(
-            name="Monthly Average"
-        )
-
-        df_monthly_mean_reset["Monthly Average"] = df_monthly_mean_reset[
-            "Monthly Average"
-        ].apply(lambda x: float("{:.2f}".format(x)))
-
-        max_monthly_average_close = df_monthly_mean_reset.loc[
-            df_monthly_mean_reset["Monthly Average"].idxmax()
-        ]
-
-        logging.info(
-            f"Max monthly average: {max_monthly_average_close['Date']} {max_monthly_average_close['Monthly Average']}"
-        )
+        monthly_mean_close_df = generate_monthly_mean_close_df(df)
 
         rolling_averages = {}
 
@@ -223,7 +203,7 @@ def get_stock_analysis(_):
             "periodHigh": period_high,
             "periodChange": period_change,
             "closeMonthlyAverage": json.loads(
-                df_monthly_mean_reset.to_json(orient="table")
+                monthly_mean_close_df.to_json(orient="table")
             )["data"],
         }
 

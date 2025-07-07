@@ -204,3 +204,26 @@ def predict_price_linear_regression(
     except Exception as e:
         logging.error(e)
         return 0
+
+
+def generate_monthly_mean_close_df(df: pd.DataFrame):
+
+    df_groupby_month_mean = df.groupby(pd.Grouper(freq="ME"))["Close"].mean()
+
+    df_monthly_mean_sorted = df_groupby_month_mean.sort_index(ascending=False)
+
+    df_monthly_mean_sorted.index = df_monthly_mean_sorted.index.strftime("%b %Y")
+
+    df_monthly_mean_reset = df_monthly_mean_sorted.reset_index(name="Monthly Average")
+
+    df_monthly_mean_reset["Monthly Average"] = df_monthly_mean_reset[
+        "Monthly Average"
+    ].apply(lambda x: float("{:.2f}".format(x)))
+
+    max_monthly_average_close = df_monthly_mean_reset.loc[
+        df_monthly_mean_reset["Monthly Average"].idxmax()
+    ]
+    logging.info(
+        f"Max monthly average: {max_monthly_average_close['Date']} {max_monthly_average_close['Monthly Average']}"
+    )
+    return df_monthly_mean_reset

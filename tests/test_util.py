@@ -1,6 +1,7 @@
 import pytest
 import pandas as pd
 import time
+import yfinance as yf
 from api.util.cloud_storage_connector import CloudStorageConnector
 from api.util.util import (
     return_dupliucated_items_in_list,
@@ -16,6 +17,7 @@ from api.util.util import (
     generate_figure_blob_filename,
     validate_date_string_for_pandas_df,
     predict_price_linear_regression,
+    generate_monthly_mean_close_df,
 )
 from api.auth.auth import validate_google_oauth_token
 
@@ -141,3 +143,11 @@ def test_predict_price_linear_regression():
 
 def test_predict_price_linear_regression_function_name():
     assert predict_price_linear_regression.__name__ == "predict_price_linear_regression"
+
+
+def test_generate_monthly_mean_close_df():
+    data = yf.Ticker("AAPL")
+    df = data.history(period="1y")
+    monthly_mean_close_df = generate_monthly_mean_close_df(df)
+    assert "Monthly Average" in monthly_mean_close_df.columns
+    assert monthly_mean_close_df["Monthly Average"].dtype, pd.Float64Dtype
