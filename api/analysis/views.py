@@ -642,3 +642,47 @@ async def get_price_prediction_async():
         ),
         200,
     )
+
+
+@bp.route("/generate-stock-mean-close-plot", methods=(["POST"]))
+@auth_required
+def generate_stock_mean_close_plot_gcs_blob(_):
+
+    data = request.get_json()
+
+    stock_symbol = data.get("stock")
+    if not stock_symbol:
+        raise BadRequestException("Provide a stock symbol", status_code=400)
+
+    years_ago = data.get("years", 1)
+
+    if int(years_ago) > 3:
+        return jsonify({"message": "Maximum three years!"}), 400
+
+    data = yf.Ticker(stock_symbol)
+    df = data.history(period=f"{years_ago}y")
+    monthly_mean_close_df = generate_monthly_mean_close_df(df)
+
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(
+        monthly_mean_close_df["Date"],
+        monthly_mean_close_df["Monthly Average"],
+        label="Monthly Average Close",
+    )
+
+    plt.title(f"{stock_symbol.upper()} Monthly Average Close", fontsize=14)
+    plt.xlabel("Month", fontsize=12)
+    plt.ylabel("Monthly Average Close", fontsize=12)
+
+    plt.xticks(rotation=50, fontsize=10)
+
+    fig_to_upload = plt.gcf()
+    cloud_storage_connector = CloudStorageConnector(
+        bucket_name=ASSETS_PLOTS_BUCKET_NAME
+    )
+    file_name = generate_figure_blob_filename("mean-close")
+    blob_public_url = cloud_storage_connector.upload_pyplot_figure(
+        fig_to_upload, file_name
+    )
+    return jsonify({"image_url": blob_public_url}), 200
