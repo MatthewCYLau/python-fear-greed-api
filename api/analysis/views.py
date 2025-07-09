@@ -663,7 +663,7 @@ def generate_stock_mean_close_plot_gcs_blob(_):
     df = data.history(period=f"{years_ago}y")
     monthly_mean_close_df = generate_monthly_mean_close_df(df)
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(10, 10))
 
     plt.plot(
         monthly_mean_close_df["Date"],
