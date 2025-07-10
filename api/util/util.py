@@ -210,7 +210,7 @@ def generate_monthly_mean_close_df(df: pd.DataFrame):
 
     df_groupby_month_mean = df.groupby(pd.Grouper(freq="ME"))["Close"].mean()
 
-    df_monthly_mean_sorted = df_groupby_month_mean.sort_index(ascending=False)
+    df_monthly_mean_sorted = df_groupby_month_mean.sort_index(ascending=True)
 
     df_monthly_mean_sorted.index = df_monthly_mean_sorted.index.strftime("%b %Y")
 
