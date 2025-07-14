@@ -226,4 +226,12 @@ def generate_monthly_mean_close_df(df: pd.DataFrame):
     logging.info(
         f"Max monthly average: {max_monthly_average_close['Date']} {max_monthly_average_close['Monthly Average']}"
     )
+
+    min_monthly_average_close = df_monthly_mean_reset.loc[
+        df_monthly_mean_reset["Monthly Average"].idxmin()
+    ]
+    logging.info(
+        f"Minimum monthly average: {min_monthly_average_close['Date']} {min_monthly_average_close['Monthly Average']}"
+    )
+
     return df_monthly_mean_reset
