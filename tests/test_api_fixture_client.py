@@ -397,3 +397,15 @@ def test_price_prediction_async_with_fixture(test_client):
     assert response.status_code == 200
     assert "pricePredictionMean" in response.json
     assert isinstance(response.json.get("pricePredictionMean"), float)
+
+
+def test_generate_stock_mean_close(test_client):
+    stock = "AAPL"
+    years = 1
+    response = test_client.post(
+        "/api/generate-stock-mean-close-plot",
+        data=json.dumps({"stock": stock, "years": years}),
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert "image_url" in response.json
