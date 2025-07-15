@@ -405,6 +405,7 @@ def test_generate_stock_mean_close(test_client):
     response = test_client.post(
         "/api/generate-stock-mean-close-plot",
         data=json.dumps({"stock": stock, "years": years}),
+        headers={"x-auth-token": generate_auth_token},
         content_type="application/json",
     )
     assert response.status_code == 200
