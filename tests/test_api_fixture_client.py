@@ -399,7 +399,8 @@ def test_price_prediction_async_with_fixture(test_client):
     assert isinstance(response.json.get("pricePredictionMean"), float)
 
 
-def test_generate_stock_mean_close(test_client):
+def test_generate_stock_mean_close(test_client, generate_auth_token, sleep):
+    sleep
     stock = "AAPL"
     years = 1
     response = test_client.post(
