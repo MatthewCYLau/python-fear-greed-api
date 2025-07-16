@@ -208,9 +208,9 @@ def predict_price_linear_regression(
 
 def generate_monthly_mean_close_df(df: pd.DataFrame):
 
-    df_groupby_month_mean = df.groupby(pd.Grouper(freq="ME"))["Close"].mean()
+    groupby_month_mean = df.groupby(pd.Grouper(freq="ME"))["Close"].mean()
 
-    df_monthly_mean_sorted = df_groupby_month_mean.sort_index(ascending=True)
+    df_monthly_mean_sorted = groupby_month_mean.sort_index(ascending=True)
 
     df_monthly_mean_sorted.index = df_monthly_mean_sorted.index.strftime("%b %Y")
 
@@ -232,6 +232,15 @@ def generate_monthly_mean_close_df(df: pd.DataFrame):
     ]
     logging.info(
         f"Minimum monthly average: {min_monthly_average_close['Date']} {min_monthly_average_close['Monthly Average']}"
+    )
+
+    current_month_year = datetime.today().strftime("%b %Y")
+    current_average_close = df_monthly_mean_reset[
+        df_monthly_mean_reset["Date"] == current_month_year
+    ]["Monthly Average"].values[0]
+
+    logging.info(
+        f"Current monthly average: {current_month_year} {current_average_close}"
     )
 
     return df_monthly_mean_reset

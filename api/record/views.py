@@ -334,6 +334,9 @@ def _generate_filtered_dataframe():
     df["created"] = df["created"].replace("", np.nan)
     df.dropna(subset=["created"], inplace=True)
 
+    # also fill NaN values using an interpolation method
+    df.interpolate(method="linear")
+
     # set created column as data frame index
     df["created"] = pd.to_datetime(df["created"], format="ISO8601", utc=True)
     df = df.set_index("created")
