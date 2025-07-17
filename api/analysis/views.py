@@ -21,6 +21,7 @@ from api.common.constants import (
     ANALYSIS_JOB_CREATION_DAILY_LIMIT,
     DATETIME_FORMATE_CODE,
     DEFAULT_TARGET_PE_RATIO,
+    PANDAS_DF_DATE_FORMATE_CODE,
     VALID_CURRENCIES,
 )
 from api.util.util import (
@@ -31,6 +32,7 @@ from api.util.util import (
     return_delta,
     generate_figure_blob_filename,
     get_years_ago_formatted,
+    validate_date_string_for_pandas_df,
 )
 from api.util.cloud_storage_connector import CloudStorageConnector
 from api.exception.models import BadRequestException
@@ -686,3 +688,19 @@ def generate_stock_mean_close_plot_gcs_blob(_):
         fig_to_upload, file_name
     )
     return jsonify({"image_url": blob_public_url}), 200
+
+
+@bp.route("/get-monthly-mean-close", methods=(["GET"]))
+@auth_required
+def get_monthly_mean_close(_):
+    record_date = request.args.get("date")
+
+    if not validate_date_string_for_pandas_df(record_date):
+        raise BadRequestException(
+            "Invalid date input. Must be in format YYYY-MM-DD", status_code=400
+        )
+
+    record_date_formatted = datetime.strptime(
+        record_date, PANDAS_DF_DATE_FORMATE_CODE
+    ).strftime("%b %Y")
+    return jsonify({"record_date": record_date_formatted}), 200
