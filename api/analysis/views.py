@@ -2,6 +2,7 @@ import asyncio
 from datetime import datetime
 import statistics
 from flask import Blueprint, jsonify, make_response, request
+from matplotlib.dates import relativedelta
 from api.db.setup import db
 from bson.objectid import ObjectId
 from concurrent.futures import ProcessPoolExecutor
@@ -693,14 +694,46 @@ def generate_stock_mean_close_plot_gcs_blob(_):
 @bp.route("/get-monthly-mean-close", methods=(["GET"]))
 @auth_required
 def get_monthly_mean_close(_):
+
     record_date = request.args.get("date")
+    stock_symbol = request.args.get("stock", default=None, type=None)
+
+    data = yf.Ticker(stock_symbol)
+    df = data.history(period="3y")
 
     if not validate_date_string_for_pandas_df(record_date):
         raise BadRequestException(
             "Invalid date input. Must be in format YYYY-MM-DD", status_code=400
         )
 
+    now = datetime.now()
+    days_three_years = 365 * 3
+    if (
+        now - datetime.strptime(record_date, PANDAS_DF_DATE_FORMATE_CODE)
+    ).days > days_three_years:
+        three_years_ago = now - relativedelta(days=days_three_years)
+        raise BadRequestException(
+            f"{record_date} is too far behind! Oldest date is three years ago from current time {three_years_ago.strftime(PANDAS_DF_DATE_FORMATE_CODE)}",
+            status_code=400,
+        )
     record_date_formatted = datetime.strptime(
         record_date, PANDAS_DF_DATE_FORMATE_CODE
     ).strftime("%b %Y")
-    return jsonify({"record_date": record_date_formatted}), 200
+
+    monthly_mean_close_df = generate_monthly_mean_close_df(df)
+
+    month_average_close = monthly_mean_close_df[
+        monthly_mean_close_df["Date"] == record_date_formatted
+    ]["Monthly Average"].values[0]
+
+    return (
+        jsonify(
+            {
+                "stock": stock_symbol,
+                "requested_date": record_date,
+                "requested_date_formatted": record_date_formatted,
+                "month_average_close": month_average_close,
+            }
+        ),
+        200,
+    )
