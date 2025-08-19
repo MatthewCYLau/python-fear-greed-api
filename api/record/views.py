@@ -169,11 +169,18 @@ def upload_records_csv(_):
         )
     except Exception as e:
         raise BadRequestException(f"Failed to read CSV {e}", status_code=400)
-    if "fear_greed_index" in df.columns:
+    if "Index" in df.columns:
         logging.info("CSV has required columns.")
     logging.info(
         f"Count of records: {len(df.index)} Start date: {df.index.min().strftime(DATETIME_FORMATE_CODE)} End date: {df.index.max().strftime(DATETIME_FORMATE_CODE)}"
     )
+
+    first_row_date = df.index[0]
+    first_row_fear_greed_index_value = df.loc[first_row_date, "Index"]
+    logging.info(
+        f"First row with date {first_row_date.strftime(DATETIME_FORMATE_CODE)} has index value: {first_row_fear_greed_index_value}"
+    )
+
     return jsonify(
         {
             "recordsCount": len(df.index),
