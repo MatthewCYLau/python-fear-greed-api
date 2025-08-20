@@ -186,9 +186,9 @@ def upload_records_csv(_):
         {
             "recordsCount": len(df.index),
             "startDate": df.index.min(),
-            "startDateIndexValue": first_row_fear_greed_index_value,
+            "startDateIndexValue": int(first_row_fear_greed_index_value),
             "endDate": df.index.max(),
-            "endDateIndexValue": last_row_fear_greed_index_value,
+            "endDateIndexValue": int(last_row_fear_greed_index_value),
         }
     )
 
