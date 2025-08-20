@@ -177,6 +177,7 @@ def upload_records_csv(_):
 
     first_row_date = df.index[0]
     first_row_fear_greed_index_value = df.loc[first_row_date, "Index"]
+    last_row_fear_greed_index_value = df.loc[df.index[-1], "Index"]
     logging.info(
         f"First row with date {first_row_date.strftime(DATETIME_FORMATE_CODE)} has index value: {first_row_fear_greed_index_value}"
     )
@@ -185,7 +186,9 @@ def upload_records_csv(_):
         {
             "recordsCount": len(df.index),
             "startDate": df.index.min(),
+            "startDateIndexValue": first_row_fear_greed_index_value,
             "endDate": df.index.max(),
+            "endDateIndexValue": last_row_fear_greed_index_value,
         }
     )
 
