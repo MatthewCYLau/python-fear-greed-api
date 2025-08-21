@@ -115,6 +115,7 @@ def get_stock_analysis(_):
         PE_ratio = float("{:.2f}".format(current_price / EPS))
         logging.info(f"{stock_symbol} has PE ratio of {PE_ratio}")
         df = data.history(period=f"{years_ago}y")
+        df["Daily change percentage"] = round(df["Close"].pct_change() * 100, 2)
 
         for index, row in df.tail().iterrows():
             logging.info(f"Most recent close with index {index} is {row.Close}")
