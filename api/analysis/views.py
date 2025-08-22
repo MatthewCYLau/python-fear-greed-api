@@ -185,6 +185,10 @@ def get_stock_analysis(_):
                 f"{stock_symbol} closing price correlation with {correlation_stock_symbol}: {correlation}"
             )
 
+        groupby_day_of_week = df.groupby(df.index.day_name())["Close"].mean()
+        monday_mean_close = float("{:.2f}".format(groupby_day_of_week.loc["Monday"]))
+        logging.info(f"Mean close on Mondays: {monday_mean_close}")
+
         result_dict = {
             "stock": stock_symbol,
             "close": most_recent_close,
