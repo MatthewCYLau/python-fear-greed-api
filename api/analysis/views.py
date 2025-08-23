@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime
+from itertools import repeat
 import statistics
 from flask import Blueprint, jsonify, make_response, request
 from matplotlib.dates import relativedelta
@@ -16,6 +17,7 @@ import yfinance as yf
 import matplotlib
 import matplotlib.pyplot as plt
 import math
+import multiprocessing
 from google.cloud import pubsub_v1
 from api.auth.auth import auth_required
 from api.common.constants import (
@@ -738,6 +740,39 @@ def get_monthly_mean_close(_):
                 "requested_date": record_date,
                 "requested_date_formatted": record_date_formatted,
                 "month_average_close": month_average_close,
+            }
+        ),
+        200,
+    )
+
+
+@bp.route("/analysis/price-prediction-multiprocess", methods=(["GET"]))
+def get_price_prediction_multiprocess():
+
+    stock_symbol = request.args.get("stock", default=None, type=None)
+    runs_count = request.args.get("runsCount", default=1, type=int)
+    if not stock_symbol:
+        return jsonify({"message": "Missing field"}), 400
+
+    if not isinstance(runs_count, int):
+        return jsonify({"message": "Invalid value for runs count!"}), 400
+    if int(runs_count) > 3:
+        return jsonify({"message": "Maximum three runs!"}), 400
+
+    with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+
+        results = pool.starmap(
+            predict_price_linear_regression,
+            zip([stock_symbol for _ in range(runs_count)], repeat(1), repeat(1)),
+        )
+        results_mean = round(statistics.mean([i[0] for i in results]), 2)
+
+    return (
+        jsonify(
+            {
+                "stock": stock_symbol,
+                "pricePredictionMean": results_mean,
+                "predictionRunCount": runs_count,
             }
         ),
         200,
