@@ -12,6 +12,7 @@ import pytz
 import yfinance as yf
 from sklearn.linear_model import LinearRegression
 import statistics
+import time
 from functools import wraps
 
 
@@ -150,6 +151,22 @@ def shock(func):
     return wrapper
 
 
+def log_time(func):
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.perf_counter()
+        result = func(*args, **kwargs)
+        end_time = time.perf_counter()
+        logging.info(
+            f"Function '{func.__name__}' took {end_time - start_time:.4f} seconds to execute."
+        )
+        return result
+
+    return wrapper
+
+
+@log_time
 @shock
 def predict_price_linear_regression(
     stock_symbol: str, data_years_ago: int, prediction_years_future: int
