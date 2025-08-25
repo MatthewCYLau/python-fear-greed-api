@@ -191,6 +191,9 @@ def get_stock_analysis(_):
         monday_mean_close = float("{:.2f}".format(groupby_day_of_week.loc["Monday"]))
         logging.info(f"Mean close on Mondays: {monday_mean_close}")
 
+        close_standard_deviation = round(df["Close"].std(), 2)
+        logging.info(f"Close standard deviation: {close_standard_deviation}")
+
         result_dict = {
             "stock": stock_symbol,
             "close": most_recent_close,
@@ -215,6 +218,7 @@ def get_stock_analysis(_):
             "closeMonthlyAverage": json.loads(
                 monthly_mean_close_df.to_json(orient="table")
             )["data"],
+            "closeSandardDeviation": close_standard_deviation,
         }
 
         return (
