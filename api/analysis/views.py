@@ -218,7 +218,7 @@ def get_stock_analysis(_):
             "closeMonthlyAverage": json.loads(
                 monthly_mean_close_df.to_json(orient="table")
             )["data"],
-            "closeSandardDeviation": close_standard_deviation,
+            "closeStandardDeviation": close_standard_deviation,
         }
 
         return (
