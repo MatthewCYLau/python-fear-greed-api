@@ -147,6 +147,18 @@ def get_records_csv():
         f"Neutral index values: {neutral_values_df['fear_greed_index'].values[0]}"
     )
 
+    most_common_description_series = (
+        filtered_df["description"].value_counts()[:1].sort_values(ascending=False)
+    )
+    most_common_description = most_common_description_series.index[0]
+    most_common_description_count = most_common_description_series.loc[
+        most_common_description
+    ]
+
+    logging.info(
+        f"Most common description {most_common_description} has count {most_common_description_count}"
+    )
+
     response = make_response(filtered_df.to_csv())
     response.headers["Content-Disposition"] = (
         f"attachment; filename={datetime.today().strftime(DATETIME_FORMATE_CODE)}.csv"
