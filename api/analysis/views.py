@@ -781,3 +781,43 @@ def get_price_prediction_multiprocess():
         ),
         200,
     )
+
+
+@bp.route("/generate-stock-close-daily-return-plot", methods=(["POST"]))
+@auth_required
+def generate_stock_close_daily_return_plot_gcs_blob(_):
+
+    data = request.get_json()
+
+    stock_symbol = data.get("stock")
+    if not stock_symbol:
+        raise BadRequestException("Provide a stock symbol", status_code=400)
+
+    years_ago = data.get("years", 1)
+
+    if int(years_ago) > 3:
+        return jsonify({"message": "Maximum three years!"}), 400
+
+    data = yf.Ticker(stock_symbol)
+    df = data.history(period=f"{years_ago}y")
+    df["Daily Return"] = round(df["Close"].pct_change() * 100, 2)
+
+    plt.plot(df.index, df["Daily Return"], label="Daily Returns")
+    plt.title(f"{stock_symbol} Daily Percentage Change in Closing Price")
+
+    # Define the labels
+    plt.xlabel("Date", fontsize=14)
+    plt.ylabel("Percentage Change", fontsize=14)
+
+    # Plot the grid lines
+    plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
+
+    fig_to_upload = plt.gcf()
+    cloud_storage_connector = CloudStorageConnector(
+        bucket_name=ASSETS_PLOTS_BUCKET_NAME
+    )
+    file_name = generate_figure_blob_filename("clos-daily-change")
+    blob_public_url = cloud_storage_connector.upload_pyplot_figure(
+        fig_to_upload, file_name
+    )
+    return jsonify({"image_url": blob_public_url}), 200
