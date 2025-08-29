@@ -802,7 +802,9 @@ def generate_stock_close_daily_return_plot_gcs_blob(_):
     df = data.history(period=f"{years_ago}y")
     df["Daily Return"] = round(df["Close"].pct_change() * 100, 2)
 
-    plt.plot(df.index, df["Daily Return"], label="Daily Returns")
+    df.dropna(subset=["Daily Return"])
+
+    plt.plot(df.index, df["Daily Return"], label="Daily Returns", color="blue")
     plt.title(f"{stock_symbol} Daily Percentage Change in Closing Price")
 
     # Define the labels
@@ -816,7 +818,7 @@ def generate_stock_close_daily_return_plot_gcs_blob(_):
     cloud_storage_connector = CloudStorageConnector(
         bucket_name=ASSETS_PLOTS_BUCKET_NAME
     )
-    file_name = generate_figure_blob_filename("clos-daily-change")
+    file_name = generate_figure_blob_filename("close-daily-change")
     blob_public_url = cloud_storage_connector.upload_pyplot_figure(
         fig_to_upload, file_name
     )
