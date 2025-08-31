@@ -805,16 +805,16 @@ def generate_stock_close_daily_return_plot_gcs_blob(_):
 
     df.dropna(subset=["Daily Return"])
 
-    plt.figure(figsize=(20, 10))
-    fig, axs = plt.subplots(2)
-    fig.suptitle(f"{stock_symbol} Daily Percentage Change in Closing Price")
+    fig, axs = plt.subplots(2, figsize=(10, 8))
+    fig.suptitle(f"{stock_symbol} Daily Change")
+
     axs[0].plot(df.index, df["Daily Return"])
     axs[1].plot(df.index, df["Volatility"])
 
     axs[1].set_xlabel("Date")
 
-    axs[0].set_ylabel("Percentage Change")
-    axs[1].set_ylabel("Percentage Change")
+    axs[0].set_ylabel("Close Percentage Change")
+    axs[1].set_ylabel("Volatility")
 
     # Plot the grid lines
     plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
