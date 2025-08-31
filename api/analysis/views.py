@@ -801,19 +801,24 @@ def generate_stock_close_daily_return_plot_gcs_blob(_):
     data = yf.Ticker(stock_symbol)
     df = data.history(period=f"{years_ago}y")
     df["Daily Return"] = round(df["Close"].pct_change() * 100, 2)
+    df["Volatility"] = round(df["Daily Return"].rolling(window=30).std(), 2)
 
     df.dropna(subset=["Daily Return"])
 
-    plt.plot(df.index, df["Daily Return"], label="Daily Returns", color="blue")
-    plt.title(f"{stock_symbol} Daily Percentage Change in Closing Price")
+    plt.figure(figsize=(20, 10))
+    fig, axs = plt.subplots(2)
+    fig.suptitle(f"{stock_symbol} Daily Percentage Change in Closing Price")
+    axs[0].plot(df.index, df["Daily Return"])
+    axs[1].plot(df.index, df["Volatility"])
 
-    # Define the labels
-    plt.xlabel("Date", fontsize=14)
-    plt.ylabel("Percentage Change", fontsize=14)
+    axs[1].set_xlabel("Date")
+
+    axs[0].set_ylabel("Percentage Change")
+    axs[1].set_ylabel("Percentage Change")
 
     # Plot the grid lines
     plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
-
+    fig.autofmt_xdate()
     fig_to_upload = plt.gcf()
     cloud_storage_connector = CloudStorageConnector(
         bucket_name=ASSETS_PLOTS_BUCKET_NAME
