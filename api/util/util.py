@@ -252,9 +252,13 @@ def generate_monthly_mean_close_df(df: pd.DataFrame):
     )
 
     current_month_year = datetime.today().strftime("%b %Y")
-    current_average_close = df_monthly_mean_reset[
+    df_current_month_mean = df_monthly_mean_reset[
         df_monthly_mean_reset["Date"] == current_month_year
-    ]["Monthly Average"].values[0]
+    ]
+    if len(df_current_month_mean):
+        current_average_close = df_current_month_mean["Monthly Average"].values[0]
+    else:
+        current_average_close = 0
 
     logging.info(
         f"Current monthly average: {current_month_year} {current_average_close}"
