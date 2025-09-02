@@ -258,7 +258,7 @@ def generate_monthly_mean_close_df(df: pd.DataFrame):
     if len(df_current_month_mean):
         current_average_close = df_current_month_mean["Monthly Average"].values[0]
     else:
-        previous_month_year = (datetime.today() - timedelta(months=1)).strftime("%b %Y")
+        previous_month_year = (datetime.today() - timedelta(days=30)).strftime("%b %Y")
         df_previous_month_mean = df_monthly_mean_reset[
             df_monthly_mean_reset["Date"] == previous_month_year
         ]
