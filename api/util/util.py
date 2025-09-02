@@ -1,6 +1,6 @@
 import logging
 from flask import jsonify
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from dateutil.relativedelta import relativedelta
 from typing import List, Tuple
 from api.common.constants import DATETIME_FORMATE_CODE, PANDAS_DF_DATE_FORMATE_CODE
@@ -258,7 +258,11 @@ def generate_monthly_mean_close_df(df: pd.DataFrame):
     if len(df_current_month_mean):
         current_average_close = df_current_month_mean["Monthly Average"].values[0]
     else:
-        current_average_close = 0
+        previous_month_year = (datetime.today() - timedelta(months=1)).strftime("%b %Y")
+        df_previous_month_mean = df_monthly_mean_reset[
+            df_monthly_mean_reset["Date"] == previous_month_year
+        ]
+        current_average_close = df_previous_month_mean["Monthly Average"].values[0]
 
     logging.info(
         f"Current monthly average: {current_month_year} {current_average_close}"
