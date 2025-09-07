@@ -151,6 +151,7 @@ def test_generate_monthly_mean_close_df():
     df = data.history(period="1y")
     monthly_mean_close_df = generate_monthly_mean_close_df(df)
     assert "Monthly Average" in monthly_mean_close_df.columns
+    assert "Date" in monthly_mean_close_df.columns
     assert monthly_mean_close_df["Monthly Average"].dtype, pd.Float64Dtype
 
 

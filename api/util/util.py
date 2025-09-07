@@ -225,6 +225,8 @@ def predict_price_linear_regression(
 
 def generate_monthly_mean_close_df(df: pd.DataFrame):
 
+    logging.info(f"Index name: {df.index.name}")
+
     groupby_month_mean = df.groupby(pd.Grouper(freq="ME"))["Close"].mean()
 
     df_monthly_mean_sorted = groupby_month_mean.sort_index(ascending=True)
@@ -232,6 +234,7 @@ def generate_monthly_mean_close_df(df: pd.DataFrame):
     df_monthly_mean_sorted.index = df_monthly_mean_sorted.index.strftime("%b %Y")
 
     df_monthly_mean_reset = df_monthly_mean_sorted.reset_index(name="Monthly Average")
+    logging.info(f"Reset dataframe columns: {df_monthly_mean_reset.columns}")
 
     df_monthly_mean_reset["Monthly Average"] = df_monthly_mean_reset[
         "Monthly Average"
