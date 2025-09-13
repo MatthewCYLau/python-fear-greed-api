@@ -801,7 +801,9 @@ def generate_stock_close_daily_return_plot_gcs_blob(_):
     data = yf.Ticker(stock_symbol)
     df = data.history(period=f"{years_ago}y")
     df["Daily Return"] = round(df["Close"].pct_change() * 100, 2)
-    df["Volatility"] = round(df["Daily Return"].rolling(window=30).std(), 2)
+    df["Volatility"] = round(
+        df["Daily Return"].rolling(window=21).std() * math.sqrt(252), 2
+    )
 
     df.dropna(subset=["Daily Return"])
 
