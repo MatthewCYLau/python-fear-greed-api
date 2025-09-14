@@ -36,6 +36,7 @@ from api.util.util import (
     generate_figure_blob_filename,
     get_years_ago_formatted,
     validate_date_string_for_pandas_df,
+    value_is_true,
 )
 from api.util.cloud_storage_connector import CloudStorageConnector
 from api.exception.models import BadRequestException
@@ -453,6 +454,9 @@ def generate_stock_plot_gcs_blob(_):
 
     stocks = request.args.get("stocks", default=None, type=None)
     years_ago = request.args.get("years", default=1, type=int)
+    secondary_axis = request.args.get(
+        "secondaryAxis", default=False, type=value_is_true
+    )
 
     if not isinstance(years_ago, int):
         return jsonify({"message": "Invalid value for years!"}), 400
@@ -502,6 +506,33 @@ def generate_stock_plot_gcs_blob(_):
     x = data.index
 
     if len(tickers_list) == 1:
+
+        if secondary_axis:
+            data["vol"] = data[first_stock_ticker].pct_change().rolling(
+                window=21
+            ).std() * math.sqrt(252)
+
+            ax = data[first_stock_ticker].plot(color="b")
+            ax2 = data.vol.plot(secondary_y=True, ax=ax, color="k")
+
+            ax.set_ylabel("Closing Price")
+            ax2.set_ylabel("Volatility")
+
+            # Plot the grid lines
+            plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
+
+            plt.title(f"{first_stock_ticker} Chart", fontsize=16)
+
+            fig_to_upload = plt.gcf()
+            cloud_storage_connector = CloudStorageConnector(
+                bucket_name=ASSETS_PLOTS_BUCKET_NAME
+            )
+            file_name = generate_figure_blob_filename("time-series")
+            blob_public_url = cloud_storage_connector.upload_pyplot_figure(
+                fig_to_upload, file_name
+            )
+            return jsonify({"image_url": blob_public_url}), 200
+
         data["rolling_avg"] = (
             data[first_stock_ticker].rolling(window=rolling_average_days).mean()
         )
