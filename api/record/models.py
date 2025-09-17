@@ -7,9 +7,11 @@ GB = pytz.timezone("Europe/London")
 
 
 class Record:
-    def __init__(self, index):
+    def __init__(
+        self, index, created=datetime.now(timezone.utc).astimezone(GB).isoformat()
+    ):
         self.index = index
-        self.creatd = datetime.now(timezone.utc).astimezone(GB).isoformat()
+        self.created = created
 
     def save_to_database(self):
         db["records"].insert_one(vars(self))
@@ -44,6 +46,14 @@ class Record:
                     f"Skipping inserting record for {date} - {index_value} - count of records next day: {count}"
                 )
             else:
+                python_datetime = date.to_pydatetime()
                 logging.info(f"Inserting record for {date} - {index_value}")
+                logging.info(
+                    f"Index of type {type(date)} to be converted to Python type {type(python_datetime)}"
+                )
+                record = Record(
+                    str(index_value), created=python_datetime.astimezone(GB).isoformat()
+                )
+                record.save_to_database()
                 inserted += 1
         return inserted
