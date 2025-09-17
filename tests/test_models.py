@@ -83,7 +83,7 @@ def new_record():
 
 def test_new_record_with_fixture(new_record):
     assert new_record.index == 42
-    assert type(new_record.creatd) is str
+    assert type(new_record.created) is str
 
 
 @pytest.fixture(scope="module")
