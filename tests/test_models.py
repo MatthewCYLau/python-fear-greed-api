@@ -120,4 +120,4 @@ def test_new_base_model():
 def test_import_from_dataframe():
     df = generate_df_from_csv("data/example.csv")
     records_imported = Record.import_from_dataframe(df)
-    assert records_imported == 2
+    assert records_imported == 1

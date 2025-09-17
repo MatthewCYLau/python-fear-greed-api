@@ -79,6 +79,8 @@ def get_records(_):
             f"{'Mean index:':<20}{'{:.2f}'.format(filtered_df['fear_greed_index'].mean())}"
         )
 
+        filtered_df = filtered_df.sort_index()
+
         filtered_series = filtered_df.loc[record_date:record_date, "fear_greed_index"]
         logging.info(filtered_series)
         filtered_df_iloc = filtered_df.loc[
