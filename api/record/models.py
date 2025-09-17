@@ -51,9 +51,9 @@ class Record:
                 logging.info(
                     f"Index of type {type(date)} to be converted to Python type {type(python_datetime)}"
                 )
-                record = Record(
-                    str(index_value), created=python_datetime.astimezone(GB).isoformat()
-                )
-                record.save_to_database()
+                # record = Record(
+                #     str(index_value), created=python_datetime.astimezone(GB).isoformat()
+                # )
+                # record.save_to_database()
                 inserted += 1
         return inserted
