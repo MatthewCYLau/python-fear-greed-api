@@ -83,10 +83,21 @@ def get_records(_):
 
         filtered_series = filtered_df.loc[record_date:record_date, "fear_greed_index"]
         logging.info(filtered_series)
-        filtered_df_iloc = filtered_df.loc[
+        filtered_df_loc = filtered_df.loc[
             record_date:record_date, ["fear_greed_index", "description"]
         ]
-        logging.info(filtered_df_iloc)
+        logging.info(filtered_df_loc)
+
+        filtered_df_loc_specific_date = filtered_df.loc[
+            record_date, ["fear_greed_index", "description"]
+        ]
+        logging.info(filtered_df_loc_specific_date)
+
+        older_than_record_date_mask = filtered_df.index >= record_date
+
+        filtered_df_loc_masked = filtered_df[older_than_record_date_mask]
+        logging.info(filtered_df_loc_masked.head())
+
         if not len(filtered_series):
             return jsonify({"message": "Record for date not found"}), 404
         return jsonify(
@@ -95,7 +106,7 @@ def get_records(_):
                 "index": int(
                     filtered_series.iloc[0]
                 ),  # or int(filtered_series.values[0])
-                "description": str(filtered_df_iloc.iloc[0]["description"]),
+                "description": str(filtered_df_loc.iloc[0]["description"]),
             }
         )
 
