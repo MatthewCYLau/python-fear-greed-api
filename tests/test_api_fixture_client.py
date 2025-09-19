@@ -412,3 +412,19 @@ def test_generate_stock_mean_close(test_client, generate_auth_token, sleep):
     )
     assert response.status_code == 200
     assert "image_url" in response.json
+
+
+def test_generate_stock_close_daily_return_plot_gcs_blob(
+    test_client, generate_auth_token, sleep
+):
+    sleep
+    stock = "AAPL"
+    years = 1
+    response = test_client.post(
+        "/api/generate-stock-close-daily-return-plot",
+        data=json.dumps({"stock": stock, "years": years}),
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert "image_url" in response.json
