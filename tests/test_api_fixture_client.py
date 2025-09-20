@@ -414,6 +414,22 @@ def test_generate_stock_mean_close(test_client, generate_auth_token, sleep):
     assert "image_url" in response.json
 
 
+def test_get_price_prediction_multiprocess(test_client, generate_auth_token, sleep):
+    sleep
+    stock = "AAPL"
+    runs_count = 1
+    response = test_client.get(
+        f"/api/analysis/price-prediction-async?stock={stock}&runsCount={runs_count}",
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert "pricePredictionMean" in response.json
+    assert isinstance(response.json.get("pricePredictionMean"), float)
+    assert isinstance(response.json.get("predictionRunCount"), int)
+    assert response.json.get("predictionRunCount") == 1
+
+
 def test_generate_stock_close_daily_return_plot_gcs_blob(
     test_client, generate_auth_token, sleep
 ):
