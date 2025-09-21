@@ -781,6 +781,18 @@ def get_monthly_mean_close(_):
     )
 
 
+class CreateStockPlotRequestRequest(BaseModel):
+    years: int
+    stock: str
+
+    @field_validator("years")
+    @classmethod
+    def check_years(cls, v: int, info: ValidationInfo) -> str:
+        if v < 1 or v > 3:
+            raise ValueError(f"{info.field_name} must be between 1 and 3 inclusive")
+        return v
+
+
 @bp.route("/analysis/price-prediction-multiprocess", methods=(["GET"]))
 def get_price_prediction_multiprocess():
 
@@ -818,16 +830,16 @@ def get_price_prediction_multiprocess():
 @auth_required
 def generate_stock_close_daily_return_plot_gcs_blob(_):
 
-    data = request.get_json()
+    try:
+        create_stock_plot_request = CreateStockPlotRequestRequest.model_validate_json(
+            request.data
+        )
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
 
-    stock_symbol = data.get("stock")
-    if not stock_symbol:
-        raise BadRequestException("Provide a stock symbol", status_code=400)
-
-    years_ago = data.get("years", 1)
-
-    if int(years_ago) > 3:
-        return jsonify({"message": "Maximum three years!"}), 400
+    stock_symbol = create_stock_plot_request.stock
+    years_ago = create_stock_plot_request.years
 
     data = yf.Ticker(stock_symbol)
     df = data.history(period=f"{years_ago}y")
