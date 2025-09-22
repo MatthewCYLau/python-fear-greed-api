@@ -1,7 +1,7 @@
 import pytz
 import uuid
 from bson.objectid import ObjectId
-from api.common.models import BaseModel
+from api.common.models import BaseModel as CommonBaseModel
 from api.util.util import get_current_time_utc
 from api.db.setup import db
 from datetime import datetime, timedelta
@@ -11,7 +11,7 @@ from pydantic import BaseModel, field_validator, ValidationInfo
 GB = pytz.timezone("Europe/London")
 
 
-class AnalysisJob(BaseModel):
+class AnalysisJob(CommonBaseModel):
     def __init__(
         self,
         stock_symbol,
