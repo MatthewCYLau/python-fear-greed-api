@@ -5,6 +5,8 @@ from api.common.models import BaseModel
 from api.util.util import get_current_time_utc
 from api.db.setup import db
 from datetime import datetime, timedelta
+from pydantic import BaseModel, field_validator, ValidationInfo
+
 
 GB = pytz.timezone("Europe/London")
 
@@ -77,3 +79,28 @@ class AnalysisJob(BaseModel):
             )
         )
         return alerts
+
+
+class AnalysisJobRequest(BaseModel):
+    stock: str
+    targetFearGreedIndex: int
+    targetPeRatio: int
+
+    @field_validator("targetFearGreedIndex", "targetPeRatio")
+    @classmethod
+    def check_alphanumeric(cls, v: int, info: ValidationInfo) -> str:
+        if v < 1 or v > 99:
+            raise ValueError(f"{info.field_name} must be between 1 and 99 inclusive")
+        return v
+
+
+class CreateStockPlotRequestRequest(BaseModel):
+    years: int
+    stock: str
+
+    @field_validator("years")
+    @classmethod
+    def check_years(cls, v: int, info: ValidationInfo) -> str:
+        if v < 1 or v > 3:
+            raise ValueError(f"{info.field_name} must be between 1 and 3 inclusive")
+        return v

@@ -7,7 +7,7 @@ from matplotlib.dates import relativedelta
 from api.db.setup import db
 from bson.objectid import ObjectId
 from concurrent.futures import ProcessPoolExecutor
-from pydantic import BaseModel, ValidationError, field_validator, ValidationInfo
+from pydantic import ValidationError
 import time
 import os
 import base64
@@ -40,7 +40,11 @@ from api.util.util import (
 )
 from api.util.cloud_storage_connector import CloudStorageConnector
 from api.exception.models import BadRequestException
-from api.analysis.models import AnalysisJob
+from api.analysis.models import (
+    AnalysisJob,
+    CreateStockPlotRequestRequest,
+    AnalysisJobRequest,
+)
 from api.record.models import Record
 from sklearn.linear_model import LinearRegression
 
@@ -58,19 +62,6 @@ PUB_SUB_TOPIC = gcp_config["PUB_SUB_TOPIC"]
 ASSETS_PLOTS_BUCKET_NAME = gcp_config["ASSETS_PLOTS_BUCKET_NAME"]
 
 topic_name = f"projects/{GCP_PROJECT_ID}/topics/{PUB_SUB_TOPIC}"
-
-
-class AnalysisJobRequest(BaseModel):
-    stock: str
-    targetFearGreedIndex: int
-    targetPeRatio: int
-
-    @field_validator("targetFearGreedIndex", "targetPeRatio")
-    @classmethod
-    def check_alphanumeric(cls, v: int, info: ValidationInfo) -> str:
-        if v < 1 or v > 99:
-            raise ValueError(f"{info.field_name} must be between 1 and 99 inclusive")
-        return v
 
 
 @bp.route("/analysis", methods=(["GET"]))
@@ -693,16 +684,16 @@ async def get_price_prediction_async():
 @auth_required
 def generate_stock_mean_close_plot_gcs_blob(_):
 
-    data = request.get_json()
+    try:
+        create_stock_plot_request = CreateStockPlotRequestRequest.model_validate_json(
+            request.data
+        )
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
 
-    stock_symbol = data.get("stock")
-    if not stock_symbol:
-        raise BadRequestException("Provide a stock symbol", status_code=400)
-
-    years_ago = data.get("years", 1)
-
-    if int(years_ago) > 3:
-        return jsonify({"message": "Maximum three years!"}), 400
+    stock_symbol = create_stock_plot_request.stock
+    years_ago = create_stock_plot_request.years
 
     data = yf.Ticker(stock_symbol)
     df = data.history(period=f"{years_ago}y")
@@ -779,18 +770,6 @@ def get_monthly_mean_close(_):
         ),
         200,
     )
-
-
-class CreateStockPlotRequestRequest(BaseModel):
-    years: int
-    stock: str
-
-    @field_validator("years")
-    @classmethod
-    def check_years(cls, v: int, info: ValidationInfo) -> str:
-        if v < 1 or v > 3:
-            raise ValueError(f"{info.field_name} must be between 1 and 3 inclusive")
-        return v
 
 
 @bp.route("/analysis/price-prediction-multiprocess", methods=(["GET"]))
