@@ -487,86 +487,96 @@ def generate_stock_plot_gcs_blob(_):
             "Rolling average days must be between 50 and 100 inclusive", status_code=400
         )
 
-    data = yf.download(tickers_list, get_years_ago_formatted(years_ago))["Close"]
-    y_label = "Close Price"
+    try:
+        data = yf.download(tickers_list, get_years_ago_formatted(years_ago))["Close"]
+        y_label = "Close Price"
 
-    # data.plot(figsize=(10, 6))
-    plt.figure(figsize=(10, 6))
-    plt.plot(data.index, data[tickers_list], label="Close Price")
+        # data.plot(figsize=(10, 6))
+        plt.figure(figsize=(10, 6))
+        plt.plot(data.index, data[tickers_list], label="Close Price")
 
-    x = data.index
+        x = data.index
 
-    if len(tickers_list) == 1:
+        if len(tickers_list) == 1:
 
-        if secondary_axis:
-            data["vol"] = data[first_stock_ticker].pct_change().rolling(
-                window=21
-            ).std() * math.sqrt(252)
+            if secondary_axis:
+                data["vol"] = data[first_stock_ticker].pct_change().rolling(
+                    window=21
+                ).std() * math.sqrt(252)
 
-            ax = data[first_stock_ticker].plot(color="b")
-            ax2 = data.vol.plot(secondary_y=True, ax=ax, color="k")
+                ax = data[first_stock_ticker].plot(color="b")
+                ax2 = data.vol.plot(secondary_y=True, ax=ax, color="k")
 
-            ax.set_ylabel("Closing Price")
-            ax2.set_ylabel("Volatility")
+                ax.set_ylabel("Closing Price")
+                ax2.set_ylabel("Volatility")
 
-            # Plot the grid lines
-            plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
+                # Plot the grid lines
+                plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
 
-            plt.title(f"{first_stock_ticker} Chart", fontsize=16)
+                plt.title(f"{first_stock_ticker} Chart", fontsize=16)
 
-            fig_to_upload = plt.gcf()
-            cloud_storage_connector = CloudStorageConnector(
-                bucket_name=ASSETS_PLOTS_BUCKET_NAME
+                fig_to_upload = plt.gcf()
+                cloud_storage_connector = CloudStorageConnector(
+                    bucket_name=ASSETS_PLOTS_BUCKET_NAME
+                )
+                file_name = generate_figure_blob_filename("time-series")
+                blob_public_url = cloud_storage_connector.upload_pyplot_figure(
+                    fig_to_upload, file_name
+                )
+                return jsonify({"image_url": blob_public_url}), 200
+
+            data["rolling_avg"] = (
+                data[first_stock_ticker].rolling(window=rolling_average_days).mean()
             )
-            file_name = generate_figure_blob_filename("time-series")
-            blob_public_url = cloud_storage_connector.upload_pyplot_figure(
-                fig_to_upload, file_name
+            plt.plot(
+                data.index,
+                data["rolling_avg"],
+                label=f"{rolling_average_days}-Day Rolling Average",
             )
-            return jsonify({"image_url": blob_public_url}), 200
+            if target_price:
+                plt.axhline(
+                    y=float(target_price),
+                    color="r",
+                    label=f"Target Price: ${target_price}",
+                )
+            y = data[first_stock_ticker].values.reshape(-1, 1)
 
-        data["rolling_avg"] = (
-            data[first_stock_ticker].rolling(window=rolling_average_days).mean()
+            lm = LinearRegression()
+            lm.fit(x.values.reshape(-1, 1), y)
+
+            predictions = lm.predict(x.values.astype(float).reshape(-1, 1))
+            plt.plot(
+                x, predictions, label="Linear fit", linestyle="--", lw=1, color="red"
+            )
+            plt.legend()
+        else:
+            plt.legend(tickers_list)
+
+        plt.title(f"{','.join(tickers_list)} Chart", fontsize=16)
+
+        # Define the labels
+        plt.ylabel(y_label, fontsize=14)
+        plt.xlabel("Time", fontsize=14)
+
+        # Plot the grid lines
+        plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
+
+        fig_to_upload = plt.gcf()
+        cloud_storage_connector = CloudStorageConnector(
+            bucket_name=ASSETS_PLOTS_BUCKET_NAME
         )
-        plt.plot(
-            data.index,
-            data["rolling_avg"],
-            label=f"{rolling_average_days}-Day Rolling Average",
+        file_name = generate_figure_blob_filename("time-series")
+        blob_public_url = cloud_storage_connector.upload_pyplot_figure(
+            fig_to_upload, file_name
         )
-        if target_price:
-            plt.axhline(
-                y=float(target_price),
-                color="r",
-                label=f"Target Price: ${target_price}",
-            )
-        y = data[first_stock_ticker].values.reshape(-1, 1)
+        return jsonify({"image_url": blob_public_url}), 200
 
-        lm = LinearRegression()
-        lm.fit(x.values.reshape(-1, 1), y)
-
-        predictions = lm.predict(x.values.astype(float).reshape(-1, 1))
-        plt.plot(x, predictions, label="Linear fit", linestyle="--", lw=1, color="red")
-        plt.legend()
-    else:
-        plt.legend(tickers_list)
-
-    plt.title(f"{','.join(tickers_list)} Chart", fontsize=16)
-
-    # Define the labels
-    plt.ylabel(y_label, fontsize=14)
-    plt.xlabel("Time", fontsize=14)
-
-    # Plot the grid lines
-    plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
-
-    fig_to_upload = plt.gcf()
-    cloud_storage_connector = CloudStorageConnector(
-        bucket_name=ASSETS_PLOTS_BUCKET_NAME
-    )
-    file_name = generate_figure_blob_filename("time-series")
-    blob_public_url = cloud_storage_connector.upload_pyplot_figure(
-        fig_to_upload, file_name
-    )
-    return jsonify({"image_url": blob_public_url}), 200
+    except Exception as e:
+        logging.error(e)
+        return (
+            jsonify({"message": "Generate stock plot failed"}),
+            500,
+        )
 
 
 @bp.route("/generate-stocks-cumulative-returns-plot", methods=(["POST"]))
@@ -592,28 +602,36 @@ def generate_stock_cumulative_returns_plot_gcs_blob(_):
     if int(years) > 3:
         return jsonify({"message": "Maximum three years!"}), 400
 
-    data = yf.download(tickers_list, get_years_ago_formatted(int(years)))["Close"]
+    try:
+        data = yf.download(tickers_list, get_years_ago_formatted(int(years)))["Close"]
 
-    y_label = "Cumulative Returns"
-    ((data.pct_change() + 1).cumprod()).plot(figsize=(10, 7))
-    plt.legend()
-    plt.title("Stocks Cumulative Returns", fontsize=16)
+        y_label = "Cumulative Returns"
+        ((data.pct_change() + 1).cumprod()).plot(figsize=(10, 7))
+        plt.legend()
+        plt.title("Stocks Cumulative Returns", fontsize=16)
 
-    # Define the labels
-    plt.ylabel(y_label, fontsize=14)
-    plt.xlabel("Time", fontsize=14)
+        # Define the labels
+        plt.ylabel(y_label, fontsize=14)
+        plt.xlabel("Time", fontsize=14)
 
-    # Plot the grid lines
-    plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
-    fig_to_upload = plt.gcf()
-    cloud_storage_connector = CloudStorageConnector(
-        bucket_name=ASSETS_PLOTS_BUCKET_NAME
-    )
-    file_name = generate_figure_blob_filename("time-series")
-    blob_public_url = cloud_storage_connector.upload_pyplot_figure(
-        fig_to_upload, file_name
-    )
-    return jsonify({"image_url": blob_public_url}), 200
+        # Plot the grid lines
+        plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
+        fig_to_upload = plt.gcf()
+        cloud_storage_connector = CloudStorageConnector(
+            bucket_name=ASSETS_PLOTS_BUCKET_NAME
+        )
+        file_name = generate_figure_blob_filename("time-series")
+        blob_public_url = cloud_storage_connector.upload_pyplot_figure(
+            fig_to_upload, file_name
+        )
+        return jsonify({"image_url": blob_public_url}), 200
+
+    except Exception as e:
+        logging.error(e)
+        return (
+            jsonify({"message": "Generate stock cumulative returns plot failed"}),
+            500,
+        )
 
 
 @bp.route("/analysis/export-csv", methods=(["POST"]))
@@ -695,33 +713,38 @@ def generate_stock_mean_close_plot_gcs_blob(_):
     stock_symbol = create_stock_plot_request.stock
     years_ago = create_stock_plot_request.years
 
-    data = yf.Ticker(stock_symbol)
-    df = data.history(period=f"{years_ago}y")
-    monthly_mean_close_df = generate_monthly_mean_close_df(df)
+    try:
+        data = yf.Ticker(stock_symbol)
+        df = data.history(period=f"{years_ago}y")
+        monthly_mean_close_df = generate_monthly_mean_close_df(df)
 
-    plt.figure(figsize=(10, 10))
+        plt.figure(figsize=(10, 10))
 
-    plt.plot(
-        monthly_mean_close_df["Date"],
-        monthly_mean_close_df["Monthly Average"],
-        label="Monthly Average Close",
-    )
+        plt.plot(
+            monthly_mean_close_df["Date"],
+            monthly_mean_close_df["Monthly Average"],
+            label="Monthly Average Close",
+        )
 
-    plt.title(f"{stock_symbol.upper()} Monthly Average Close", fontsize=14)
-    plt.xlabel("Month", fontsize=12)
-    plt.ylabel("Monthly Average Close", fontsize=12)
+        plt.title(f"{stock_symbol.upper()} Monthly Average Close", fontsize=14)
+        plt.xlabel("Month", fontsize=12)
+        plt.ylabel("Monthly Average Close", fontsize=12)
 
-    plt.xticks(rotation=50, fontsize=10)
+        plt.xticks(rotation=50, fontsize=10)
 
-    fig_to_upload = plt.gcf()
-    cloud_storage_connector = CloudStorageConnector(
-        bucket_name=ASSETS_PLOTS_BUCKET_NAME
-    )
-    file_name = generate_figure_blob_filename("mean-close")
-    blob_public_url = cloud_storage_connector.upload_pyplot_figure(
-        fig_to_upload, file_name
-    )
-    return jsonify({"image_url": blob_public_url}), 200
+        fig_to_upload = plt.gcf()
+        cloud_storage_connector = CloudStorageConnector(
+            bucket_name=ASSETS_PLOTS_BUCKET_NAME
+        )
+        file_name = generate_figure_blob_filename("mean-close")
+        blob_public_url = cloud_storage_connector.upload_pyplot_figure(
+            fig_to_upload, file_name
+        )
+        return jsonify({"image_url": blob_public_url}), 200
+
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"message": "Generate stock mean close plot failed"}), 500
 
 
 @bp.route("/get-monthly-mean-close", methods=(["GET"]))
@@ -731,45 +754,49 @@ def get_monthly_mean_close(_):
     record_date = request.args.get("date")
     stock_symbol = request.args.get("stock", default=None, type=None)
 
-    data = yf.Ticker(stock_symbol)
-    df = data.history(period="3y")
+    try:
+        data = yf.Ticker(stock_symbol)
+        df = data.history(period="3y")
 
-    if not validate_date_string_for_pandas_df(record_date):
-        raise BadRequestException(
-            "Invalid date input. Must be in format YYYY-MM-DD", status_code=400
+        if not validate_date_string_for_pandas_df(record_date):
+            raise BadRequestException(
+                "Invalid date input. Must be in format YYYY-MM-DD", status_code=400
+            )
+
+        now = datetime.now()
+        days_three_years = 365 * 3
+        if (
+            now - datetime.strptime(record_date, PANDAS_DF_DATE_FORMATE_CODE)
+        ).days > days_three_years:
+            three_years_ago = now - relativedelta(days=days_three_years)
+            raise BadRequestException(
+                f"{record_date} is too far behind! Oldest date is three years ago from current time {three_years_ago.strftime(PANDAS_DF_DATE_FORMATE_CODE)}",
+                status_code=400,
+            )
+        record_date_formatted = datetime.strptime(
+            record_date, PANDAS_DF_DATE_FORMATE_CODE
+        ).strftime("%b %Y")
+
+        monthly_mean_close_df = generate_monthly_mean_close_df(df)
+
+        month_average_close = monthly_mean_close_df[
+            monthly_mean_close_df["Date"] == record_date_formatted
+        ]["Monthly Average"].values[0]
+
+        return (
+            jsonify(
+                {
+                    "stock": stock_symbol,
+                    "requested_date": record_date,
+                    "requested_date_formatted": record_date_formatted,
+                    "month_average_close": month_average_close,
+                }
+            ),
+            200,
         )
-
-    now = datetime.now()
-    days_three_years = 365 * 3
-    if (
-        now - datetime.strptime(record_date, PANDAS_DF_DATE_FORMATE_CODE)
-    ).days > days_three_years:
-        three_years_ago = now - relativedelta(days=days_three_years)
-        raise BadRequestException(
-            f"{record_date} is too far behind! Oldest date is three years ago from current time {three_years_ago.strftime(PANDAS_DF_DATE_FORMATE_CODE)}",
-            status_code=400,
-        )
-    record_date_formatted = datetime.strptime(
-        record_date, PANDAS_DF_DATE_FORMATE_CODE
-    ).strftime("%b %Y")
-
-    monthly_mean_close_df = generate_monthly_mean_close_df(df)
-
-    month_average_close = monthly_mean_close_df[
-        monthly_mean_close_df["Date"] == record_date_formatted
-    ]["Monthly Average"].values[0]
-
-    return (
-        jsonify(
-            {
-                "stock": stock_symbol,
-                "requested_date": record_date,
-                "requested_date_formatted": record_date_formatted,
-                "month_average_close": month_average_close,
-            }
-        ),
-        200,
-    )
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"message": "Get stock mean close failed"}), 500
 
 
 @bp.route("/analysis/price-prediction-multiprocess", methods=(["GET"]))
@@ -820,35 +847,43 @@ def generate_stock_close_daily_return_plot_gcs_blob(_):
     stock_symbol = create_stock_plot_request.stock
     years_ago = create_stock_plot_request.years
 
-    data = yf.Ticker(stock_symbol)
-    df = data.history(period=f"{years_ago}y")
-    df["Daily Return"] = round(df["Close"].pct_change() * 100, 2)
-    df["Volatility"] = round(
-        df["Daily Return"].rolling(window=21).std() * math.sqrt(252), 2
-    )
+    try:
+        data = yf.Ticker(stock_symbol)
+        df = data.history(period=f"{years_ago}y")
+        df["Daily Return"] = round(df["Close"].pct_change() * 100, 2)
+        df["Volatility"] = round(
+            df["Daily Return"].rolling(window=21).std() * math.sqrt(252), 2
+        )
 
-    df.dropna(subset=["Daily Return"])
+        df.dropna(subset=["Daily Return"])
 
-    fig, axs = plt.subplots(2, figsize=(10, 8))
-    fig.suptitle(f"{stock_symbol} Daily Change")
+        fig, axs = plt.subplots(2, figsize=(10, 8))
+        fig.suptitle(f"{stock_symbol} Daily Change")
 
-    axs[0].plot(df.index, df["Daily Return"])
-    axs[1].plot(df.index, df["Volatility"])
+        axs[0].plot(df.index, df["Daily Return"])
+        axs[1].plot(df.index, df["Volatility"])
 
-    axs[1].set_xlabel("Date")
+        axs[1].set_xlabel("Date")
 
-    axs[0].set_ylabel("Close Percentage Change")
-    axs[1].set_ylabel("Volatility")
+        axs[0].set_ylabel("Close Percentage Change")
+        axs[1].set_ylabel("Volatility")
 
-    # Plot the grid lines
-    plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
-    fig.autofmt_xdate()
-    fig_to_upload = plt.gcf()
-    cloud_storage_connector = CloudStorageConnector(
-        bucket_name=ASSETS_PLOTS_BUCKET_NAME
-    )
-    file_name = generate_figure_blob_filename("close-daily-change")
-    blob_public_url = cloud_storage_connector.upload_pyplot_figure(
-        fig_to_upload, file_name
-    )
-    return jsonify({"image_url": blob_public_url}), 200
+        # Plot the grid lines
+        plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
+        fig.autofmt_xdate()
+        fig_to_upload = plt.gcf()
+        cloud_storage_connector = CloudStorageConnector(
+            bucket_name=ASSETS_PLOTS_BUCKET_NAME
+        )
+        file_name = generate_figure_blob_filename("close-daily-change")
+        blob_public_url = cloud_storage_connector.upload_pyplot_figure(
+            fig_to_upload, file_name
+        )
+        return jsonify({"image_url": blob_public_url}), 200
+
+    except Exception as e:
+        logging.error(e)
+        return (
+            jsonify({"message": "Generate stock close daily return plot failed"}),
+            500,
+        )
