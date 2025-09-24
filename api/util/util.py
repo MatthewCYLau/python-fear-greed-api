@@ -272,3 +272,8 @@ def generate_monthly_mean_close_df(df: pd.DataFrame):
     )
 
     return df_monthly_mean_reset
+
+
+def check_asset_available(asset: str) -> bool:
+    info = yf.Ticker(asset).history(period="7d", interval="1d")
+    return len(info) > 0

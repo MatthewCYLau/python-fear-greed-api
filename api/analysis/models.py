@@ -2,7 +2,7 @@ import pytz
 import uuid
 from bson.objectid import ObjectId
 from api.common.models import BaseModel as CommonBaseModel
-from api.util.util import get_current_time_utc
+from api.util.util import check_asset_available, get_current_time_utc
 from api.db.setup import db
 from datetime import datetime, timedelta
 from pydantic import BaseModel, field_validator, ValidationInfo
@@ -93,6 +93,13 @@ class AnalysisJobRequest(BaseModel):
             raise ValueError(f"{info.field_name} must be between 1 and 99 inclusive")
         return v
 
+    @field_validator("stock")
+    @classmethod
+    def check_stock(cls, stock: str, info: ValidationInfo) -> str:
+        if not check_asset_available(stock):
+            raise ValueError(f"{info.field_name} is not a valid stock symbol")
+        return stock
+
 
 class CreateStockPlotRequestRequest(BaseModel):
     years: int
@@ -104,3 +111,10 @@ class CreateStockPlotRequestRequest(BaseModel):
         if v < 1 or v > 3:
             raise ValueError(f"{info.field_name} must be between 1 and 3 inclusive")
         return v
+
+    @field_validator("stock")
+    @classmethod
+    def check_stock(cls, stock: str, info: ValidationInfo) -> str:
+        if not check_asset_available(stock):
+            raise ValueError(f"{info.field_name} is not a valid stock symbol")
+        return stock

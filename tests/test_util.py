@@ -19,6 +19,7 @@ from api.util.util import (
     validate_date_string_for_pandas_df,
     predict_price_linear_regression,
     generate_monthly_mean_close_df,
+    check_asset_available,
 )
 from api.auth.auth import validate_google_oauth_token
 
@@ -163,3 +164,8 @@ def test_generate_monthly_mean_close_df_random_df():
     monthly_mean_close_df = generate_monthly_mean_close_df(df)
     assert "Monthly Average" in monthly_mean_close_df.columns
     assert monthly_mean_close_df["Monthly Average"].dtype, pd.Float64Dtype
+
+
+def test_check_asset_available():
+    assert check_asset_available("AAPL")
+    assert not check_asset_available("FOO")
