@@ -104,10 +104,18 @@ def get_stock_analysis(_):
     try:
         data = yf.Ticker(stock_symbol)
         stock_info = data.info
-        current_price = stock_info["currentPrice"]
-        EPS = stock_info["trailingEps"]
-        PE_ratio = float("{:.2f}".format(current_price / EPS))
-        logging.info(f"{stock_symbol} has PE ratio of {PE_ratio}")
+
+        if stock_info.get("currentPrice") and stock_info.get("trailingEps"):
+            current_price = stock_info["currentPrice"]
+            EPS = stock_info["trailingEps"]
+            PE_ratio = float("{:.2f}".format(current_price / EPS))
+            logging.info(f"{stock_symbol} has PE ratio of {PE_ratio}")
+        else:
+            logging.info(
+                f"{stock_symbol} info does not offer current price and trailing earnings per share (EPS)"
+            )
+            PE_ratio = float(25)  # default PE ratio
+
         df = data.history(period=f"{years_ago}y")
         df["Daily change percentage"] = round(df["Close"].pct_change() * 100, 2)
 
