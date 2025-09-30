@@ -4,6 +4,7 @@ from itertools import repeat
 import statistics
 from flask import Blueprint, jsonify, make_response, request
 from matplotlib.dates import relativedelta
+import pandas as pd
 from api.db.setup import db
 from bson.objectid import ObjectId
 from concurrent.futures import ProcessPoolExecutor
@@ -41,8 +42,9 @@ from api.util.util import (
 from api.util.cloud_storage_connector import CloudStorageConnector
 from api.exception.models import BadRequestException
 from api.analysis.models import (
+    AnalyseCurrencyImpactOnReturnRequest,
     AnalysisJob,
-    CreateStockPlotRequestRequest,
+    CreateStockPlotRequest,
     AnalysisJobRequest,
 )
 from api.record.models import Record
@@ -711,7 +713,7 @@ async def get_price_prediction_async():
 def generate_stock_mean_close_plot_gcs_blob(_):
 
     try:
-        create_stock_plot_request = CreateStockPlotRequestRequest.model_validate_json(
+        create_stock_plot_request = CreateStockPlotRequest.model_validate_json(
             request.data
         )
     except ValidationError as e:
@@ -845,7 +847,7 @@ def get_price_prediction_multiprocess():
 def generate_stock_close_daily_return_plot_gcs_blob(_):
 
     try:
-        create_stock_plot_request = CreateStockPlotRequestRequest.model_validate_json(
+        create_stock_plot_request = CreateStockPlotRequest.model_validate_json(
             request.data
         )
     except ValidationError as e:
@@ -895,3 +897,64 @@ def generate_stock_close_daily_return_plot_gcs_blob(_):
             jsonify({"message": "Generate stock close daily return plot failed"}),
             500,
         )
+
+
+@bp.route("/analyse-currency-impact", methods=(["POST"]))
+@auth_required
+def analyse_currency_impact_on_return(_):
+
+    try:
+        impact_request = AnalyseCurrencyImpactOnReturnRequest.model_validate_json(
+            request.data
+        )
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
+
+    stock_symbol = impact_request.stock
+    years_ago = impact_request.years
+    currency = impact_request.currency
+
+    stock_data = yf.download(stock_symbol, get_years_ago_formatted(int(years_ago)))[
+        "Close"
+    ]
+
+    fx_ticker = f"{currency}USD=X"
+
+    fx_data = yf.download(fx_ticker, get_years_ago_formatted(int(years_ago)))["Close"]
+    data = pd.concat([stock_data, fx_data], axis=1).dropna()
+    data.columns = ["Stock_Price_Local", "FX_Rate_USD_per_Local"]
+
+    data["Local_Stock_Return"] = data["Stock_Price_Local"].pct_change()
+    data["FX_Return"] = data["FX_Rate_USD_per_Local"].pct_change()
+
+    data["Total_USD_Return"] = (1 + data["Local_Stock_Return"]) * (
+        1 + data["FX_Return"]
+    ) - 1
+
+    data["Cumulative_Local_Return"] = (1 + data["Local_Stock_Return"]).cumprod() - 1
+    data["Cumulative_USD_Return"] = (1 + data["Total_USD_Return"]).cumprod() - 1
+
+    cumulative_currency_impact = (
+        data["Cumulative_USD_Return"].iloc[-1]
+        - data["Cumulative_Local_Return"].iloc[-1]
+    )
+
+    local_currency_return = float(
+        f"{data['Cumulative_Local_Return'].iloc[-1] * 100:.2f}"
+    )
+
+    logging.info(f"Cumulative Local Currency Return: {local_currency_return}%")
+
+    cumulative_usd_return = float(f"{data['Cumulative_USD_Return'].iloc[-1] * 100:.2f}")
+    logging.info(f"Cumulative USD Return: {cumulative_usd_return}%")
+
+    currency_impact = float(f"{cumulative_currency_impact * 100:.2f}")
+    logging.info(f"Currency Impact on Total Return (USD basis): {currency_impact}%")
+    return jsonify(
+        {
+            "localCurrencyReturn": local_currency_return,
+            "cumulativeUsdReturn": cumulative_usd_return,
+            "currencyImpact": currency_impact,
+        }
+    )

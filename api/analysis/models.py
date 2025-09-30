@@ -101,7 +101,7 @@ class AnalysisJobRequest(BaseModel):
         return stock
 
 
-class CreateStockPlotRequestRequest(BaseModel):
+class CreateStockPlotRequest(BaseModel):
     years: int
     stock: str
 
@@ -118,3 +118,32 @@ class CreateStockPlotRequestRequest(BaseModel):
         if not check_asset_available(stock):
             raise ValueError(f"{info.field_name} is not a valid stock symbol")
         return stock
+
+
+class AnalyseCurrencyImpactOnReturnRequest(BaseModel):
+    years: int
+    stock: str
+    currency: str
+
+    @field_validator("years")
+    @classmethod
+    def check_years(cls, v: int, info: ValidationInfo) -> str:
+        if v < 1 or v > 3:
+            raise ValueError(f"{info.field_name} must be between 1 and 3 inclusive")
+        return v
+
+    @field_validator("stock")
+    @classmethod
+    def check_stock(cls, stock: str, info: ValidationInfo) -> str:
+        if not check_asset_available(stock):
+            raise ValueError(f"{info.field_name} is not a valid stock symbol")
+        return stock
+
+    @field_validator("currency")
+    @classmethod
+    def check_currency(cls, currency: str, info: ValidationInfo) -> str:
+        if currency not in ["GBP", "EUR", "CNY", "JPY", "HKD"]:
+            raise ValueError(
+                f"{info.field_name} is not a supported currency for US stock impact analysis."
+            )
+        return currency
