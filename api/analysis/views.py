@@ -936,8 +936,8 @@ def analyse_currency_impact_on_return(_):
     data["Cumulative_USD_Return"] = (1 + data["Total_USD_Return"]).cumprod() - 1
 
     cumulative_currency_impact = (
-        data["Cumulative_USD_Return"].iloc[-1]
-        - data["Cumulative_Local_Return"].iloc[-1]
+        data["Cumulative_Local_Return"].iloc[-1]
+        - data["Cumulative_USD_Return"].iloc[-1]
     )
 
     local_currency_return = float(

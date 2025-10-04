@@ -1,6 +1,7 @@
 import pytz
 import uuid
 from bson.objectid import ObjectId
+from api.common.constants import VALID_CURRENCIES
 from api.common.models import BaseModel as CommonBaseModel
 from api.util.util import check_asset_available, get_current_time_utc
 from api.db.setup import db
@@ -142,7 +143,7 @@ class AnalyseCurrencyImpactOnReturnRequest(BaseModel):
     @field_validator("currency")
     @classmethod
     def check_currency(cls, currency: str, info: ValidationInfo) -> str:
-        if currency not in ["GBP", "EUR", "CNY", "JPY", "HKD"]:
+        if currency == "USD" or currency not in VALID_CURRENCIES:
             raise ValueError(
                 f"{info.field_name} is not a supported currency for US stock impact analysis."
             )
