@@ -277,3 +277,26 @@ def generate_monthly_mean_close_df(df: pd.DataFrame):
 def check_asset_available(asset: str) -> bool:
     info = yf.Ticker(asset).history(period="7d", interval="1d")
     return len(info) > 0
+
+
+def get_currency_impact_stock_return_df(
+    stock_symbol: str, years_ago: int, currency: str
+):
+    stock_data = yf.download(stock_symbol, get_years_ago_formatted(int(years_ago)))[
+        "Close"
+    ]
+
+    fx_ticker = f"{currency}USD=X"
+
+    fx_data = yf.download(fx_ticker, get_years_ago_formatted(int(years_ago)))["Close"]
+    df = pd.concat([stock_data, fx_data], axis=1).dropna()
+    df.columns = ["Stock_Price_Local", "FX_Rate_USD_per_Local"]
+
+    df["Local_Stock_Return"] = df["Stock_Price_Local"].pct_change()
+    df["FX_Return"] = df["FX_Rate_USD_per_Local"].pct_change()
+
+    df["Total_USD_Return"] = (1 + df["Local_Stock_Return"]) * (1 + df["FX_Return"]) - 1
+
+    df["Cumulative_Local_Return"] = (1 + df["Local_Stock_Return"]).cumprod() - 1
+    df["Cumulative_USD_Return"] = (1 + df["Total_USD_Return"]).cumprod() - 1
+    return df

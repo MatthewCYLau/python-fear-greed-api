@@ -32,6 +32,7 @@ from api.util.util import (
     generate_monthly_mean_close_df,
     generate_response,
     generate_stock_fair_value,
+    get_currency_impact_stock_return_df,
     predict_price_linear_regression,
     return_delta,
     generate_figure_blob_filename,
@@ -915,25 +916,7 @@ def analyse_currency_impact_on_return(_):
     years_ago = impact_request.years
     currency = impact_request.currency
 
-    stock_data = yf.download(stock_symbol, get_years_ago_formatted(int(years_ago)))[
-        "Close"
-    ]
-
-    fx_ticker = f"{currency}USD=X"
-
-    fx_data = yf.download(fx_ticker, get_years_ago_formatted(int(years_ago)))["Close"]
-    data = pd.concat([stock_data, fx_data], axis=1).dropna()
-    data.columns = ["Stock_Price_Local", "FX_Rate_USD_per_Local"]
-
-    data["Local_Stock_Return"] = data["Stock_Price_Local"].pct_change()
-    data["FX_Return"] = data["FX_Rate_USD_per_Local"].pct_change()
-
-    data["Total_USD_Return"] = (1 + data["Local_Stock_Return"]) * (
-        1 + data["FX_Return"]
-    ) - 1
-
-    data["Cumulative_Local_Return"] = (1 + data["Local_Stock_Return"]).cumprod() - 1
-    data["Cumulative_USD_Return"] = (1 + data["Total_USD_Return"]).cumprod() - 1
+    data = get_currency_impact_stock_return_df(stock_symbol, years_ago, currency)
 
     cumulative_currency_impact = (
         data["Cumulative_Local_Return"].iloc[-1]
@@ -958,3 +941,49 @@ def analyse_currency_impact_on_return(_):
             "currencyImpact": currency_impact,
         }
     )
+
+
+@bp.route("/generate-currency-impact-plot", methods=(["POST"]))
+@auth_required
+def generate_currency_impact_on_return_plot(_):
+
+    try:
+        impact_request = AnalyseCurrencyImpactOnReturnRequest.model_validate_json(
+            request.data
+        )
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
+
+    stock_symbol = impact_request.stock
+    years_ago = impact_request.years
+    currency = impact_request.currency
+
+    data = get_currency_impact_stock_return_df(stock_symbol, years_ago, currency)
+    data.dropna()
+    data["Cumulative_Local_Return"] = data["Cumulative_Local_Return"] * 100
+    data["Cumulative_USD_Return"] = data["Cumulative_USD_Return"] * 100
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(
+        data.index,
+        data[["Cumulative_Local_Return", "Cumulative_USD_Return"]],
+        label="Close Price",
+    )
+
+    plt.title(f"{currency} currency impact on {stock_symbol} return", fontsize=16)
+    plt.legend([f"Cumulative {currency} return", "Cumulative USD return"])
+    plt.ylabel("Cumulative return percentage", fontsize=14)
+    plt.xlabel("Time", fontsize=14)
+
+    # Plot the grid lines
+    plt.grid(which="major", color="k", linestyle="-.", linewidth=0.5)
+    fig_to_upload = plt.gcf()
+    cloud_storage_connector = CloudStorageConnector(
+        bucket_name=ASSETS_PLOTS_BUCKET_NAME
+    )
+    file_name = generate_figure_blob_filename("currency-impact-return")
+    blob_public_url = cloud_storage_connector.upload_pyplot_figure(
+        fig_to_upload, file_name
+    )
+    return jsonify({"image_url": blob_public_url}), 200
