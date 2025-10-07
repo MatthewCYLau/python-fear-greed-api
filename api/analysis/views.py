@@ -4,7 +4,6 @@ from itertools import repeat
 import statistics
 from flask import Blueprint, jsonify, make_response, request
 from matplotlib.dates import relativedelta
-import pandas as pd
 from api.db.setup import db
 from bson.objectid import ObjectId
 from concurrent.futures import ProcessPoolExecutor
