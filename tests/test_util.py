@@ -179,4 +179,4 @@ def test_get_currency_impact_stock_return_df():
     df = get_currency_impact_stock_return_df(stock, years, currency)
     assert "Cumulative_Local_Return" in df.columns
     assert "Cumulative_USD_Return" in df.columns
-    assert df["Cumulative_USD_Return Average"].dtype, pd.Float64Dtype
+    assert df["Cumulative_USD_Return"].dtype, pd.Float64Dtype
