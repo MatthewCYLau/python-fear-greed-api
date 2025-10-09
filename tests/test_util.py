@@ -20,6 +20,7 @@ from api.util.util import (
     predict_price_linear_regression,
     generate_monthly_mean_close_df,
     check_asset_available,
+    get_currency_impact_stock_return_df,
 )
 from api.auth.auth import validate_google_oauth_token
 
@@ -169,3 +170,13 @@ def test_generate_monthly_mean_close_df_random_df():
 def test_check_asset_available():
     assert check_asset_available("AAPL")
     assert not check_asset_available("FOO")
+
+
+def test_get_currency_impact_stock_return_df():
+    stock = "AAPL"
+    years = 1
+    currency = "GBP"
+    df = get_currency_impact_stock_return_df(stock, years, currency)
+    assert "Cumulative_Local_Return" in df.columns
+    assert "Cumulative_USD_Return" in df.columns
+    assert df["Cumulative_USD_Return Average"].dtype, pd.Float64Dtype

@@ -460,3 +460,20 @@ def test_analyse_currency_impact_on_return(test_client, generate_auth_token, sle
     assert response.status_code == 200
     assert "currencyImpact" in response.json
     assert isinstance(response.json.get("currencyImpact"), float)
+
+
+def test_generate_currency_impact_on_return_plot_gcs_blob(
+    test_client, generate_auth_token, sleep
+):
+    sleep
+    stock = "AAPL"
+    years = 1
+    currency = "GBP"
+    response = test_client.post(
+        "/api/generate-currency-impact-plot",
+        data=json.dumps({"stock": stock, "years": years, "currency": currency}),
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert "image_url" in response.json
