@@ -98,6 +98,10 @@ def generate_stock_fair_value(
         target_fear_greed_index, int
     ):
         raise ValueError("Fear and greed index must be instance of int")
+
+    if current_pe_ratio < 0:
+        return -1
+
     return round(
         most_recent_close
         * (target_pe_ratio / current_pe_ratio)

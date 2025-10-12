@@ -116,7 +116,7 @@ def get_stock_analysis(_):
             logging.info(
                 f"{stock_symbol} info does not offer current price and trailing earnings per share (EPS)"
             )
-            PE_ratio = float(25)  # default PE ratio
+            PE_ratio = float(-1)
 
         df = data.history(period=f"{years_ago}y")
         df["Daily change percentage"] = round(df["Close"].pct_change() * 100, 2)
