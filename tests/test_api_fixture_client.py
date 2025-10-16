@@ -129,7 +129,7 @@ def generate_auth_token(test_client):
 
 @pytest.fixture(scope="module")
 def sleep():
-    sleep_seconds = random.uniform(20, 60)
+    sleep_seconds = random.uniform(40, 70)
     time.sleep(sleep_seconds)
     yield
 
