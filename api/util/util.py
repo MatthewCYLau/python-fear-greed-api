@@ -180,15 +180,7 @@ def predict_price_linear_regression(
         df = data.history(period=f"{data_years_ago}y")
 
         # Create a numerical representation of the time index
-        df["Days"] = (df.index - df.index.min()).days
-
-        # Prepare the data for the linear regression model
-        x = df[["Days"]]
-        y = df["Close"]
-
-        # Create and train the linear regression model
-        model = LinearRegression()
-        model.fit(x, y)
+        model1 = create_stock_close_linear_regression_model(df)
 
         # Calculate the date one year in the future
         last_date = df.index[-1]
@@ -196,15 +188,11 @@ def predict_price_linear_regression(
         future_days = (future_date - df.index.min()).days
 
         # Predict the price for the future date
-        future_price1 = model.predict([[future_days]])[0]
+        future_price1 = model1.predict([[future_days]])[0]
         logging.info(f"Price prediction 1: {future_price1}")
 
         # Uses values.reshape
-        x = df.index
-        y = df["Close"].values.reshape(-1, 1)
-
-        lm = LinearRegression()
-        model = lm.fit(x.values.reshape(-1, 1), y)
+        model2 = create_stock_close_linear_regression_model(df, True)
 
         last_date = df.index[-1]
         future_date = last_date + pd.DateOffset(years=1)
@@ -212,9 +200,9 @@ def predict_price_linear_regression(
             start=df.index[0], end=future_date, freq=df.index.freq
         )
 
-        future_price2 = lm.predict(extended_index.values.astype(float).reshape(-1, 1))[
-            -1
-        ][0]
+        future_price2 = model2.predict(
+            extended_index.values.astype(float).reshape(-1, 1)
+        )[-1][0]
 
         logging.info(f"Price prediction 2: {future_price2}")
         prediction_result = statistics.mean([future_price1, future_price2])
@@ -225,6 +213,29 @@ def predict_price_linear_regression(
     except Exception as e:
         logging.error(e)
         return 0
+
+
+def create_stock_close_linear_regression_model(df, use_values_reshape: bool = False):
+
+    if use_values_reshape:
+        x = df.index
+        y = df["Close"].values.reshape(-1, 1)
+
+        lm = LinearRegression()
+        model = lm.fit(x.values.reshape(-1, 1), y)
+
+    else:
+        df["Days"] = (df.index - df.index.min()).days
+
+        # Prepare the data for the linear regression model
+        x = df[["Days"]]
+        y = df["Close"]
+
+        # Create and train the linear regression model
+        model = LinearRegression()
+        model.fit(x, y)
+
+    return model
 
 
 def generate_monthly_mean_close_df(df: pd.DataFrame):
