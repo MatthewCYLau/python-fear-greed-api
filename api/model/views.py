@@ -1,3 +1,4 @@
+import uuid
 from flask import Blueprint, jsonify, request
 from pydantic import ValidationError
 import logging
@@ -8,7 +9,6 @@ from api.model.models import ExportModelRequest
 from api.util.cloud_storage_connector import CloudStorageConnector
 from api.util.util import (
     create_stock_close_linear_regression_model,
-    generate_pkl_blob_filename,
 )
 import joblib
 
@@ -34,7 +34,8 @@ def export_model_to_gcs_blob(_):
     # Create a numerical representation of the time index
     model = create_stock_close_linear_regression_model(df)
 
-    pkl_filename = generate_pkl_blob_filename()
+    model_id = uuid.uuid4()
+    pkl_filename = f"{model_id}.pkl"
     joblib.dump(model, pkl_filename)
 
     cloud_storage_connector = CloudStorageConnector(
@@ -43,4 +44,4 @@ def export_model_to_gcs_blob(_):
     blob_public_url = cloud_storage_connector.upload_pkl(
         stock_symbol, pkl_filename, pkl_filename
     )
-    return jsonify({"model_url": blob_public_url}), 200
+    return jsonify({"model_id": model_id}), 200
