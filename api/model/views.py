@@ -41,7 +41,6 @@ def export_model_to_gcs_blob(_):
     cloud_storage_connector = CloudStorageConnector(
         bucket_name=ASSETS_PLOTS_BUCKET_NAME
     )
-    blob_public_url = cloud_storage_connector.upload_pkl(
-        stock_symbol, pkl_filename, pkl_filename
-    )
-    return jsonify({"model_id": model_id}), 200
+    res = cloud_storage_connector.upload_pkl(stock_symbol, pkl_filename, pkl_filename)
+    if res:
+        return jsonify({"model_id": model_id}), 200

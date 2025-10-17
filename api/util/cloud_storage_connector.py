@@ -29,9 +29,9 @@ class CloudStorageConnector:
 
     def upload_pkl(
         self, stock_symbol: str, pkl_file_name: str, pkl_file_path: str
-    ) -> str:
+    ) -> bool:
         bucket = self.storage_client.bucket(self.bucket_name)
         blob = bucket.blob(f"models/{stock_symbol}/{pkl_file_name}")
         with open(pkl_file_path, "rb") as f:
             blob.upload_from_file(f)
-        return blob.public_url
+        return True
