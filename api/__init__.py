@@ -17,6 +17,7 @@ from api.alert import views as alert  # noqa: E402
 from api.record import views as record  # noqa: E402
 from api.event import views as event  # noqa: E402
 from api.analysis import views as analysis  # noqa: E402
+from api.model import views as model  # noqa: E402
 from api.rate_limiter.rate_limiter import limiter  # noqa: E402
 from api.util.util import return_random_int  # noqa: E402
 from api.exception.models import (  # noqa: E402
@@ -35,6 +36,8 @@ app.register_blueprint(alert.bp, url_prefix="/api")
 app.register_blueprint(record.bp, url_prefix="/api")
 app.register_blueprint(event.bp, url_prefix="/api")
 app.register_blueprint(analysis.bp, url_prefix="/api")
+app.register_blueprint(model.bp, url_prefix="/api")
+
 
 logging.basicConfig(level=logging.INFO)
 

@@ -315,3 +315,9 @@ def get_currency_impact_stock_return_df(
     df["Cumulative_Local_Return"] = (1 + df["Local_Stock_Return"]).cumprod() - 1
     df["Cumulative_USD_Return"] = (1 + df["Total_USD_Return"]).cumprod() - 1
     return df
+
+
+def generate_pkl_blob_filename() -> str:
+    GB = pytz.timezone("Europe/London")
+    timestamp = datetime.now(timezone.utc).astimezone(GB).strftime("%Y%m%d%H%M%S")
+    return f"{timestamp}.pkl"

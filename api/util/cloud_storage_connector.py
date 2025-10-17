@@ -26,3 +26,12 @@ class CloudStorageConnector:
         with open(json_file_path, "rb") as f:
             blob.upload_from_file(f, content_type="application/json")
         return blob.public_url
+
+    def upload_pkl(
+        self, stock_symbol: str, pkl_file_name: str, pkl_file_path: str
+    ) -> str:
+        bucket = self.storage_client.bucket(self.bucket_name)
+        blob = bucket.blob(f"models/{stock_symbol}/{pkl_file_name}")
+        with open(pkl_file_path, "rb") as f:
+            blob.upload_from_file(f)
+        return blob.public_url
