@@ -1,5 +1,10 @@
 from flask import Blueprint, request, make_response, jsonify
-from api.common.constants import DATETIME_FORMATE_CODE, PANDAS_DF_DATE_FORMATE_CODE
+from api.common.constants import (
+    CHART_LABELS,
+    DATETIME_FORMATE_CODE,
+    PANDAS_DF_DATE_FORMATE_CODE,
+    ASSETS_PLOTS_BUCKET_NAME,
+)
 from api.db.setup import db
 from api.util.util import (
     generate_response,
@@ -21,7 +26,6 @@ import logging
 import yaml
 import os
 import io
-import json
 import pandas as pd
 import numpy as np
 import matplotlib
@@ -39,13 +43,6 @@ with open(
     os.path.dirname(os.path.dirname(__file__)) + "/config/columns.yaml", "r"
 ) as f:
     yaml_content = yaml.safe_load(f)
-
-with open(
-    os.path.dirname(os.path.dirname(__file__)) + "/config/gcp_config.json"
-) as gcp_config_json:
-    gcp_config = json.load(gcp_config_json)
-ASSETS_PLOTS_BUCKET_NAME = gcp_config["ASSETS_PLOTS_BUCKET_NAME"]
-CHART_LABELS = ["Extreme greed", "Greed", "Neutral", "Fear", "Extreme fear"]
 
 
 @bp.route("/records", methods=(["GET"]))

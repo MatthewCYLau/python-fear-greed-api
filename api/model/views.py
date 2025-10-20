@@ -4,9 +4,8 @@ from flask import Blueprint, jsonify, request
 from pydantic import ValidationError
 import logging
 import yfinance as yf
-from api.analysis.views import ASSETS_PLOTS_BUCKET_NAME
 from api.auth.auth import auth_required
-from api.common.constants import PANDAS_DF_DATE_FORMATE_CODE
+from api.common.constants import ASSETS_PLOTS_BUCKET_NAME, PANDAS_DF_DATE_FORMATE_CODE
 from api.model.models import ExportModelRequest, PredictStockFromModelRequest
 from api.util.cloud_storage_connector import CloudStorageConnector
 from api.util.util import (

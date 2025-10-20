@@ -9,7 +9,6 @@ from bson.objectid import ObjectId
 from concurrent.futures import ProcessPoolExecutor
 from pydantic import ValidationError
 import time
-import os
 import base64
 import logging
 import json
@@ -22,9 +21,11 @@ from google.cloud import pubsub_v1
 from api.auth.auth import auth_required
 from api.common.constants import (
     ANALYSIS_JOB_CREATION_DAILY_LIMIT,
+    ASSETS_PLOTS_BUCKET_NAME,
     DATETIME_FORMATE_CODE,
     DEFAULT_TARGET_PE_RATIO,
     PANDAS_DF_DATE_FORMATE_CODE,
+    TOPIC_NAME,
     VALID_CURRENCIES,
 )
 from api.util.util import (
@@ -54,16 +55,6 @@ from sklearn.linear_model import LinearRegression
 matplotlib.use("agg")
 
 bp = Blueprint("analysis", __name__)
-
-with open(
-    os.path.dirname(os.path.dirname(__file__)) + "/config/gcp_config.json"
-) as gcp_config_json:
-    gcp_config = json.load(gcp_config_json)
-GCP_PROJECT_ID = gcp_config["GCP_PROJECT_ID"]
-PUB_SUB_TOPIC = gcp_config["PUB_SUB_TOPIC"]
-ASSETS_PLOTS_BUCKET_NAME = gcp_config["ASSETS_PLOTS_BUCKET_NAME"]
-
-topic_name = f"projects/{GCP_PROJECT_ID}/topics/{PUB_SUB_TOPIC}"
 
 
 @bp.route("/analysis", methods=(["GET"]))
@@ -297,7 +288,7 @@ def create_analysis_job(user):
             "JobId": str(analysis_job_id),
         }
         job_data_encode = json.dumps(job_data_dict, indent=2).encode("utf-8")
-        future = publisher.publish(topic_name, job_data_encode)
+        future = publisher.publish(TOPIC_NAME, job_data_encode)
         message_id = future.result()
         return (
             jsonify({"messageId": message_id, "analysisJobId": str(analysis_job_id)}),
