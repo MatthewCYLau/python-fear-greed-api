@@ -1,5 +1,6 @@
 from flask import Blueprint, request, make_response, jsonify
 from api.common.constants import (
+    ASSETS_UPLOADS_BUCKET_NAME,
     CHART_LABELS,
     DATETIME_FORMATE_CODE,
     PANDAS_DF_DATE_FORMATE_CODE,
@@ -221,7 +222,7 @@ def import_records_from_csv(_):
     object_url = request.get_json()["objectUrl"]
     storage_client = storage.Client()
     blob_name = object_url.split("/")[-1]
-    bucket = storage_client.bucket("python-fear-greed-assets-uploads")
+    bucket = storage_client.bucket(ASSETS_UPLOADS_BUCKET_NAME)
     blob = bucket.blob(blob_name)
     data = blob.download_as_bytes()
     df = generate_df_from_csv(io.BytesIO(data))

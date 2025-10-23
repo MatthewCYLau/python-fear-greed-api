@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from werkzeug.security import check_password_hash
 from google.cloud import storage
 from bson.objectid import ObjectId
+from api.common.constants import ASSETS_UPLOADS_BUCKET_NAME, GCP_PROJECT_ID
 from api.db.setup import db
 from api.util.util import generate_response
 from api.auth.auth import auth_required, validate_google_oauth_token
@@ -144,8 +145,8 @@ def update_user_by_id(current_user, user_id):
 @bp.route("/upload-file", methods=(["POST"]))
 def upload_image():
     try:
-        storage_client = storage.Client(project="open-source-apps-001")
-        bucket = storage_client.get_bucket("python-fear-greed-assets-uploads")
+        storage_client = storage.Client(project=GCP_PROJECT_ID)
+        bucket = storage_client.get_bucket(ASSETS_UPLOADS_BUCKET_NAME)
         file = request.files["file"]
         GB = pytz.timezone("Europe/London")
         timestamp = datetime.now(timezone.utc).astimezone(GB).timestamp()
