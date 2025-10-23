@@ -1,11 +1,13 @@
 from datetime import datetime
 import uuid
+from io import BytesIO
 from flask import Blueprint, jsonify, request
 from pydantic import ValidationError
 import logging
 import yfinance as yf
 from api.auth.auth import auth_required
 from api.common.constants import ASSETS_PLOTS_BUCKET_NAME, PANDAS_DF_DATE_FORMATE_CODE
+from api.exception.models import BadRequestException
 from api.model.models import ExportModelRequest, PredictStockFromModelRequest
 from api.util.cloud_storage_connector import CloudStorageConnector
 from api.util.util import (
@@ -61,14 +63,22 @@ def predict_stock_from_gcs_blob_model(_):
     future_date = predict_model_request.future_date
     model_id = predict_model_request.pkl_model_id
     pkl_filename = f"{model_id}.pkl"
-    pkl_file_path = pkl_filename
 
     cloud_storage_connector = CloudStorageConnector(
         bucket_name=ASSETS_PLOTS_BUCKET_NAME
     )
-    cloud_storage_connector.download_pkl(stock_symbol, pkl_filename, pkl_file_path)
 
-    model = joblib.load(pkl_file_path)
+    if not cloud_storage_connector.pkl_exists(stock_symbol, pkl_filename):
+        raise BadRequestException(
+            f"Blob for stock {stock_symbol} with model ID {pkl_filename} does not exist!",
+            status_code=400,
+        )
+
+    blob_bytes = cloud_storage_connector.download_pkl(stock_symbol, pkl_filename)
+
+    model = joblib.load(
+        BytesIO(blob_bytes)
+    )  # create a file-like object in memory from the bytes
 
     now = datetime.now()
     future_days = (
