@@ -129,7 +129,7 @@ def generate_auth_token(test_client):
 
 @pytest.fixture(scope="module")
 def sleep():
-    sleep_seconds = random.uniform(40, 70)
+    sleep_seconds = random.uniform(60, 90)
     time.sleep(sleep_seconds)
     yield
 
@@ -477,3 +477,17 @@ def test_generate_currency_impact_on_return_plot_gcs_blob(
     )
     assert response.status_code == 200
     assert "image_url" in response.json
+
+
+def test_model_export_to_blob(test_client, generate_auth_token, sleep):
+    sleep
+    stock = "AAPL"
+    years = 1
+    response = test_client.post(
+        "/api/models/export-to-blob",
+        data=json.dumps({"stock": stock, "years": years}),
+        headers={"x-auth-token": generate_auth_token},
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert "model_id" in response.json
