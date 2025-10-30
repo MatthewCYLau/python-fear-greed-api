@@ -315,3 +315,50 @@ def get_currency_impact_stock_return_df(
     df["Cumulative_Local_Return"] = (1 + df["Local_Stock_Return"]).cumprod() - 1
     df["Cumulative_USD_Return"] = (1 + df["Total_USD_Return"]).cumprod() - 1
     return df
+
+
+def generate_dividend_yield_df(stock_symbol: str, years_ago: int) -> pd.DataFrame:
+    """
+    Returns a DataFrame with:
+      - Date
+      - Close price
+      - Annual dividends (TTM)
+      - TTM dividend yield (%)
+    """
+    # ------------------------------------------------------------------
+    # 1. Download price & dividend data
+    # ------------------------------------------------------------------
+    ticker = yf.Ticker(stock_symbol)
+
+    # Historical close prices
+    hist = ticker.history(period=f"{years_ago}y", auto_adjust=False)
+    if hist.empty:
+        raise ValueError(f"No data found for ticker {stock_symbol}")
+
+    # Dividends (Series indexed by date)
+    dividends = ticker.dividends
+
+    df = hist[["Close"]].copy()
+
+    # Resample dividends to daily frequency (forward-fill the amount)
+    div_daily = dividends.resample("D").sum()
+    df = df.join(div_daily.rename("Dividend"), how="left")
+    df["Dividend"] = df["Dividend"].fillna(0)
+
+    # Rolling sum of the last 365 days of dividends
+    df["TTM_Dividend"] = df["Dividend"].rolling(window=365, min_periods=1).sum()
+
+    # TTM yield
+    df["TTM_Yield_%"] = (df["TTM_Dividend"] / df["Close"]) * 100
+
+    df = df[
+        [
+            "Close",
+            "Dividend",
+            "TTM_Dividend",
+            "TTM_Yield_%",
+        ]
+    ]
+    df = df.round(2)
+
+    return df

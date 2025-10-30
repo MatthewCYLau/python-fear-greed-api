@@ -29,6 +29,7 @@ from api.common.constants import (
     VALID_CURRENCIES,
 )
 from api.util.util import (
+    generate_dividend_yield_df,
     generate_monthly_mean_close_df,
     generate_response,
     generate_stock_fair_value,
@@ -977,3 +978,23 @@ def generate_currency_impact_on_return_plot(_):
         fig_to_upload, file_name
     )
     return jsonify({"image_url": blob_public_url}), 200
+
+
+@bp.route("/dividends-analysis", methods=(["GET"]))
+@auth_required
+def get_stock_dividends_analysis(_):
+    stock_symbol = request.args.get("stock", default=None, type=None)
+    years_ago = request.args.get("years", default=1, type=int)
+
+    stock_dividends_df = generate_dividend_yield_df(stock_symbol, years_ago)
+
+    latest = stock_dividends_df.iloc[-1]
+    ttm_dividend_annual = float(f"{latest['TTM_Dividend']:.2f}")
+    ttm_yield = float(f"{latest['TTM_Yield_%']:.2f}")
+
+    logging.info(f"{'TTM Dividend (annual):':<40}{ttm_dividend_annual}$")
+    logging.info(f"{'TTM Yield:':<40}{ttm_yield}%")
+    return (
+        jsonify({"ttm_dividend_annual": ttm_dividend_annual, "ttm_yield": ttm_yield}),
+        200,
+    )
