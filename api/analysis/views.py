@@ -998,3 +998,44 @@ def get_stock_dividends_analysis(_):
         jsonify({"ttm_dividend_annual": ttm_dividend_annual, "ttm_yield": ttm_yield}),
         200,
     )
+
+
+@bp.route("/generate-stock-dividends-plot", methods=(["POST"]))
+@auth_required
+def generate_stock_dividends_plot_gcs_blob(_):
+
+    try:
+        create_stock_plot_request = CreateStockPlotRequest.model_validate_json(
+            request.data
+        )
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
+
+    stock_symbol = create_stock_plot_request.stock
+    years_ago = create_stock_plot_request.years
+    stock_dividends_df = generate_dividend_yield_df(stock_symbol, years_ago)
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(
+        stock_dividends_df.index,
+        stock_dividends_df["TTM_Yield_%"],
+        label="TTM Dividend Yield",
+        linewidth=2,
+    )
+    plt.title(f"{stock_symbol.upper()} Dividend Yield History")
+    plt.ylabel("Yield (%)")
+    plt.xlabel("Date")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+
+    fig_to_upload = plt.gcf()
+    cloud_storage_connector = CloudStorageConnector(
+        bucket_name=ASSETS_PLOTS_BUCKET_NAME
+    )
+    file_name = generate_figure_blob_filename("dividends")
+    blob_public_url = cloud_storage_connector.upload_pyplot_figure(
+        fig_to_upload, file_name
+    )
+    return jsonify({"image_url": blob_public_url}), 200
