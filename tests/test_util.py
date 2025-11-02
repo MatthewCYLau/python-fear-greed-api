@@ -183,7 +183,7 @@ def test_get_currency_impact_stock_return_df():
     assert df["Cumulative_USD_Return"].dtype, pd.Float64Dtype
 
 
-def test_get_currency_impact_stock_return_df():
+def test_generate_dividend_yield_df():
     stock = "JNJ"
     years = 1
     df = generate_dividend_yield_df(stock, years)
