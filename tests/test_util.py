@@ -5,6 +5,7 @@ import time
 import yfinance as yf
 from api.util.cloud_storage_connector import CloudStorageConnector
 from api.util.util import (
+    generate_dividend_yield_df,
     return_dupliucated_items_in_list,
     is_valid_sector,
     validate_date_string,
@@ -180,3 +181,13 @@ def test_get_currency_impact_stock_return_df():
     assert "Cumulative_Local_Return" in df.columns
     assert "Cumulative_USD_Return" in df.columns
     assert df["Cumulative_USD_Return"].dtype, pd.Float64Dtype
+
+
+def test_get_currency_impact_stock_return_df():
+    stock = "JNJ"
+    years = 1
+    df = generate_dividend_yield_df(stock, years)
+    assert "TTM_Dividend" in df.columns
+    assert df["TTM_Dividend"].dtype, pd.Float64Dtype
+    assert "TTM_Yield_%" in df.columns
+    assert df["TTM_Yield_%"].dtype, pd.Float64Dtype
