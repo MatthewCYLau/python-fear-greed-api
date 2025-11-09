@@ -270,7 +270,7 @@ def test_get_user_by_id_authorized(test_client, generate_auth_token):
 
 
 def test_get_records_authorized_valid_date(test_client, generate_auth_token):
-    requested_date = "2024-11-08"
+    requested_date = "2025-11-06"
     response = test_client.get(
         f"/api/records?date={requested_date}",
         headers={"x-auth-token": generate_auth_token},
