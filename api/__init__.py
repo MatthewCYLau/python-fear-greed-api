@@ -30,7 +30,17 @@ app = Flask(__name__)
 limiter.init_app(app)
 
 
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(
+    app,
+    resources={
+        r"/*": {
+            "origins": [
+                "http://127.0.0.1:5173",
+                "https://main--steady-dasik-4bf816.netlify.app",
+            ]
+        }
+    },
+)
 app.register_blueprint(user.bp, url_prefix="/api")
 app.register_blueprint(alert.bp, url_prefix="/api")
 app.register_blueprint(record.bp, url_prefix="/api")
