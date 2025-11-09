@@ -8,6 +8,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from api.common.constants import PANDAS_DF_DATE_FORMATE_CODE
+from api.util.util import get_tuesday_date_months_ago
 
 
 config_file_path = "config/.env"
@@ -270,7 +271,7 @@ def test_get_user_by_id_authorized(test_client, generate_auth_token):
 
 
 def test_get_records_authorized_valid_date(test_client, generate_auth_token):
-    requested_date = "2025-11-06"
+    requested_date = get_tuesday_date_months_ago(6)
     response = test_client.get(
         f"/api/records?date={requested_date}",
         headers={"x-auth-token": generate_auth_token},

@@ -1,7 +1,7 @@
 import logging
 from flask import jsonify
-from datetime import datetime, timedelta, timezone
-from dateutil.relativedelta import relativedelta
+from datetime import date, datetime, timedelta, timezone
+from dateutil.relativedelta import relativedelta, TU
 from typing import List, Tuple
 from api.common.constants import DATETIME_FORMATE_CODE, PANDAS_DF_DATE_FORMATE_CODE
 import asyncio
@@ -362,3 +362,11 @@ def generate_dividend_yield_df(stock_symbol: str, years_ago: int) -> pd.DataFram
     df = df.round(2)
 
     return df
+
+
+def get_tuesday_date_months_ago(months_ago: int):
+    today = date.today()
+    months_ago = today - relativedelta(months=months_ago)
+    return months_ago + relativedelta(weekday=TU(-1)).strftime(
+        PANDAS_DF_DATE_FORMATE_CODE
+    )
