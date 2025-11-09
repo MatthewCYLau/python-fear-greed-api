@@ -367,6 +367,6 @@ def generate_dividend_yield_df(stock_symbol: str, years_ago: int) -> pd.DataFram
 def get_tuesday_date_months_ago(months_ago: int):
     today = date.today()
     months_ago = today - relativedelta(months=months_ago)
-    return months_ago + relativedelta(weekday=TU(-1)).strftime(
+    return (months_ago + relativedelta(weekday=TU(-1))).strftime(
         PANDAS_DF_DATE_FORMATE_CODE
     )
