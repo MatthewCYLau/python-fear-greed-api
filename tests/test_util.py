@@ -1,8 +1,10 @@
+from datetime import datetime
 import pytest
 import pandas as pd
 import numpy as np
 import time
 import yfinance as yf
+from api.common.constants import PANDAS_DF_DATE_FORMATE_CODE
 from api.util.cloud_storage_connector import CloudStorageConnector
 from api.util.util import (
     generate_dividend_yield_df,
@@ -22,6 +24,7 @@ from api.util.util import (
     generate_monthly_mean_close_df,
     check_asset_available,
     get_currency_impact_stock_return_df,
+    get_tuesday_date_months_ago,
 )
 from api.auth.auth import validate_google_oauth_token
 
@@ -191,3 +194,8 @@ def test_generate_dividend_yield_df():
     assert df["TTM_Dividend"].dtype, pd.Float64Dtype
     assert "TTM_Yield_%" in df.columns
     assert df["TTM_Yield_%"].dtype, pd.Float64Dtype
+
+
+def test_get_tuesday_date_months_ago():
+    date_string = get_tuesday_date_months_ago(6)
+    assert datetime.strptime(date_string, PANDAS_DF_DATE_FORMATE_CODE).weekday() == 1
