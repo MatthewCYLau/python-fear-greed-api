@@ -36,6 +36,7 @@ class User(BaseModel):
         regularContributionAmount=0,
         currency=Currency.GBP,
         userType=UserType.INDIVIDUAL_INVESTOR,
+        balance=1_000_000,
     ):
         super().__init__()
         self.email = email
@@ -44,6 +45,7 @@ class User(BaseModel):
         self.isEmailVerified = isEmailVerified
         self.avatarImageUrl = avatarImageUrl
         self.userType = userType
+        self.balance = balance
         try:
             Decimal(regularContributionAmount)
             self.regularContributionAmount = regularContributionAmount
@@ -66,6 +68,25 @@ class User(BaseModel):
 
     @staticmethod
     def update_user_by_id(user_id: uuid.UUID, data: dict):
+
+        if data.get("balance"):
+            balance = data["balance"]
+            try:
+                Decimal(balance)
+            except InvalidOperation:
+                raise TypeError("Balance amount must be a valid number.")
+            except ValueError as e:
+                raise e
+
+            user = db["users"].find_one({"_id": ObjectId(user_id)})
+            if user is not None:
+                updated_user = {
+                    "$set": {
+                        "balance": data["balance"],
+                    }
+                }
+                return db["users"].update_one({"_id": user["_id"]}, updated_user, True)
+
         regular_contribution_amount = data.get("regularContributionAmount", 0)
         try:
             Decimal(regular_contribution_amount)
