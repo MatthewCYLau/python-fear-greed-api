@@ -1,5 +1,6 @@
 annotated-types==0.7.0
 appdirs==1.4.4
+APScheduler==3.11.1
 asgiref==3.8.1
 beautifulsoup4==4.12.3
 blinker==1.6.2
@@ -101,6 +102,7 @@ threadpoolctl==3.5.0
 tomli==2.0.1
 typing_extensions==4.11.0
 tzdata==2023.4
+tzlocal==5.3.1
 urllib3==1.26.16
 webencodings==0.5.1
 websockets==15.0.1
