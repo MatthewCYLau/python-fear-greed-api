@@ -5,6 +5,8 @@ import random
 import asyncio
 import requests
 from dotenv import load_dotenv
+from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
 
 
 load_dotenv("config/.env")
@@ -19,7 +21,7 @@ from api.event import views as event  # noqa: E402
 from api.analysis import views as analysis  # noqa: E402
 from api.model import views as model  # noqa: E402
 from api.rate_limiter.rate_limiter import limiter  # noqa: E402
-from api.util.util import return_random_int  # noqa: E402
+from api.util.util import log_utc_time_now, return_random_int  # noqa: E402
 from api.exception.models import (  # noqa: E402
     UnauthorizedException,
     BadRequestException,
@@ -91,6 +93,11 @@ def get_random_int_http_request():
 def ping():
     return "pong!"
 
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=log_utc_time_now, trigger="interval", seconds=60 * 60)
+scheduler.start()
+atexit.register(lambda: scheduler.shutdown())
 
 # cloud_storage_connector = CloudStorageConnector(
 #     bucket_name=analysis.ASSETS_PLOTS_BUCKET_NAME

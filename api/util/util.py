@@ -370,3 +370,9 @@ def get_tuesday_date_months_ago(months_ago: int):
     return (months_ago + relativedelta(weekday=TU(-1))).strftime(
         PANDAS_DF_DATE_FORMATE_CODE
     )
+
+
+def log_utc_time_now():
+    logging.info(
+        f"{'UTC time now:':<20}{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}"
+    )
