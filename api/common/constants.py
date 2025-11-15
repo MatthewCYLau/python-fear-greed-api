@@ -16,8 +16,10 @@ with open(
     gcp_config = json.load(gcp_config_json)
 GCP_PROJECT_ID = gcp_config["GCP_PROJECT_ID"]
 PUB_SUB_TOPIC = gcp_config["PUB_SUB_TOPIC"]
+PUB_SUB_ORDERS_TOPIC = gcp_config["PUB_SUB_ORDERS_TOPIC"]
 ASSETS_PLOTS_BUCKET_NAME = gcp_config["ASSETS_PLOTS_BUCKET_NAME"]
 ASSETS_UPLOADS_BUCKET_NAME = gcp_config["ASSETS_UPLOADS_BUCKET_NAME"]
 
 TOPIC_NAME = f"projects/{GCP_PROJECT_ID}/topics/{PUB_SUB_TOPIC}"
+ORDERS_TOPIC_NAME = f"projects/{GCP_PROJECT_ID}/topics/{PUB_SUB_ORDERS_TOPIC}"
 CHART_LABELS = ["Extreme greed", "Greed", "Neutral", "Fear", "Extreme fear"]
