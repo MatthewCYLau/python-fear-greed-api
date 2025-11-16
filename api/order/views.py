@@ -1,3 +1,4 @@
+import base64
 import json
 import logging
 from flask import Blueprint, jsonify, request
@@ -31,3 +32,34 @@ def create_order(user):
     except Exception as e:
         logging.error(e)
         return jsonify({"message": "Create order failed"}), 500
+
+
+@bp.route("/orders-subscription-push", methods=(["POST"]))
+def handle_orders_subscription_push():
+    envelope = request.get_json()
+    if not envelope:
+        msg = "no Pub/Sub message received"
+        logging.error(f"error: {msg}")
+        return f"Bad Request: {msg}", 400
+
+    if not isinstance(envelope, dict) or "message" not in envelope:
+        msg = "invalid Pub/Sub message format"
+        logging.error(f"error: {msg}")
+        return f"Bad Request: {msg}", 400
+
+    pubsub_message = envelope["message"]
+
+    if isinstance(pubsub_message, dict) and "data" in pubsub_message:
+        message_string = (
+            base64.b64decode(pubsub_message["data"]).decode("utf-8").strip()
+        )
+        message_json = json.loads(message_string)
+        stock_symbol = message_json["stock_symbol"]
+        order_type = message_json["order_type"]
+        quantity = message_json["quantity"]
+        price = message_json["price"]
+        logging.info(
+            f"Received {order_type} for stock {stock_symbol}. Price {price} and quantity {quantity}"
+        )
+
+    return ("", 204)
