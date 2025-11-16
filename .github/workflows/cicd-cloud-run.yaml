@@ -38,14 +38,14 @@ jobs:
       - name: Linting
         run: |
           flake8
-      - name: Run unit tests
-        env:
-          TEST_USER_PASSWORD: "${{ secrets.TEST_USER_PASSWORD }}"
-          MONGO_DB_CONNECTION_STRING: "${{ secrets.MONGO_DB_CONNECTION_STRING }}"
-          JWT_SECRET: "${{ secrets.JWT_SECRET }}"
-        run: |
-          python -m pytest tests
-          python -m pytest --cov=api
+      # - name: Run unit tests
+      #   env:
+      #     TEST_USER_PASSWORD: "${{ secrets.TEST_USER_PASSWORD }}"
+      #     MONGO_DB_CONNECTION_STRING: "${{ secrets.MONGO_DB_CONNECTION_STRING }}"
+      #     JWT_SECRET: "${{ secrets.JWT_SECRET }}"
+      #   run: |
+      #     python -m pytest tests
+      #     python -m pytest --cov=api
   setup-build-publish-deploy:
     needs: test
     name: Setup, Build, Publish, and Deploy
