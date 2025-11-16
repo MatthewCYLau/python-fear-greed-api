@@ -5,6 +5,7 @@ import random
 import asyncio
 import requests
 from dotenv import load_dotenv
+from api.order.models import Order
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 
@@ -22,12 +23,11 @@ from api.analysis import views as analysis  # noqa: E402
 from api.order import views as order  # noqa: E402
 from api.model import views as model  # noqa: E402
 from api.rate_limiter.rate_limiter import limiter  # noqa: E402
-from api.util.util import log_utc_time_now, return_random_int  # noqa: E402
+from api.util.util import return_random_int  # noqa: E402
 from api.exception.models import (  # noqa: E402
     UnauthorizedException,
     BadRequestException,
 )
-from api.order.models import Order
 
 
 app = Flask(__name__)
