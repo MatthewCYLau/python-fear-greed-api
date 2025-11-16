@@ -6,8 +6,16 @@ from google.cloud import pubsub_v1
 from api.auth.auth import auth_required
 from api.common.constants import ORDERS_TOPIC_NAME
 from api.order.models import Order
+from api.util.util import generate_response
 
 bp = Blueprint("order", __name__)
+
+
+@bp.route("/orders", methods=(["GET"]))
+@auth_required
+def get_orders(_):
+    orders = Order.get_all()
+    return generate_response(orders)
 
 
 @bp.route("/orders", methods=(["POST"]))

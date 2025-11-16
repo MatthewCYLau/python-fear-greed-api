@@ -17,3 +17,8 @@ class Order(BaseModel):
     def save_to_db(self):
         res = db.orders.insert_one(vars(self))
         return res.inserted_id
+
+    @staticmethod
+    def get_all():
+        orders = list(db["orders"].find({}))
+        return orders
