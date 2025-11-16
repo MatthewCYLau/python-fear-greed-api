@@ -1,4 +1,5 @@
 from api.common.models import BaseModel
+from api.db.setup import db
 
 
 class Order(BaseModel):
@@ -12,3 +13,7 @@ class Order(BaseModel):
         self.quantity = quantity
         self.price = price
         self.status = status
+
+    def save_to_db(self):
+        res = db.orders.insert_one(vars(self))
+        return res.inserted_id
