@@ -5,6 +5,7 @@ from flask import Blueprint, jsonify, request
 from google.cloud import pubsub_v1
 from api.auth.auth import auth_required
 from api.common.constants import ORDERS_TOPIC_NAME
+from api.order.models import Order
 
 bp = Blueprint("order", __name__)
 
@@ -54,6 +55,7 @@ def handle_orders_subscription_push():
             base64.b64decode(pubsub_message["data"]).decode("utf-8").strip()
         )
         message_json = json.loads(message_string)
+        created_by = message_json["user_id"]
         stock_symbol = message_json["stock_symbol"]
         order_type = message_json["order_type"]
         quantity = message_json["quantity"]
@@ -61,5 +63,10 @@ def handle_orders_subscription_push():
         logging.info(
             f"Received {order_type} for stock {stock_symbol}. Price {price} and quantity {quantity}"
         )
+
+        new_order = Order(created_by, stock_symbol, order_type, quantity, price)
+
+        new_order_id = new_order.save_to_db()
+        logging.info(f"Created new order with id: {new_order_id}")
 
     return ("", 204)
