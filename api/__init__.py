@@ -27,6 +27,7 @@ from api.exception.models import (  # noqa: E402
     UnauthorizedException,
     BadRequestException,
 )
+from api.order.models import Order
 
 
 app = Flask(__name__)
@@ -97,7 +98,7 @@ def ping():
 
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=log_utc_time_now, trigger="interval", seconds=60 * 60)
+scheduler.add_job(func=Order.match_orders, trigger="interval", seconds=60 * 60)
 scheduler.start()
 atexit.register(lambda: scheduler.shutdown())
 

@@ -1,3 +1,4 @@
+import logging
 from api.common.models import BaseModel
 from api.db.setup import db
 
@@ -22,3 +23,8 @@ class Order(BaseModel):
     def get_all():
         orders = list(db["orders"].find({}))
         return orders
+
+    @staticmethod
+    def match_orders():
+        orders = Order.get_all()
+        logging.info(f"Matching {len(orders)} orders...")
