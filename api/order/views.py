@@ -3,9 +3,10 @@ import json
 import logging
 from flask import Blueprint, jsonify, request
 from google.cloud import pubsub_v1
+from pydantic import ValidationError
 from api.auth.auth import auth_required
 from api.common.constants import ORDERS_TOPIC_NAME
-from api.order.models import Order
+from api.order.models import CreateOrderRequest, Order
 from api.util.util import generate_response
 
 bp = Blueprint("order", __name__)
@@ -22,14 +23,26 @@ def get_orders(_):
 @auth_required
 def create_order(user):
     data = request.get_json()
+
+    try:
+        order_request = CreateOrderRequest.model_validate_json(request.data)
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
+
+    stock_symbol = order_request.stock_symbol
+    order_type = order_request.order_type
+    quantity = order_request.quantity
+    price = order_request.price
+
     try:
         publisher = pubsub_v1.PublisherClient()
         message_data_dict = {
             "user_id": str(user["_id"]),
-            "stock_symbol": data.get("stock_symbol"),
-            "order_type": data.get("order_type"),
-            "quantity": data.get("quantity"),
-            "price": data.get("price"),
+            "stock_symbol": stock_symbol,
+            "order_type": order_type,
+            "quantity": quantity,
+            "price": price,
         }
         message_data_encode = json.dumps(message_data_dict, indent=2).encode("utf-8")
         future = publisher.publish(ORDERS_TOPIC_NAME, message_data_encode)
