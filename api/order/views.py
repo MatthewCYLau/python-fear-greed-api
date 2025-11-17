@@ -22,8 +22,6 @@ def get_orders(_):
 @bp.route("/orders", methods=(["POST"]))
 @auth_required
 def create_order(user):
-    data = request.get_json()
-
     try:
         order_request = CreateOrderRequest.model_validate_json(request.data)
     except ValidationError as e:
