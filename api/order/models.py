@@ -59,5 +59,7 @@ class Order(CommonBaseModel):
 
     @staticmethod
     def match_orders():
-        orders = Order.get_all()
-        logging.info(f"Matching {len(orders)} orders...")
+        open_orders_distinct_stock_symbols = (
+            db["orders"].find({"status": "open"}).distinct("stock_symbol")
+        )
+        logging.info(f"Open orders stock symbol: {open_orders_distinct_stock_symbols}")

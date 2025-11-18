@@ -89,3 +89,9 @@ def handle_orders_subscription_push():
         logging.info(f"Created new order with id: {new_order_id}")
 
     return ("", 204)
+
+
+@bp.route("/orders/match", methods=(["POST"]))
+def match_orders():
+    Order.match_orders()
+    return ("", 204)
