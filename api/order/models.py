@@ -63,3 +63,15 @@ class Order(CommonBaseModel):
             db["orders"].find({"status": "open"}).distinct("stock_symbol")
         )
         logging.info(f"Open orders stock symbol: {open_orders_distinct_stock_symbols}")
+
+        for i in open_orders_distinct_stock_symbols:
+            stock_sell_orders_query = {"stock_symbol": i, "order_type": "SELL"}
+            stock_buy_orders_query = {"stock_symbol": i, "order_type": "BUY"}
+
+            stock_sell_orders = list(db["orders"].find(stock_sell_orders_query))
+            stock_buy_orders = list(db["orders"].find(stock_buy_orders_query))
+
+            if not stock_sell_orders or not stock_buy_orders:
+                logging.info(f"No matching orders for stock symbol: {i}")
+            else:
+                logging.info(f"Process matching orders for stock symbol: {i}...")
