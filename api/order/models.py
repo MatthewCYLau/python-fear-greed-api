@@ -75,3 +75,29 @@ class Order(CommonBaseModel):
                 logging.info(f"No matching orders for stock symbol: {i}")
             else:
                 logging.info(f"Process matching orders for stock symbol: {i}...")
+                min_sell_price_pipeline = [
+                    {"$match": {"stock_symbol": i}},
+                    {"$match": {"order_type": "SELL"}},
+                    {
+                        "$group": {
+                            "_id": "$stock_symbol",
+                            "minPrice": {"$min": "$price"},
+                        }
+                    },
+                ]
+                min_sell_price = list(db["orders"].aggregate(min_sell_price_pipeline))[
+                    0
+                ]["minPrice"]
+                logging.info(f"{i} minimum sell price is {min_sell_price}")
+
+                matching_buy_orders_pipeline = [
+                    {"$match": {"stock_symbol": i}},
+                    {"$match": {"order_type": "BUY"}},
+                    {"$match": {"price": {"$gt": min_sell_price}}},
+                ]
+
+                matching_buy_orders = list(
+                    db["orders"].aggregate(matching_buy_orders_pipeline)
+                )
+                for j in matching_buy_orders:
+                    logging.info(f"Buy order with ID {j['_id']} and price {j['price']}")
