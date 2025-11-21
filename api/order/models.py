@@ -94,6 +94,7 @@ class Order(CommonBaseModel):
                     {"$match": {"stock_symbol": i}},
                     {"$match": {"order_type": "BUY"}},
                     {"$match": {"price": {"$gt": min_sell_price}}},
+                    {"$sort": {"_id": 1}},
                 ]
 
                 matching_buy_orders = list(
