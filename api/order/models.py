@@ -1,6 +1,8 @@
 from enum import Enum
 import logging
+import uuid
 
+from bson import ObjectId
 from pydantic import BaseModel, ValidationInfo, field_validator
 from api.common.models import BaseModel as CommonBaseModel
 from api.db.setup import db
@@ -56,6 +58,27 @@ class Order(CommonBaseModel):
     def get_all():
         orders = list(db["orders"].find({}))
         return orders
+
+    @staticmethod
+    def get_order_by_id(order_id: uuid.UUID):
+        return db["orders"].find_one({"_id": ObjectId(order_id)})
+
+    @staticmethod
+    def process_sell_and_buy_orders(sell_order_id: uuid.UUID, buy_order_id: uuid.UUID):
+
+        sell_order = Order.get_order_by_id(sell_order_id)
+        logging.info(
+            f"Sell order for stock {sell_order['stock_symbol']} at price {sell_order['price']} for quantity {sell_order['quantity']}"
+        )
+        buy_order = Order.get_order_by_id(buy_order_id)
+        logging.info(
+            f"Buy order for stock {buy_order['stock_symbol']} at price {buy_order['price']} for quantity {buy_order['quantity']}"
+        )
+        transaction_details = {
+            "transaction_price": min(sell_order["price"], buy_order["price"]),
+            "transaction_quantity": min(sell_order["quantity"], buy_order["quantity"]),
+        }
+        logging.info(transaction_details)
 
     @staticmethod
     def match_orders():
@@ -122,4 +145,9 @@ class Order(CommonBaseModel):
                     )[0]
                     logging.info(
                         f"Sell order with ID {sell_order_at_min_price['order_id']} at price {sell_order_at_min_price['price']} to be matched with first buy order."
+                    )
+
+                    Order.process_sell_and_buy_orders(
+                        sell_order_at_min_price["order_id"],
+                        matching_buy_orders[0]["_id"],
                     )
