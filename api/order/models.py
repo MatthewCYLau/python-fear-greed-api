@@ -101,4 +101,25 @@ class Order(CommonBaseModel):
                     db["orders"].aggregate(matching_buy_orders_pipeline)
                 )
                 for j in matching_buy_orders:
-                    logging.info(f"Buy order with ID {j['_id']} and price {j['price']}")
+                    logging.info(
+                        f"Buy order with ID {j['_id']} at price {j['price']} is above minimum sell price"
+                    )
+
+                if matching_buy_orders:
+                    sell_order_at_min_price_pipeline = [
+                        {"$match": {"stock_symbol": i}},
+                        {"$sort": {"price": 1}},
+                        {
+                            "$group": {
+                                "_id": "$stock_symbol",
+                                "order_id": {"$first": "$_id"},
+                                "price": {"$first": "$price"},
+                            }
+                        },
+                    ]
+                    sell_order_at_min_price = list(
+                        db["orders"].aggregate(sell_order_at_min_price_pipeline)
+                    )[0]
+                    logging.info(
+                        f"Sell order with ID {sell_order_at_min_price['order_id']} at price {sell_order_at_min_price['price']} to be matched with first buy order."
+                    )
