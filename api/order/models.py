@@ -75,8 +75,11 @@ class Order(CommonBaseModel):
             f"Buy order for stock {buy_order['stock_symbol']} at price {buy_order['price']} for quantity {buy_order['quantity']}"
         )
         transaction_details = {
+            "stock_symbol": sell_order["stock_symbol"],
             "transaction_price": min(sell_order["price"], buy_order["price"]),
             "transaction_quantity": min(sell_order["quantity"], buy_order["quantity"]),
+            "sell_order_user_id": str(sell_order["created_by"]),
+            "buy_order_user_id": str(buy_order["created_by"]),
         }
         logging.info(transaction_details)
 
