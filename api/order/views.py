@@ -91,6 +91,38 @@ def handle_orders_subscription_push():
     return ("", 204)
 
 
+@bp.route("/trades-subscription-push", methods=(["POST"]))
+def handle_trades_subscription_push():
+    envelope = request.get_json()
+    if not envelope:
+        msg = "no Pub/Sub message received"
+        logging.error(f"error: {msg}")
+        return f"Bad Request: {msg}", 400
+
+    if not isinstance(envelope, dict) or "message" not in envelope:
+        msg = "invalid Pub/Sub message format"
+        logging.error(f"error: {msg}")
+        return f"Bad Request: {msg}", 400
+
+    pubsub_message = envelope["message"]
+
+    if isinstance(pubsub_message, dict) and "data" in pubsub_message:
+        message_string = (
+            base64.b64decode(pubsub_message["data"]).decode("utf-8").strip()
+        )
+        message_json = json.loads(message_string)
+        sell_order_user_id = message_json["sell_order_user_id"]
+        buy_order_user_id = message_json["buy_order_user_id"]
+        stock_symbol = message_json["stock_symbol"]
+        quantity = message_json["quantity"]
+        price = message_json["price"]
+        logging.info(
+            f"Received trade request for stock {stock_symbol} from seller {sell_order_user_id} to buyer {buy_order_user_id}. Price {price} and quantity {quantity}"
+        )
+
+    return ("", 204)
+
+
 @bp.route("/orders/match", methods=(["POST"]))
 def match_orders():
     Order.match_orders()

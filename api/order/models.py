@@ -1,9 +1,11 @@
 from enum import Enum
+import json
 import logging
 import uuid
-
+from google.cloud import pubsub_v1
 from bson import ObjectId
 from pydantic import BaseModel, ValidationInfo, field_validator
+from api.common.constants import TRADES_TOPIC_NAME
 from api.common.models import BaseModel as CommonBaseModel
 from api.db.setup import db
 from api.util.util import check_asset_available
@@ -74,14 +76,24 @@ class Order(CommonBaseModel):
         logging.info(
             f"Buy order for stock {buy_order['stock_symbol']} at price {buy_order['price']} for quantity {buy_order['quantity']}"
         )
-        transaction_details = {
+        trade_details = {
             "stock_symbol": sell_order["stock_symbol"],
-            "transaction_price": min(sell_order["price"], buy_order["price"]),
-            "transaction_quantity": min(sell_order["quantity"], buy_order["quantity"]),
+            "trade_price": min(sell_order["price"], buy_order["price"]),
+            "trade_quantity": min(sell_order["quantity"], buy_order["quantity"]),
             "sell_order_user_id": str(sell_order["created_by"]),
             "buy_order_user_id": str(buy_order["created_by"]),
         }
-        logging.info(transaction_details)
+        logging.info(trade_details)
+
+        try:
+            publisher = pubsub_v1.PublisherClient()
+            message_data_encode = json.dumps(trade_details, indent=2).encode("utf-8")
+            future = publisher.publish(TRADES_TOPIC_NAME, message_data_encode)
+            message_id = future.result()
+            return message_id
+        except Exception as e:
+            logging.error(e)
+            return None
 
     @staticmethod
     def match_orders():
