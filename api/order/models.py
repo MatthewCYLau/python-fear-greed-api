@@ -78,8 +78,8 @@ class Order(CommonBaseModel):
         )
         trade_details = {
             "stock_symbol": sell_order["stock_symbol"],
-            "trade_price": min(sell_order["price"], buy_order["price"]),
-            "trade_quantity": min(sell_order["quantity"], buy_order["quantity"]),
+            "price": min(sell_order["price"], buy_order["price"]),
+            "quantity": min(sell_order["quantity"], buy_order["quantity"]),
             "sell_order_user_id": str(sell_order["created_by"]),
             "buy_order_user_id": str(buy_order["created_by"]),
         }
