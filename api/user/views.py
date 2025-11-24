@@ -181,3 +181,22 @@ def validate_oauth_token():
         )
     else:
         return jsonify({"error": "Invalid token"}), 401
+
+
+@bp.route("/users/<user_id>/increment-balance", methods=["PUT"])
+@auth_required
+def increment_user_balance_by_id(_, user_id):
+    data = request.get_json()
+    if not data or not data["incrementAmount"]:
+        return jsonify({"message": "Missing field value"}), 400
+    try:
+        res = User.increment_user_balance_by_id(
+            user_id=user_id, increment_amount=data.get("incrementAmount")
+        )
+        if res.matched_count:
+            return jsonify({"message": "User updated"}), 200
+        else:
+            return jsonify({"message": "User not found"}), 404
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"message": "Update user failed"}), 500

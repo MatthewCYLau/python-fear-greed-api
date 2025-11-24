@@ -119,3 +119,20 @@ class User(BaseModel):
                 "last_modified": get_current_time_utc(),
             }
             return db["users"].update_one({"_id": user["_id"]}, updated_user, True)
+
+    @staticmethod
+    def increment_user_balance_by_id(user_id: uuid.UUID, increment_amount: float):
+        try:
+            Decimal(increment_amount)
+        except InvalidOperation:
+            raise TypeError("Balance amount must be a valid number.")
+        except ValueError as e:
+            raise e
+
+        user = db["users"].find_one({"_id": ObjectId(user_id)})
+        if user is not None:
+            return db["users"].update_one(
+                {"_id": user["_id"]},
+                {"$inc": {"balance": round(increment_amount, 2)}},
+                True,
+            )
