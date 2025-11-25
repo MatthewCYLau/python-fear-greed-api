@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from api.auth.auth import auth_required
 from api.common.constants import ORDERS_TOPIC_NAME
 from api.order.models import CreateOrderRequest, Order
+from api.user.models import User
 from api.util.util import generate_response
 
 bp = Blueprint("order", __name__)
@@ -119,6 +120,24 @@ def handle_trades_subscription_push():
         logging.info(
             f"Received trade request for stock {stock_symbol} from seller {sell_order_user_id} to buyer {buy_order_user_id}. Price {price} and quantity {quantity}"
         )
+
+        try:
+            res = User.increment_user_balance_by_id(
+                user_id=sell_order_user_id, increment_amount=price * quantity
+            )
+            if res.matched_count:
+                logging.info("Seller balance updated")
+        except Exception as e:
+            logging.error(f"Failed to update seller balance - {e}")
+
+        try:
+            res = User.increment_user_balance_by_id(
+                user_id=buy_order_user_id, increment_amount=-1 * price * quantity
+            )
+            if res.matched_count:
+                logging.info("Buyer balance updated")
+        except Exception as e:
+            logging.error(f"Failed to update buyer balance - {e}")
 
     return ("", 204)
 
