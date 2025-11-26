@@ -376,3 +376,11 @@ def log_utc_time_now():
     logging.info(
         f"{'UTC time now:':<20}{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}"
     )
+
+
+def get_stock_price(symbol: str):
+    stock = yf.Ticker(symbol)
+    data = stock.history(period="1d")
+    if data.empty:
+        raise ValueError("Invalid stock symbol")
+    return data["Close"].iloc[-1]
