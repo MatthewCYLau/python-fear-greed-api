@@ -8,7 +8,7 @@ from api.auth.auth import auth_required
 from api.common.constants import ORDERS_TOPIC_NAME
 from api.order.models import CreateOrderRequest, Order
 from api.user.models import User
-from api.util.util import generate_response, get_stock_price
+from api.util.util import generate_response
 
 bp = Blueprint("order", __name__)
 
