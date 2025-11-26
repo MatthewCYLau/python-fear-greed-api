@@ -66,6 +66,19 @@ class Order(CommonBaseModel):
         return db["orders"].find_one({"_id": ObjectId(order_id)})
 
     @staticmethod
+    def update_order_status(order_id: uuid.UUID, new_status: str = "complete"):
+        order = Order.get_order_by_id(order_id)
+        if order:
+            updated_order = {
+                "$set": {
+                    "status": new_status,
+                }
+            }
+            return db["users"].update_one(
+                {"_id": ObjectId(order_id)}, updated_order, True
+            )
+
+    @staticmethod
     def process_sell_and_buy_orders(sell_order_id: uuid.UUID, buy_order_id: uuid.UUID):
 
         sell_order = Order.get_order_by_id(sell_order_id)
@@ -76,10 +89,12 @@ class Order(CommonBaseModel):
         logging.info(
             f"Buy order for stock {buy_order['stock_symbol']} at price {buy_order['price']} for quantity {buy_order['quantity']}"
         )
+
+        trade_quantity = min(sell_order["quantity"], buy_order["quantity"])
         trade_details = {
             "stock_symbol": sell_order["stock_symbol"],
             "price": min(sell_order["price"], buy_order["price"]),
-            "quantity": min(sell_order["quantity"], buy_order["quantity"]),
+            "quantity": trade_quantity,
             "sell_order_user_id": str(sell_order["created_by"]),
             "buy_order_user_id": str(buy_order["created_by"]),
         }
@@ -93,7 +108,11 @@ class Order(CommonBaseModel):
             return message_id
         except Exception as e:
             logging.error(e)
-            return None
+
+        if sell_order["quantity"] == trade_quantity:
+            Order.update_order_status(sell_order_id, "complete")
+        if buy_order["quantity"] == trade_quantity:
+            Order.update_order_status(buy_order_id, "complete")
 
     @staticmethod
     def match_orders():
