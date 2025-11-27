@@ -8,7 +8,7 @@ from api.auth.auth import auth_required
 from api.common.constants import ORDERS_TOPIC_NAME
 from api.order.models import CreateOrderRequest, Order
 from api.user.models import User
-from api.util.util import generate_response
+from api.util.util import generate_response, get_stock_price
 
 bp = Blueprint("order", __name__)
 
@@ -33,6 +33,26 @@ def create_order(user):
     order_type = order_request.order_type
     quantity = order_request.quantity
     price = order_request.price
+
+    current_stock_price = round(get_stock_price(stock_symbol), 2)
+    logging.info(f"{stock_symbol} current price: {current_stock_price}")
+
+    order_price_total = price * quantity
+    logging.info(f"Order price total: {order_price_total}")
+
+    if order_type == "BUY" and user["balance"] < order_price_total:
+        return (
+            jsonify(
+                {
+                    "errors": [
+                        {
+                            "message": f"Insufficient fund! Balance of {user['balance']} is less than {order_price_total}"
+                        }
+                    ]
+                }
+            ),
+            400,
+        )
 
     try:
         publisher = pubsub_v1.PublisherClient()
