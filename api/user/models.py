@@ -140,7 +140,7 @@ class User(BaseModel):
             )
 
     @staticmethod
-    def increment_user_portfolio_by_id(user_id: uuid.UUID, portfolio_data: dict = {}):
+    def updated_user_portfolio_by_id(user_id: uuid.UUID, portfolio_data: dict = {}):
         user = db["users"].find_one({"_id": ObjectId(user_id)})
         if user and not user.get("portfolio"):
             updated_user = {

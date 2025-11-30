@@ -207,7 +207,7 @@ def increment_user_balance_by_id(_, user_id):
 def update_user_portfolio_by_id(_, user_id):
     portfolio_data = request.get_json()
     try:
-        res = User.increment_user_portfolio_by_id(
+        res = User.updated_user_portfolio_by_id(
             user_id=user_id, portfolio_data=portfolio_data
         )
         if res.matched_count:
