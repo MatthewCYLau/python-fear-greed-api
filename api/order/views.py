@@ -54,6 +54,39 @@ def create_order(user):
             400,
         )
 
+    if order_type == "SELL":
+        matching_portfolio_stock = [
+            i for i in user["portfolio"] if i["stock_symbol"] == stock_symbol
+        ]
+        if not matching_portfolio_stock:
+            return (
+                jsonify(
+                    {
+                        "errors": [
+                            {
+                                "message": f"Seller does not have {stock_symbol} in stock portfolio."
+                            }
+                        ]
+                    }
+                ),
+                400,
+            )
+        portfolio_stock_quantity = matching_portfolio_stock[0]["quantity"]
+        logging.info(f"{stock_symbol} portfolio quantity: {portfolio_stock_quantity}")
+        if portfolio_stock_quantity < quantity:
+            return (
+                jsonify(
+                    {
+                        "errors": [
+                            {
+                                "message": f"Insufficient quantity! {stock_symbol} portfolio quantity {portfolio_stock_quantity} is less than sell order quantity {quantity}"
+                            }
+                        ]
+                    }
+                ),
+                400,
+            )
+
     try:
         publisher = pubsub_v1.PublisherClient()
         message_data_dict = {
