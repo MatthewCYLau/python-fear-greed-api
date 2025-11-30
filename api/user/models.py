@@ -140,7 +140,7 @@ class User(BaseModel):
             )
 
     @staticmethod
-    def updated_user_portfolio_by_id(user_id: uuid.UUID, portfolio_data: dict = {}):
+    def update_user_portfolio_by_id(user_id: uuid.UUID, portfolio_data: dict = {}):
         user = db["users"].find_one({"_id": ObjectId(user_id)})
         if user and not user.get("portfolio"):
             updated_user = {
@@ -168,3 +168,19 @@ class User(BaseModel):
             )
         else:
             pass
+
+    @staticmethod
+    def increment_user_portfolio_quantity_by_id(
+        user_id: uuid.UUID, stock_symbol: str, increment_amount: int
+    ):
+        user = db["users"].find_one({"_id": ObjectId(user_id)})
+        if user and user.get("portfolio"):
+            updated_user = {"$inc": {"portfolio.$.quantity": increment_amount}}
+            return db["users"].update_one(
+                {
+                    "_id": user["_id"],
+                    "portfolio.stock_symbol": stock_symbol,
+                },
+                updated_user,
+                True,
+            )
