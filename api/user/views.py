@@ -200,3 +200,20 @@ def increment_user_balance_by_id(_, user_id):
     except Exception as e:
         logging.error(e)
         return jsonify({"message": "Update user failed"}), 500
+
+
+@bp.route("/users/<user_id>/portfolio", methods=["PUT"])
+@auth_required
+def update_user_portfolio_by_id(_, user_id):
+    portfolio_data = request.get_json()
+    try:
+        res = User.increment_user_portfolio_by_id(
+            user_id=user_id, portfolio_data=portfolio_data
+        )
+        if res.matched_count:
+            return jsonify({"message": "User updated"}), 200
+        else:
+            return jsonify({"message": "User not found"}), 404
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"message": "Update user failed"}), 500

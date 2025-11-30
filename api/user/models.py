@@ -37,6 +37,7 @@ class User(BaseModel):
         currency=Currency.GBP,
         userType=UserType.INDIVIDUAL_INVESTOR,
         balance=1_000_000,
+        portfolio=[],
     ):
         super().__init__()
         self.email = email
@@ -46,6 +47,7 @@ class User(BaseModel):
         self.avatarImageUrl = avatarImageUrl
         self.userType = userType
         self.balance = balance
+        self.portfolio = portfolio
         try:
             Decimal(regularContributionAmount)
             self.regularContributionAmount = regularContributionAmount
@@ -136,3 +138,33 @@ class User(BaseModel):
                 {"$inc": {"balance": round(increment_amount, 2)}},
                 True,
             )
+
+    @staticmethod
+    def increment_user_portfolio_by_id(user_id: uuid.UUID, portfolio_data: dict = {}):
+        user = db["users"].find_one({"_id": ObjectId(user_id)})
+        if user and not user.get("portfolio"):
+            updated_user = {
+                "$set": {
+                    "portfolio": [
+                        {"stock_symbol": "AAPL", "quantity": 10},
+                        {"stock_symbol": "TSLA", "quantity": 10},
+                        {"stock_symbol": "META", "quantity": 10},
+                    ]
+                }
+            }
+            return db["users"].update_one({"_id": user["_id"]}, updated_user, True)
+
+        elif user and user.get("portfolio"):
+            updated_user = {
+                "$set": {"portfolio.$.quantity": portfolio_data["quantity"]}
+            }
+            return db["users"].update_one(
+                {
+                    "_id": user["_id"],
+                    "portfolio.stock_symbol": portfolio_data["stock_symbol"],
+                },
+                updated_user,
+                True,
+            )
+        else:
+            pass
