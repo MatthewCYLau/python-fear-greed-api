@@ -142,7 +142,11 @@ class User(BaseModel):
     @staticmethod
     def update_user_portfolio_by_id(user_id: uuid.UUID, portfolio_data: dict = {}):
         user = db["users"].find_one({"_id": ObjectId(user_id)})
-        if user and not user.get("portfolio"):
+
+        if not user:
+            pass
+
+        if not user.get("portfolio"):
             updated_user = {
                 "$set": {
                     "portfolio": [
@@ -154,20 +158,33 @@ class User(BaseModel):
             }
             return db["users"].update_one({"_id": user["_id"]}, updated_user, True)
 
-        elif user and user.get("portfolio"):
-            updated_user = {
-                "$set": {"portfolio.$.quantity": portfolio_data["quantity"]}
-            }
-            return db["users"].update_one(
-                {
-                    "_id": user["_id"],
-                    "portfolio.stock_symbol": portfolio_data["stock_symbol"],
-                },
-                updated_user,
-                True,
-            )
         else:
-            pass
+            matching_portfolio_stock = list(
+                filter(
+                    lambda n: n["stock_symbol"] == portfolio_data["stock_symbol"],
+                    user["portfolio"],
+                )
+            )
+            if not matching_portfolio_stock:
+                update_operation = {"$push": {"portfolio": portfolio_data}}
+                return db["users"].update_one(
+                    {
+                        "_id": user["_id"],
+                    },
+                    update_operation,
+                )
+            else:
+                updated_user = {
+                    "$set": {"portfolio.$.quantity": portfolio_data["quantity"]}
+                }
+                return db["users"].update_one(
+                    {
+                        "_id": user["_id"],
+                        "portfolio.stock_symbol": portfolio_data["stock_symbol"],
+                    },
+                    updated_user,
+                    True,
+                )
 
     @staticmethod
     def increment_user_portfolio_quantity_by_id(
