@@ -119,6 +119,9 @@ class Order(CommonBaseModel):
         except Exception as e:
             logging.error(e)
 
+        Order.increment_order_quantity(sell_order_id, trade_quantity * -1)
+        Order.increment_order_quantity(buy_order_id, trade_quantity)
+
         if sell_order["quantity"] == trade_quantity:
             Order.update_order_status(sell_order_id, "complete")
         if buy_order["quantity"] == trade_quantity:
