@@ -79,6 +79,16 @@ class Order(CommonBaseModel):
             )
 
     @staticmethod
+    def increment_order_quantity(order_id: uuid.UUID, increment_amount: int):
+        order = Order.get_order_by_id(order_id)
+        if order:
+            return db["orders"].update_one(
+                {"_id": ObjectId(order_id)},
+                {"$inc": {"quantity": increment_amount}},
+                True,
+            )
+
+    @staticmethod
     def process_sell_and_buy_orders(sell_order_id: uuid.UUID, buy_order_id: uuid.UUID):
 
         sell_order = Order.get_order_by_id(sell_order_id)

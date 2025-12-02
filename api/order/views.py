@@ -55,7 +55,7 @@ def create_order(user):
         )
 
     if order_type == "SELL":
-        matching_portfolio_stock = [
+        matching_portfolio_stock = user.get("portfolio") and [
             i for i in user["portfolio"] if i["stock_symbol"] == stock_symbol
         ]
         if not matching_portfolio_stock:
