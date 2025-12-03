@@ -194,6 +194,28 @@ def handle_trades_subscription_push():
         except Exception as e:
             logging.error(f"Failed to update buyer balance - {e}")
 
+        try:
+            res = User.increment_user_portfolio_quantity_by_id(
+                user_id=sell_order_user_id,
+                stock_symbol=stock_symbol,
+                increment_amount=-1 * quantity,
+            )
+            if res.matched_count:
+                logging.info("Seller portfolio updated")
+        except Exception as e:
+            logging.error(f"Failed to update seller portfolio - {e}")
+
+        try:
+            res = User.increment_user_portfolio_quantity_by_id(
+                user_id=buy_order_user_id,
+                stock_symbol=stock_symbol,
+                increment_amount=quantity,
+            )
+            if res.matched_count:
+                logging.info("Buyer portfolio updated")
+        except Exception as e:
+            logging.error(f"Failed to update buyer portfolio - {e}")
+
     return ("", 204)
 
 
