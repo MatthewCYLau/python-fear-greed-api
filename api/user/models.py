@@ -7,6 +7,7 @@ from api.util.util import get_current_time_utc
 from enum import Enum
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
+from functools import wraps
 
 
 class UserType(str, Enum):
@@ -23,6 +24,15 @@ class Currency(Enum):
 @dataclass
 class TestUserType:
     userType: UserType
+
+
+def ensure_user_exists(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        user = db["users"].find_one({"_id": ObjectId(kwargs["user_id"])})
+        return f(user, *args, **kwargs)
+
+    return decorator
 
 
 class User(BaseModel):
@@ -140,12 +150,12 @@ class User(BaseModel):
             )
 
     @staticmethod
-    def update_user_portfolio_by_id(user_id: uuid.UUID, portfolio_data: dict = {}):
-        user = db["users"].find_one({"_id": ObjectId(user_id)})
-
+    @ensure_user_exists
+    def update_user_portfolio_by_id(
+        user, user_id: uuid.UUID, portfolio_data: dict = {}
+    ):
         if not user:
-            pass
-
+            raise ValueError(f"User {user_id} not found!")
         if not user.get("portfolio"):
             updated_user = {
                 "$set": {
@@ -156,7 +166,9 @@ class User(BaseModel):
                     ]
                 }
             }
-            return db["users"].update_one({"_id": user["_id"]}, updated_user, True)
+            return db["users"].update_one(
+                {"_id": ObjectId(user_id)}, updated_user, True
+            )
 
         else:
             matching_portfolio_stock = list(
@@ -169,7 +181,7 @@ class User(BaseModel):
                 update_operation = {"$push": {"portfolio": portfolio_data}}
                 return db["users"].update_one(
                     {
-                        "_id": user["_id"],
+                        "_id": ObjectId(user_id),
                     },
                     update_operation,
                 )
@@ -179,7 +191,7 @@ class User(BaseModel):
                 }
                 return db["users"].update_one(
                     {
-                        "_id": user["_id"],
+                        "_id": ObjectId(user_id),
                         "portfolio.stock_symbol": portfolio_data["stock_symbol"],
                     },
                     updated_user,
