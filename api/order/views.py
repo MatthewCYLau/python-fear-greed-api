@@ -1,7 +1,6 @@
 import base64
 import json
 import logging
-import time
 from flask import Blueprint, jsonify, request
 from google.cloud import pubsub_v1
 from pydantic import ValidationError
