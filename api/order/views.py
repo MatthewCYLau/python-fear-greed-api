@@ -1,6 +1,7 @@
 import base64
 import json
 import logging
+import time
 from flask import Blueprint, jsonify, request
 from google.cloud import pubsub_v1
 from pydantic import ValidationError
@@ -193,6 +194,8 @@ def handle_trades_subscription_push():
                 logging.info("Buyer balance updated")
         except Exception as e:
             logging.error(f"Failed to update buyer balance - {e}")
+
+        time.sleep(10)
 
         try:
             res = User.increment_user_portfolio_quantity_by_id(
