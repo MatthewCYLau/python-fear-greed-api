@@ -74,7 +74,7 @@ class Order(CommonBaseModel):
                     "status": new_status,
                 }
             }
-            return db["users"].update_one(
+            return db["orders"].update_one(
                 {"_id": ObjectId(order_id)}, updated_order, True
             )
 
