@@ -147,6 +147,7 @@ class Order(CommonBaseModel):
                 logging.info(f"Process matching orders for stock symbol: {i}...")
                 min_sell_price_pipeline = [
                     {"$match": {"stock_symbol": i}},
+                    {"$match": {"status": "open"}},
                     {"$match": {"order_type": "SELL"}},
                     {
                         "$group": {
@@ -162,6 +163,7 @@ class Order(CommonBaseModel):
 
                 matching_buy_orders_pipeline = [
                     {"$match": {"stock_symbol": i}},
+                    {"$match": {"status": "open"}},
                     {"$match": {"order_type": "BUY"}},
                     {"$match": {"price": {"$gt": min_sell_price}}},
                     {"$sort": {"_id": 1}},
@@ -178,6 +180,7 @@ class Order(CommonBaseModel):
                 if matching_buy_orders:
                     sell_order_at_min_price_pipeline = [
                         {"$match": {"stock_symbol": i}},
+                        {"$match": {"status": "open"}},
                         {
                             "$match": {
                                 "created_by": {
