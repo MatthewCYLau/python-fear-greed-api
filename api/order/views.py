@@ -195,8 +195,6 @@ def handle_trades_subscription_push():
         except Exception as e:
             logging.error(f"Failed to update buyer balance - {e}")
 
-        time.sleep(10)
-
         try:
             res = User.increment_user_portfolio_quantity_by_id(
                 user_id=sell_order_user_id,
