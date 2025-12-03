@@ -178,6 +178,13 @@ class Order(CommonBaseModel):
                 if matching_buy_orders:
                     sell_order_at_min_price_pipeline = [
                         {"$match": {"stock_symbol": i}},
+                        {
+                            "$match": {
+                                "created_by": {
+                                    "$ne": matching_buy_orders[0]["created_by"]
+                                }
+                            }
+                        },
                         {"$sort": {"price": 1}},
                         {
                             "$group": {
