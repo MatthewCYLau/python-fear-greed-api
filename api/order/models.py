@@ -110,6 +110,14 @@ class Order(CommonBaseModel):
         }
         logging.info(trade_details)
 
+        Order.increment_order_quantity(sell_order_id, trade_quantity * -1)
+        Order.increment_order_quantity(buy_order_id, trade_quantity * -1)
+
+        if sell_order["quantity"] == trade_quantity:
+            Order.update_order_status(sell_order_id, "complete")
+        if buy_order["quantity"] == trade_quantity:
+            Order.update_order_status(buy_order_id, "complete")
+
         try:
             publisher = pubsub_v1.PublisherClient()
             message_data_encode = json.dumps(trade_details, indent=2).encode("utf-8")
@@ -118,14 +126,6 @@ class Order(CommonBaseModel):
             return message_id
         except Exception as e:
             logging.error(e)
-
-        Order.increment_order_quantity(sell_order_id, trade_quantity * -1)
-        Order.increment_order_quantity(buy_order_id, trade_quantity)
-
-        if sell_order["quantity"] == trade_quantity:
-            Order.update_order_status(sell_order_id, "complete")
-        if buy_order["quantity"] == trade_quantity:
-            Order.update_order_status(buy_order_id, "complete")
 
     @staticmethod
     def match_orders():
