@@ -66,7 +66,7 @@ class Order(CommonBaseModel):
             }
         else:
             query = {}
-        orders = list(db["orders"].find(query))
+        orders = list(db["orders"].find(query).sort("created", -1))
         return orders
 
     @staticmethod
