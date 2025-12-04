@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 import json
 import logging
@@ -8,7 +9,7 @@ from pydantic import BaseModel, ValidationInfo, field_validator
 from api.common.constants import TRADES_TOPIC_NAME
 from api.common.models import BaseModel as CommonBaseModel
 from api.db.setup import db
-from api.util.util import check_asset_available
+from api.util.util import check_asset_available, get_current_time_utc
 
 
 class OrderType(str, Enum):
@@ -57,8 +58,13 @@ class Order(CommonBaseModel):
         return res.inserted_id
 
     @staticmethod
-    def get_all():
-        orders = list(db["orders"].find({}))
+    def get_all(start_date: datetime = None, end_date: datetime = None):
+
+        if start_date and end_date:
+            query = {"created": {"$gte": start_date, "$lt": end_date}}
+        else:
+            query = {}
+        orders = list(db["orders"].find(query))
         return orders
 
     @staticmethod
@@ -72,6 +78,7 @@ class Order(CommonBaseModel):
             updated_order = {
                 "$set": {
                     "status": new_status,
+                    "last_modified": get_current_time_utc(),
                 }
             }
             return db["orders"].update_one(
@@ -84,7 +91,12 @@ class Order(CommonBaseModel):
         if order:
             return db["orders"].update_one(
                 {"_id": ObjectId(order_id)},
-                {"$inc": {"quantity": increment_amount}},
+                {
+                    "$inc": {"quantity": increment_amount},
+                    "$set": {
+                        "last_modified": get_current_time_utc(),
+                    },
+                },
                 True,
             )
 

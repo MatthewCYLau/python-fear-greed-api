@@ -163,7 +163,8 @@ class User(BaseModel):
                         {"stock_symbol": "AAPL", "quantity": 10},
                         {"stock_symbol": "TSLA", "quantity": 10},
                         {"stock_symbol": "META", "quantity": 10},
-                    ]
+                    ],
+                    "last_modified": get_current_time_utc(),
                 }
             }
             return db["users"].update_one(
@@ -178,7 +179,12 @@ class User(BaseModel):
                 )
             )
             if not matching_portfolio_stock:
-                update_operation = {"$push": {"portfolio": portfolio_data}}
+                update_operation = {
+                    "$push": {"portfolio": portfolio_data},
+                    "$set": {
+                        "last_modified": get_current_time_utc(),
+                    },
+                }
                 return db["users"].update_one(
                     {
                         "_id": ObjectId(user_id),
@@ -187,7 +193,10 @@ class User(BaseModel):
                 )
             else:
                 updated_user = {
-                    "$set": {"portfolio.$.quantity": portfolio_data["quantity"]}
+                    "$set": {
+                        "portfolio.$.quantity": portfolio_data["quantity"],
+                        "last_modified": get_current_time_utc(),
+                    }
                 }
                 return db["users"].update_one(
                     {
@@ -204,7 +213,12 @@ class User(BaseModel):
     ):
         user = db["users"].find_one({"_id": ObjectId(user_id)})
         if user and user.get("portfolio"):
-            updated_user = {"$inc": {"portfolio.$.quantity": increment_amount}}
+            updated_user = {
+                "$inc": {"portfolio.$.quantity": increment_amount},
+                "$set": {
+                    "last_modified": get_current_time_utc(),
+                },
+            }
             return db["users"].update_one(
                 {
                     "_id": user["_id"],

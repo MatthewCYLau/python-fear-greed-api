@@ -1,11 +1,12 @@
 import base64
+from datetime import datetime
 import json
 import logging
 from flask import Blueprint, jsonify, request
 from google.cloud import pubsub_v1
 from pydantic import ValidationError
 from api.auth.auth import auth_required
-from api.common.constants import ORDERS_TOPIC_NAME
+from api.common.constants import DATETIME_FORMATE_CODE, ORDERS_TOPIC_NAME
 from api.order.models import CreateOrderRequest, Order
 from api.user.models import User
 from api.util.util import generate_response, get_stock_price
@@ -16,7 +17,17 @@ bp = Blueprint("order", __name__)
 @bp.route("/orders", methods=(["GET"]))
 @auth_required
 def get_orders(_):
-    orders = Order.get_all()
+
+    start_date = request.args.get("startDate")
+    end_date = request.args.get("endDate")
+
+    if start_date:
+        start_date = datetime.strptime(start_date, DATETIME_FORMATE_CODE)
+
+    if end_date:
+        end_date = datetime.strptime(end_date, DATETIME_FORMATE_CODE)
+
+    orders = Order.get_all(start_date, end_date)
     return generate_response(orders)
 
 
