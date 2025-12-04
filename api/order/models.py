@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 import json
 import logging
@@ -61,7 +61,9 @@ class Order(CommonBaseModel):
     def get_all(start_date: datetime = None, end_date: datetime = None):
 
         if start_date and end_date:
-            query = {"created": {"$gte": start_date, "$lt": end_date}}
+            query = {
+                "created": {"$gte": start_date, "$lt": end_date + timedelta(days=1)}
+            }
         else:
             query = {}
         orders = list(db["orders"].find(query))
