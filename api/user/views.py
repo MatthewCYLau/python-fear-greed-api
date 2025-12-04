@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from pydantic import ValidationError
 from werkzeug.security import check_password_hash
 from google.cloud import storage
 from bson.objectid import ObjectId
@@ -12,7 +13,7 @@ import jwt
 import logging
 from datetime import datetime, timedelta, timezone
 import pytz
-from .models import User, Currency
+from .models import UpdateUserPortfolioRequest, User, Currency
 
 bp = Blueprint("user", __name__)
 
@@ -205,10 +206,20 @@ def increment_user_balance_by_id(_, user_id):
 @bp.route("/users/<user_id>/portfolio", methods=["PUT"])
 @auth_required
 def update_user_portfolio_by_id(_, user_id):
-    portfolio_data = request.get_json()
+
+    try:
+        update_request = UpdateUserPortfolioRequest.model_validate_json(request.data)
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
+
     try:
         res = User.update_user_portfolio_by_id(
-            user_id=user_id, portfolio_data=portfolio_data
+            user_id=user_id,
+            portfolio_data={
+                "stock_symbol": update_request.stock_symbol,
+                "quantity": update_request.quantity,
+            },
         )
         if res.matched_count:
             return jsonify({"message": "User updated"}), 200

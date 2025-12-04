@@ -1,9 +1,10 @@
 import uuid
+from pydantic import BaseModel, ValidationInfo, field_validator
 from werkzeug.security import generate_password_hash
 from bson.objectid import ObjectId
-from api.common.models import BaseModel
+from api.common.models import BaseModel as CommonBaseModel
 from api.db.setup import db
-from api.util.util import get_current_time_utc
+from api.util.util import check_asset_available, get_current_time_utc
 from enum import Enum
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
@@ -35,7 +36,20 @@ def ensure_user_exists(f):
     return decorator
 
 
-class User(BaseModel):
+class UpdateUserPortfolioRequest(BaseModel):
+
+    stock_symbol: str
+    quantity: int
+
+    @field_validator("stock_symbol")
+    @classmethod
+    def check_stock(cls, stock_symbol: str, info: ValidationInfo) -> str:
+        if not check_asset_available(stock_symbol):
+            raise ValueError(f"{info.field_name} is not a valid stock symbol")
+        return stock_symbol
+
+
+class User(CommonBaseModel):
     def __init__(
         self,
         email,
