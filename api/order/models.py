@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from enum import Enum
+from functools import wraps
 import json
 import logging
 import uuid
@@ -15,6 +16,20 @@ from api.util.util import check_asset_available, get_current_time_utc
 class OrderType(str, Enum):
     BUY = "BUY"
     SELL = "SELL"
+
+
+def ensure_order_exists(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        order_id = args[0]
+        order = db["orders"].find_one({"_id": ObjectId(order_id)})
+
+        if not order:
+            raise ValueError(f"Order {order_id} not found!")
+
+        return f(order, *args, **kwargs)
+
+    return decorator
 
 
 class CreateOrderRequest(BaseModel):
@@ -74,33 +89,31 @@ class Order(CommonBaseModel):
         return db["orders"].find_one({"_id": ObjectId(order_id)})
 
     @staticmethod
-    def update_order_status(order_id: uuid.UUID, new_status: str = "complete"):
-        order = Order.get_order_by_id(order_id)
-        if order:
-            updated_order = {
-                "$set": {
-                    "status": new_status,
-                    "last_modified": get_current_time_utc(),
-                }
+    @ensure_order_exists
+    def update_order_status(_, order_id: uuid.UUID, new_status: str = "complete"):
+        update_order_operation = {
+            "$set": {
+                "status": new_status,
+                "last_modified": get_current_time_utc(),
             }
-            return db["orders"].update_one(
-                {"_id": ObjectId(order_id)}, updated_order, True
-            )
+        }
+        return db["orders"].update_one(
+            {"_id": ObjectId(order_id)}, update_order_operation, True
+        )
 
     @staticmethod
-    def increment_order_quantity(order_id: uuid.UUID, increment_amount: int):
-        order = Order.get_order_by_id(order_id)
-        if order:
-            return db["orders"].update_one(
-                {"_id": ObjectId(order_id)},
-                {
-                    "$inc": {"quantity": increment_amount},
-                    "$set": {
-                        "last_modified": get_current_time_utc(),
-                    },
+    @ensure_order_exists
+    def increment_order_quantity(_, order_id: uuid.UUID, increment_amount: int):
+        return db["orders"].update_one(
+            {"_id": ObjectId(order_id)},
+            {
+                "$inc": {"quantity": increment_amount},
+                "$set": {
+                    "last_modified": get_current_time_utc(),
                 },
-                True,
-            )
+            },
+            True,
+        )
 
     @staticmethod
     def process_sell_and_buy_orders(sell_order_id: uuid.UUID, buy_order_id: uuid.UUID):
