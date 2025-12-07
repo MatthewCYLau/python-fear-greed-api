@@ -30,7 +30,12 @@ class TestUserType:
 def ensure_user_exists(f):
     @wraps(f)
     def decorator(*args, **kwargs):
-        user = db["users"].find_one({"_id": ObjectId(kwargs["user_id"])})
+        user_id = kwargs["user_id"]
+        user = db["users"].find_one({"_id": ObjectId(user_id)})
+
+        if not user:
+            raise ValueError(f"User {user_id} not found!")
+
         return f(user, *args, **kwargs)
 
     return decorator
@@ -147,7 +152,8 @@ class User(CommonBaseModel):
             return db["users"].update_one({"_id": user["_id"]}, updated_user, True)
 
     @staticmethod
-    def increment_user_balance_by_id(user_id: uuid.UUID, increment_amount: float):
+    @ensure_user_exists
+    def increment_user_balance_by_id(_, user_id: uuid.UUID, increment_amount: float):
         try:
             Decimal(increment_amount)
         except InvalidOperation:
@@ -155,21 +161,17 @@ class User(CommonBaseModel):
         except ValueError as e:
             raise e
 
-        user = db["users"].find_one({"_id": ObjectId(user_id)})
-        if user is not None:
-            return db["users"].update_one(
-                {"_id": user["_id"]},
-                {"$inc": {"balance": round(increment_amount, 2)}},
-                True,
-            )
+        return db["users"].update_one(
+            {"_id": ObjectId(user_id)},
+            {"$inc": {"balance": round(increment_amount, 2)}},
+            True,
+        )
 
     @staticmethod
     @ensure_user_exists
     def update_user_portfolio_by_id(
         user, user_id: uuid.UUID, portfolio_data: dict = {}
     ):
-        if not user:
-            raise ValueError(f"User {user_id} not found!")
         if not user.get("portfolio"):
             updated_user = {
                 "$set": {
@@ -222,11 +224,11 @@ class User(CommonBaseModel):
                 )
 
     @staticmethod
+    @ensure_user_exists
     def increment_user_portfolio_quantity_by_id(
-        user_id: uuid.UUID, stock_symbol: str, increment_amount: int
+        user, user_id: uuid.UUID, stock_symbol: str, increment_amount: int
     ):
-        user = db["users"].find_one({"_id": ObjectId(user_id)})
-        if user and user.get("portfolio"):
+        if user.get("portfolio"):
             updated_user = {
                 "$inc": {"portfolio.$.quantity": increment_amount},
                 "$set": {
@@ -235,7 +237,7 @@ class User(CommonBaseModel):
             }
             return db["users"].update_one(
                 {
-                    "_id": user["_id"],
+                    "_id": ObjectId(user_id),
                     "portfolio.stock_symbol": stock_symbol,
                 },
                 updated_user,
