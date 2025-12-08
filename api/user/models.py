@@ -243,3 +243,21 @@ class User(CommonBaseModel):
                 updated_user,
                 True,
             )
+
+    @staticmethod
+    @ensure_user_exists
+    def remove_user_portfolio_stock_by_id(user, user_id: uuid.UUID, stock_symbol: str):
+        if user.get("portfolio"):
+            updated_operation = {
+                "$pull": {"portfolio": {"stock_symbol": stock_symbol}},
+                "$set": {
+                    "last_modified": get_current_time_utc(),
+                },
+            }
+            return db["users"].update_one(
+                {
+                    "_id": ObjectId(user_id),
+                },
+                updated_operation,
+                True,
+            )

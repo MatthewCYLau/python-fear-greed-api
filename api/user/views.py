@@ -228,3 +228,22 @@ def update_user_portfolio_by_id(_, user_id):
     except Exception as e:
         logging.error(e)
         return jsonify({"message": "Update user failed"}), 500
+
+
+@bp.route("/users/<user_id>/portfolio", methods=["DELETE"])
+@auth_required
+def delete_user_portfolio_stock(_, user_id):
+    data = request.get_json()
+    if not data or not data.get("stock_symbol"):
+        return jsonify({"message": "Missing field value"}), 400
+    try:
+        res = User.remove_user_portfolio_stock_by_id(
+            user_id=user_id, stock_symbol=data.get("stock_symbol")
+        )
+        if res.matched_count:
+            return jsonify({"message": "User updated"}), 200
+        else:
+            return jsonify({"message": "User not found"}), 404
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"message": "Update user failed"}), 500
