@@ -235,3 +235,14 @@ class Order(CommonBaseModel):
                         sell_order_at_min_price["order_id"],
                         matching_buy_orders[0]["_id"],
                     )
+
+    @staticmethod
+    def delete_complete_orders_last_modified_days_ago(days_ago: int = 5):
+        return db["orders"].delete_many(
+            {
+                "status": "complete",
+                "last_modified": {
+                    "$lte": get_current_time_utc() - timedelta(days=days_ago)
+                },
+            }
+        )

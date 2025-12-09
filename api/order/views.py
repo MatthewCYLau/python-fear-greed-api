@@ -234,3 +234,10 @@ def handle_trades_subscription_push():
 def match_orders():
     Order.match_orders()
     return ("", 204)
+
+
+@bp.route("/orders/clean-up", methods=(["POST"]))
+@auth_required
+def delete_old_complete_orders(_):
+    Order.delete_complete_orders_last_modified_days_ago()
+    return ("", 204)
