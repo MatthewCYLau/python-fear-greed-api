@@ -4,6 +4,7 @@ import json
 import logging
 from flask import Blueprint, jsonify, request
 from google.cloud import pubsub_v1
+import pandas as pd
 from pydantic import ValidationError
 from api.auth.auth import auth_required
 from api.common.constants import DATETIME_FORMATE_CODE, ORDERS_TOPIC_NAME
@@ -240,4 +241,22 @@ def match_orders():
 @auth_required
 def delete_old_complete_orders(_):
     Order.delete_complete_orders_last_modified_days_ago()
+    return ("", 204)
+
+
+@bp.route("/orders/export-csv", methods=(["POST"]))
+def export_orders_csv():
+    orders = Order.get_all()
+    df = pd.DataFrame(orders)
+
+    # drop redundant columns
+    df = df.drop(columns=["_id", "created_by", "last_modified"])
+
+    # set created column as data frame index
+    df["created"] = pd.to_datetime(df["created"], format="ISO8601", utc=True)
+    df = df.set_index("created")
+
+    df["created_date"] = df.index.date
+    logging.info(df.tail())
+
     return ("", 204)
