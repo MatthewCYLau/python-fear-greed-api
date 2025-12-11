@@ -2,7 +2,7 @@ import base64
 from datetime import datetime
 import json
 import logging
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, make_response, request
 from google.cloud import pubsub_v1
 import pandas as pd
 from pydantic import ValidationError
@@ -259,4 +259,9 @@ def export_orders_csv():
     df["created_date"] = df.index.date
     logging.info(df.tail())
 
-    return ("", 204)
+    response = make_response(df.to_csv())
+    response.headers["Content-Disposition"] = (
+        f"attachment; filename={datetime.today().strftime(DATETIME_FORMATE_CODE)}.csv"
+    )
+    response.mimetype = "text/csv"
+    return response
