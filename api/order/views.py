@@ -5,6 +5,7 @@ import logging
 from flask import Blueprint, jsonify, make_response, request
 from google.cloud import pubsub_v1
 import pandas as pd
+from api.db.setup import db
 from pydantic import ValidationError
 from api.auth.auth import auth_required
 from api.common.constants import DATETIME_FORMATE_CODE, ORDERS_TOPIC_NAME
@@ -265,3 +266,19 @@ def export_orders_csv():
     )
     response.mimetype = "text/csv"
     return response
+
+
+@bp.route("/orders/count", methods=(["GET"]))
+@auth_required
+def get_orders_count_by_stock(_):
+    pipeline = [
+        {
+            "$group": {
+                "_id": "$stock_symbol",
+                "count": {"$sum": 1},
+            }
+        },
+        {"$sort": {"count": -1}},
+    ]
+    res = db["orders"].aggregate(pipeline)
+    return jsonify(list(res))
