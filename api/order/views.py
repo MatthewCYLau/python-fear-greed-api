@@ -2,6 +2,7 @@ import base64
 from datetime import datetime
 import json
 import logging
+import math
 from flask import Blueprint, jsonify, make_response, request
 from google.cloud import pubsub_v1
 import pandas as pd
@@ -23,14 +24,30 @@ def get_orders(_):
     start_date = request.args.get("startDate")
     end_date = request.args.get("endDate")
 
+    page_size = int(request.args["pageSize"]) if request.args.get("pageSize") else 10
+    current_page = int(request.args["page"]) if request.args.get("page") else 1
+
     if start_date:
         start_date = datetime.strptime(start_date, DATETIME_FORMATE_CODE)
 
     if end_date:
         end_date = datetime.strptime(end_date, DATETIME_FORMATE_CODE)
 
-    orders = Order.get_all(start_date, end_date)
-    return generate_response(orders)
+    orders = Order.get_all(start_date, end_date, page_size, current_page)
+
+    total_records = db["orders"].estimated_document_count()
+    total_pages = math.ceil(total_records / page_size)
+
+    return generate_response(
+        {
+            "paginationMetadata": {
+                "totalRecords": total_records,
+                "currentPage": current_page,
+                "totalPages": total_pages,
+            },
+            "data": orders,
+        }
+    )
 
 
 @bp.route("/orders", methods=(["POST"]))

@@ -73,7 +73,12 @@ class Order(CommonBaseModel):
         return res.inserted_id
 
     @staticmethod
-    def get_all(start_date: datetime = None, end_date: datetime = None):
+    def get_all(
+        start_date: datetime = None,
+        end_date: datetime = None,
+        page_size: int = 5,
+        current_page: int = 1,
+    ):
 
         if start_date and end_date:
             query = {
@@ -81,7 +86,13 @@ class Order(CommonBaseModel):
             }
         else:
             query = {}
-        orders = list(db["orders"].find(query).sort("created", -1))
+        orders = list(
+            db["orders"]
+            .find(query)
+            .sort("created", -1)
+            .skip((current_page - 1) * page_size)
+            .limit(page_size)
+        )
         return orders
 
     @staticmethod
