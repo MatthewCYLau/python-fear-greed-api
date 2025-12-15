@@ -834,6 +834,48 @@ def get_price_prediction_multiprocess():
     )
 
 
+def predict_price_generator(
+    run_count: int, stock_symbol: str, data_years_ago: int, prediction_years_future: int
+):
+    for _ in range(run_count):
+        price_prediction = round(
+            predict_price_linear_regression(
+                stock_symbol, data_years_ago, prediction_years_future
+            )[0],
+            2,
+        )
+        yield price_prediction
+
+
+@bp.route("/analysis/price-prediction-generator", methods=(["GET"]))
+def get_price_prediction_generator():
+
+    stock_symbol = request.args.get("stock", default=None, type=None)
+    runs_count = request.args.get("runsCount", default=1, type=int)
+    if not stock_symbol:
+        return jsonify({"message": "Missing field"}), 400
+
+    if not isinstance(runs_count, int):
+        return jsonify({"message": "Invalid value for runs count!"}), 400
+    if int(runs_count) > 3:
+        return jsonify({"message": "Maximum three runs!"}), 400
+
+    generator = predict_price_generator(runs_count, stock_symbol, 1, 1)
+
+    results_mean = round(statistics.mean([i for i in generator]), 2)
+
+    return (
+        jsonify(
+            {
+                "stock": stock_symbol,
+                "pricePredictionMean": results_mean,
+                "predictionRunCount": runs_count,
+            }
+        ),
+        200,
+    )
+
+
 @bp.route("/generate-stock-close-daily-return-plot", methods=(["POST"]))
 @auth_required
 def generate_stock_close_daily_return_plot_gcs_blob(_):
