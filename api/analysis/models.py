@@ -121,6 +121,25 @@ class CreateStockPlotRequest(BaseModel):
         return stock
 
 
+class PricePredictionRequest(BaseModel):
+    runs: int
+    stock: str
+
+    @field_validator("runs")
+    @classmethod
+    def check_years(cls, v: int, info: ValidationInfo) -> str:
+        if v < 1 or v > 3:
+            raise ValueError(f"{info.field_name} must be between 1 and 3 inclusive")
+        return v
+
+    @field_validator("stock")
+    @classmethod
+    def check_stock(cls, stock: str, info: ValidationInfo) -> str:
+        if not check_asset_available(stock):
+            raise ValueError(f"{info.field_name} is not a valid stock symbol")
+        return stock
+
+
 class AnalyseCurrencyImpactOnReturnRequest(BaseModel):
     years: int
     stock: str

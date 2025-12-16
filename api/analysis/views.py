@@ -48,6 +48,7 @@ from api.analysis.models import (
     AnalysisJob,
     CreateStockPlotRequest,
     AnalysisJobRequest,
+    PricePredictionRequest,
 )
 from api.record.models import Record
 from sklearn.linear_model import LinearRegression
@@ -666,18 +667,19 @@ async def predict_price_async(stock_symbol: str):
     return price_prediction
 
 
-@bp.route("/analysis/price-prediction-async", methods=(["GET"]))
+@bp.route("/analysis/price-prediction-async", methods=(["POST"]))
 async def get_price_prediction_async():
 
-    stock_symbol = request.args.get("stock", default=None, type=None)
-    runs_count = request.args.get("runsCount", default=1, type=int)
-    if not stock_symbol:
-        return jsonify({"message": "Missing field"}), 400
+    try:
+        price_prediction_request = PricePredictionRequest.model_validate_json(
+            request.data
+        )
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
 
-    if not isinstance(runs_count, int):
-        return jsonify({"message": "Invalid value for runs count!"}), 400
-    if int(runs_count) > 3:
-        return jsonify({"message": "Maximum three runs!"}), 400
+    stock_symbol = price_prediction_request.stock
+    runs_count = price_prediction_request.runs
 
     if runs_count < 2:
         task = asyncio.create_task(predict_price_async(stock_symbol))
@@ -801,18 +803,19 @@ def get_monthly_mean_close(_):
         return jsonify({"message": "Get stock mean close failed"}), 500
 
 
-@bp.route("/analysis/price-prediction-multiprocess", methods=(["GET"]))
+@bp.route("/analysis/price-prediction-multiprocess", methods=(["POST"]))
 def get_price_prediction_multiprocess():
 
-    stock_symbol = request.args.get("stock", default=None, type=None)
-    runs_count = request.args.get("runsCount", default=1, type=int)
-    if not stock_symbol:
-        return jsonify({"message": "Missing field"}), 400
+    try:
+        price_prediction_request = PricePredictionRequest.model_validate_json(
+            request.data
+        )
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
 
-    if not isinstance(runs_count, int):
-        return jsonify({"message": "Invalid value for runs count!"}), 400
-    if int(runs_count) > 3:
-        return jsonify({"message": "Maximum three runs!"}), 400
+    stock_symbol = price_prediction_request.stock
+    runs_count = price_prediction_request.runs
 
     with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
 
@@ -847,18 +850,19 @@ def predict_price_generator(
         yield price_prediction
 
 
-@bp.route("/analysis/price-prediction-generator", methods=(["GET"]))
+@bp.route("/analysis/price-prediction-generator", methods=(["POST"]))
 def get_price_prediction_generator():
 
-    stock_symbol = request.args.get("stock", default=None, type=None)
-    runs_count = request.args.get("runsCount", default=1, type=int)
-    if not stock_symbol:
-        return jsonify({"message": "Missing field"}), 400
+    try:
+        price_prediction_request = PricePredictionRequest.model_validate_json(
+            request.data
+        )
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
 
-    if not isinstance(runs_count, int):
-        return jsonify({"message": "Invalid value for runs count!"}), 400
-    if int(runs_count) > 3:
-        return jsonify({"message": "Maximum three runs!"}), 400
+    stock_symbol = price_prediction_request.stock
+    runs_count = price_prediction_request.runs
 
     generator = predict_price_generator(runs_count, stock_symbol, 1, 1)
 
