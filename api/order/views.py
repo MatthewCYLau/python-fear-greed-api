@@ -3,6 +3,7 @@ from datetime import datetime
 import json
 import logging
 import math
+from bson import ObjectId
 from flask import Blueprint, jsonify, make_response, request
 from google.cloud import pubsub_v1
 import pandas as pd
@@ -10,6 +11,7 @@ from api.db.setup import db
 from pydantic import ValidationError
 from api.auth.auth import auth_required
 from api.common.constants import DATETIME_FORMATE_CODE, ORDERS_TOPIC_NAME
+from api.exception.models import UnauthorizedException
 from api.order.models import CreateOrderRequest, Order
 from api.user.models import User
 from api.util.util import generate_response, get_stock_price
@@ -136,6 +138,26 @@ def create_order(user):
     except Exception as e:
         logging.error(e)
         return jsonify({"message": "Create order failed"}), 500
+
+
+@bp.route("/orders/<order_id>", methods=["DELETE"])
+@auth_required
+def delete_order_by_id(user, order_id):
+    order = Order.get_order_by_id(order_id)
+    if str(order["created_by"]) != str(user["_id"]):
+        raise UnauthorizedException(
+            "User is not authorized to delete order", status_code=401
+        )
+
+    try:
+        res = db["orders"].delete_one({"_id": ObjectId(order_id)})
+        if res.deleted_count:
+            return jsonify({"message": "Order deleted"}), 200
+
+        else:
+            return jsonify({"message": "Order not found"}), 404
+    except Exception:
+        return jsonify({"message": "Delete order by ID failed"}), 500
 
 
 @bp.route("/orders-subscription-push", methods=(["POST"]))
