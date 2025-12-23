@@ -56,6 +56,11 @@ class CreateOrderRequest(BaseModel):
         return stock_symbol
 
 
+class UpdateOrderRequest(BaseModel):
+    quantity: int
+    price: float
+
+
 class Order(CommonBaseModel):
     def __init__(
         self, created_by, stock_symbol, order_type, quantity, price, status="open"
@@ -256,4 +261,11 @@ class Order(CommonBaseModel):
                     "$lte": get_current_time_utc() - timedelta(days=days_ago)
                 },
             }
+        )
+
+    @staticmethod
+    def update_order_by_id(order_id: uuid.UUID, quantity: int, price: float):
+        update_operation = {"$set": {"quantity": quantity, "price": price}}
+        return db["orders"].update_one(
+            {"_id": ObjectId(order_id)}, update_operation, True
         )
