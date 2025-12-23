@@ -10,6 +10,7 @@ from pydantic import BaseModel, ValidationInfo, field_validator
 from api.common.constants import TRADES_TOPIC_NAME
 from api.common.models import BaseModel as CommonBaseModel
 from api.db.setup import db
+from api.exception.models import UnauthorizedException
 from api.util.util import check_asset_available, get_current_time_utc
 
 
@@ -28,6 +29,27 @@ def ensure_order_exists(f):
             raise ValueError(f"Order {order_id} not found!")
 
         return f(order, *args, **kwargs)
+
+    return decorator
+
+
+def validate_user_permission(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        order_id = args[1]
+        user_id = kwargs.get("user_id")
+        order = db["orders"].find_one({"_id": ObjectId(order_id)})
+
+        logging.info(
+            f"Validating user {user_id} permission against order {order_id}..."
+        )
+
+        if str(order["created_by"]) != str(user_id):
+            raise UnauthorizedException(
+                "User is not authorized to update order", status_code=401
+            )
+
+        return f(*args, **kwargs)
 
     return decorator
 
@@ -54,6 +76,11 @@ class CreateOrderRequest(BaseModel):
         if not check_asset_available(stock_symbol):
             raise ValueError(f"{info.field_name} is not a valid stock symbol")
         return stock_symbol
+
+
+class UpdateOrderRequest(BaseModel):
+    quantity: int
+    price: float
 
 
 class Order(CommonBaseModel):
@@ -256,4 +283,19 @@ class Order(CommonBaseModel):
                     "$lte": get_current_time_utc() - timedelta(days=days_ago)
                 },
             }
+        )
+
+    @staticmethod
+    @ensure_order_exists
+    @validate_user_permission
+    def update_order_by_id(
+        _,
+        order_id: uuid.UUID,
+        quantity: int,
+        price: float,
+        user_id: uuid.UUID,
+    ):
+        update_operation = {"$set": {"quantity": quantity, "price": price}}
+        return db["orders"].update_one(
+            {"_id": ObjectId(order_id)}, update_operation, True
         )

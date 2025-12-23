@@ -12,7 +12,7 @@ from pydantic import ValidationError
 from api.auth.auth import auth_required
 from api.common.constants import DATETIME_FORMATE_CODE, ORDERS_TOPIC_NAME
 from api.exception.models import UnauthorizedException
-from api.order.models import CreateOrderRequest, Order
+from api.order.models import CreateOrderRequest, Order, UpdateOrderRequest
 from api.user.models import User
 from api.util.util import generate_response, get_stock_price
 
@@ -158,6 +158,32 @@ def delete_order_by_id(user, order_id):
             return jsonify({"message": "Order not found"}), 404
     except Exception:
         return jsonify({"message": "Delete order by ID failed"}), 500
+
+
+@bp.route("/orders/<order_id>", methods=["PUT"])
+@auth_required
+def update_order_by_id(user, order_id):
+
+    try:
+        order_request = UpdateOrderRequest.model_validate_json(request.data)
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
+
+    quantity = order_request.quantity
+    price = order_request.price
+
+    try:
+        res = Order.update_order_by_id(
+            order_id, quantity=quantity, price=price, user_id=user["_id"]
+        )
+        if res.matched_count:
+            return jsonify({"message": "Order updated"}), 200
+        else:
+            return jsonify({"message": "Order not found"}), 404
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"message": "Update order failed"}), 500
 
 
 @bp.route("/orders-subscription-push", methods=(["POST"]))
