@@ -295,7 +295,13 @@ class Order(CommonBaseModel):
         price: float,
         user_id: uuid.UUID,
     ):
-        update_operation = {"$set": {"quantity": quantity, "price": price}}
+        update_operation = {
+            "$set": {
+                "quantity": quantity,
+                "price": price,
+                "last_modified": get_current_time_utc(),
+            }
+        }
         return db["orders"].update_one(
             {"_id": ObjectId(order_id)}, update_operation, True
         )
