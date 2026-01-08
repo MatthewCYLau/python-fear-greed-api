@@ -325,6 +325,10 @@ def export_orders_csv():
     df["created_date"] = df.index.date
     logging.info(df.tail())
 
+    df["total_value"] = df["quantity"] * df["price"]
+    top_stocks = df.groupby("stock_symbol")["total_value"].sum().nlargest(5)
+    logging.info(top_stocks)
+
     response = make_response(df.to_csv())
     response.headers["Content-Disposition"] = (
         f"attachment; filename={datetime.today().strftime(DATETIME_FORMATE_CODE)}.csv"
