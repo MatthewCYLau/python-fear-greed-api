@@ -351,3 +351,20 @@ def get_orders_count_by_stock(_):
     ]
     res = db["orders"].aggregate(pipeline)
     return jsonify(list(res))
+
+
+@bp.route("/orders/analysis", methods=(["GET"]))
+@auth_required
+def get_orders_analysis(_):
+    pipeline = [
+        {
+            "$group": {
+                "_id": "$stock_symbol",
+                "averagePrice": {"$avg": "$price"},
+                "averageQuantity": {"$avg": "$quantity"},
+            }
+        },
+        {"$sort": {"count": -1}},
+    ]
+    res = db["orders"].aggregate(pipeline)
+    return jsonify(list(res))
