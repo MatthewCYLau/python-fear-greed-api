@@ -1,10 +1,14 @@
 from flask import Blueprint, request, make_response, jsonify
+import pandas_gbq
 from api.common.constants import (
     ASSETS_UPLOADS_BUCKET_NAME,
     CHART_LABELS,
     DATETIME_FORMATE_CODE,
+    GCP_PROJECT_ID,
     PANDAS_DF_DATE_FORMATE_CODE,
     ASSETS_PLOTS_BUCKET_NAME,
+    BIGQUERY_DATASET_ID,
+    BIGQUERY_TABLE_ID,
 )
 from api.db.setup import db
 from api.util.util import (
@@ -400,3 +404,22 @@ def _generate_random_dataframe():
 
     values = np.random.randint(1, 100, size=10)
     return pd.DataFrame({"Date": dates, "Value": values})
+
+
+@bp.route("/records/sync-bq", methods=(["POST"]))
+def sync_records_to_bigquery():
+    filtered_df = _generate_filtered_dataframe()
+
+    bq_df = filtered_df.drop("description", axis=1)
+
+    # microsecond precision
+    bq_df.index = pd.to_datetime(bq_df.index.round("us"))
+
+    pandas_gbq.to_gbq(
+        bq_df,
+        f"{BIGQUERY_DATASET_ID}.{BIGQUERY_TABLE_ID}",
+        project_id=GCP_PROJECT_ID,
+        if_exists="replace",
+    )
+
+    return "Ok", 200

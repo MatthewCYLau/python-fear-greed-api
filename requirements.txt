@@ -34,6 +34,7 @@ google-crc32c==1.5.0
 google-resumable-media==2.5.0
 googleapis-common-protos==1.70.0
 grpc-google-iam-v1==0.14.2
+google-cloud-bigquery
 grpcio==1.63.0
 grpcio-status==1.62.2
 gunicorn==20.1.0
@@ -62,8 +63,9 @@ opentelemetry-api==1.33.0
 opentelemetry-sdk==1.33.0
 opentelemetry-semantic-conventions==0.54b0
 ordered-set==4.1.0
-packaging==23.1
+packaging
 pandas==2.2.0
+pandas_gbq
 peewee==3.17.3
 pillow==11.0.0
 platformdirs==4.3.6

@@ -5,5 +5,7 @@
     "PUB_SUB_TRADES_TOPIC": "trades-topic",
     "PUB_SUB_SUBSCRIPTION": "analysis-jobs-subscription",
     "ASSETS_PLOTS_BUCKET_NAME": "python-fear-greed-assets-plots",
-    "ASSETS_UPLOADS_BUCKET_NAME": "python-fear-greed-assets-uploads"
+    "ASSETS_UPLOADS_BUCKET_NAME": "python-fear-greed-assets-uploads",
+    "BIGQUERY_DATASET_ID":"fear_greed_records",
+    "BIGQUERY_TABLE_ID":"fear_greed_records"
 }

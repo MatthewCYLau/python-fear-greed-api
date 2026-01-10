@@ -25,3 +25,6 @@ TOPIC_NAME = f"projects/{GCP_PROJECT_ID}/topics/{PUB_SUB_TOPIC}"
 ORDERS_TOPIC_NAME = f"projects/{GCP_PROJECT_ID}/topics/{PUB_SUB_ORDERS_TOPIC}"
 TRADES_TOPIC_NAME = f"projects/{GCP_PROJECT_ID}/topics/{PUB_SUB_TRADES_TOPIC}"
 CHART_LABELS = ["Extreme greed", "Greed", "Neutral", "Fear", "Extreme fear"]
+
+BIGQUERY_DATASET_ID = gcp_config["BIGQUERY_DATASET_ID"]
+BIGQUERY_TABLE_ID = gcp_config["BIGQUERY_TABLE_ID"]
