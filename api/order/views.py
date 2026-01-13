@@ -1,22 +1,29 @@
 import base64
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import logging
 import math
+from google.cloud import storage
 from bson import ObjectId
 from flask import Blueprint, jsonify, make_response, request
 from google.cloud import pubsub_v1
 import pandas as pd
+import pytz
 from api.db.setup import db
 from pydantic import ValidationError
 from api.auth.auth import auth_required
-from api.common.constants import DATETIME_FORMATE_CODE, ORDERS_TOPIC_NAME
+from api.common.constants import (
+    ASSETS_UPLOADS_BUCKET_NAME,
+    DATETIME_FORMATE_CODE,
+    ORDERS_TOPIC_NAME,
+)
 from api.exception.models import UnauthorizedException
 from api.order.models import CreateOrderRequest, Order, UpdateOrderRequest
 from api.user.models import User
 from api.util.util import generate_response, get_stock_price
 
 bp = Blueprint("order", __name__)
+GB = pytz.timezone("Europe/London")
 
 
 @bp.route("/orders", methods=(["GET"]))
@@ -329,7 +336,24 @@ def export_orders_csv():
     top_stocks = df.groupby("stock_symbol")["total_value"].sum().nlargest(5)
     logging.info(top_stocks)
 
-    response = make_response(df.to_csv())
+    csv_string = df.to_csv()
+
+    response = make_response(csv_string)
+
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(ASSETS_UPLOADS_BUCKET_NAME)
+
+    timestamp = datetime.now(timezone.utc).astimezone(GB).strftime("%Y%m%d%H%M%S")
+    blob_name = f"{timestamp}-orders.csv"
+
+    blob = bucket.blob(blob_name)
+
+    blob.upload_from_string(data=csv_string, content_type="text/csv")
+
+    logging.info(
+        f"Uploaded CSV string to gs://{ASSETS_UPLOADS_BUCKET_NAME}/{blob_name}"
+    )
+
     response.headers["Content-Disposition"] = (
         f"attachment; filename={datetime.today().strftime(DATETIME_FORMATE_CODE)}.csv"
     )
