@@ -28,3 +28,4 @@ CHART_LABELS = ["Extreme greed", "Greed", "Neutral", "Fear", "Extreme fear"]
 
 BIGQUERY_DATASET_ID = gcp_config["BIGQUERY_DATASET_ID"]
 BIGQUERY_TABLE_ID = gcp_config["BIGQUERY_TABLE_ID"]
+BIGQUERY_TABLE_ID_RECORDS = gcp_config["BIGQUERY_TABLE_ID_RECORDS"]

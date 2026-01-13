@@ -7,6 +7,7 @@ from google.cloud import storage
 from bson import ObjectId
 from flask import Blueprint, jsonify, make_response, request
 from google.cloud import pubsub_v1
+from google.cloud import bigquery
 import pandas as pd
 import pytz
 from api.db.setup import db
@@ -14,7 +15,10 @@ from pydantic import ValidationError
 from api.auth.auth import auth_required
 from api.common.constants import (
     ASSETS_UPLOADS_BUCKET_NAME,
+    BIGQUERY_DATASET_ID,
+    BIGQUERY_TABLE_ID_RECORDS,
     DATETIME_FORMATE_CODE,
+    GCP_PROJECT_ID,
     ORDERS_TOPIC_NAME,
 )
 from api.exception.models import UnauthorizedException
@@ -349,10 +353,27 @@ def export_orders_csv():
     blob = bucket.blob(blob_name)
 
     blob.upload_from_string(data=csv_string, content_type="text/csv")
+    gcs_uri = f"gs://{ASSETS_UPLOADS_BUCKET_NAME}/{blob_name}"
+    logging.info(f"Uploaded CSV string to {gcs_uri}")
 
-    logging.info(
-        f"Uploaded CSV string to gs://{ASSETS_UPLOADS_BUCKET_NAME}/{blob_name}"
+    bq_client = bigquery.Client(project=GCP_PROJECT_ID)
+
+    table_ref = f"{GCP_PROJECT_ID}.{BIGQUERY_DATASET_ID}.{BIGQUERY_TABLE_ID_RECORDS}"
+
+    job_config = bigquery.LoadJobConfig(
+        source_format=bigquery.SourceFormat.CSV,
+        skip_leading_rows=1,  # skip header
+        autodetect=True,
+        write_disposition="WRITE_TRUNCATE",
     )
+
+    load_job = bq_client.load_table_from_uri(gcs_uri, table_ref, job_config=job_config)
+
+    logging.info("Starting job...")
+    load_job.result()  # Waits for job to complete
+
+    logging.info(f"Loaded {gcs_uri} → {table_ref}")
+    logging.info(f"Total rows loaded: {load_job.output_rows:,}")
 
     response.headers["Content-Disposition"] = (
         f"attachment; filename={datetime.today().strftime(DATETIME_FORMATE_CODE)}.csv"
