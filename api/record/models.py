@@ -1,9 +1,26 @@
+from functools import wraps
+import uuid
+from bson import ObjectId
 import pytz
 import logging
 from datetime import datetime, timezone, timedelta
 from api.db.setup import db
 
 GB = pytz.timezone("Europe/London")
+
+
+def ensure_record_exists(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        record_id = args[0]
+        record = db["records"].find_one({"_id": ObjectId(record_id)})
+
+        if not record:
+            raise ValueError(f"record {record_id} not found!")
+
+        return f(record, *args, **kwargs)
+
+    return decorator
 
 
 class Record:
@@ -57,3 +74,18 @@ class Record:
                 # record.save_to_database()
                 inserted += 1
         return inserted
+
+    @staticmethod
+    @ensure_record_exists
+    def update_record_created(
+        record,
+        record_id: uuid.UUID,
+    ):
+        update_record_operation = {
+            "$set": {
+                "created": datetime.fromisoformat(record["created"]),
+            }
+        }
+        return db["records"].update_one(
+            {"_id": ObjectId(record_id)}, update_record_operation, True
+        )

@@ -423,3 +423,17 @@ def sync_records_to_bigquery():
     )
 
     return "Ok", 200
+
+
+@bp.route("/records/<record_id>", methods=["PATCH"])
+@auth_required
+def update_record_by_id(_, record_id):
+    try:
+        res = Record.update_record_created(record_id)
+        if res.matched_count:
+            return jsonify({"message": "Record updated"}), 200
+        else:
+            return jsonify({"message": "Record not found"}), 404
+    except Exception as e:
+        logging.error(e)
+        return jsonify({"message": "Update record failed"}), 500
