@@ -48,3 +48,17 @@ def validate_google_oauth_token(token):
     except ValueError as e:
         logging.error(f"Error validating token: {e}")
         return False, None, None, None
+
+
+def super_user_required(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        user_email = args[0]["email"]
+        if user_email == "lau.cy.matthew@gmail.com":
+            logging.info(f"Requestor email is super user: {user_email}")
+        else:
+            raise UnauthorizedException("User unauthorized!", status_code=401)
+
+        return f(*args, **kwargs)
+
+    return decorator

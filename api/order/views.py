@@ -12,7 +12,7 @@ import pandas as pd
 import pytz
 from api.db.setup import db
 from pydantic import ValidationError
-from api.auth.auth import auth_required
+from api.auth.auth import auth_required, super_user_required
 from api.common.constants import (
     ASSETS_UPLOADS_BUCKET_NAME,
     BIGQUERY_DATASET_ID,
@@ -322,6 +322,8 @@ def delete_old_complete_orders(_):
 
 
 @bp.route("/orders/export-csv", methods=(["POST"]))
+@auth_required
+@super_user_required
 def export_orders_csv():
     orders = Order.get_all()
     df = pd.DataFrame(orders)
@@ -417,7 +419,11 @@ def get_orders_analysis(_):
 
 @bp.route("/orders-bq", methods=(["GET"]))
 @auth_required
-def get_orders_from_bigquery(_):
+@super_user_required
+def get_orders_from_bigquery(user):
+
+    logging.info(f"Requestor email: {user['email']}")
+
     bq_client = bigquery.Client(project=GCP_PROJECT_ID)
     query = f"""
 SELECT *
