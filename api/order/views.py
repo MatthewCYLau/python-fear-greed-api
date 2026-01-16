@@ -413,3 +413,34 @@ def get_orders_analysis(_):
     ]
     res = db["orders"].aggregate(pipeline)
     return jsonify(list(res))
+
+
+@bp.route("/orders-bq", methods=(["GET"]))
+@auth_required
+def get_orders_from_bigquery(_):
+    bq_client = bigquery.Client(project=GCP_PROJECT_ID)
+    query = f"""
+SELECT *
+FROM `{GCP_PROJECT_ID}.{BIGQUERY_DATASET_ID}.{BIGQUERY_TABLE_ID_RECORDS}`
+LIMIT 1000
+"""
+    query_job = bq_client.query(
+        query,
+    )
+
+    # Wait and get results
+    df = query_job.to_dataframe()  # ← very convenient if you like pandas
+    df = df.set_index("created")
+    logging.info(df.head())
+
+    logging.info(
+        f"Query cost: {query_job.total_bytes_processed / 1_000_000_000:.2f} GB"
+    )
+
+    return jsonify(
+        {
+            "recordsCount": len(df.index),
+            "startDate": df.index.min(),
+            "endDate": df.index.max(),
+        }
+    )
