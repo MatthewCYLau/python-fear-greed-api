@@ -425,8 +425,20 @@ def get_orders_from_bigquery(user):
     logging.info(f"Requestor email: {user['email']}")
 
     bq_client = bigquery.Client(project=GCP_PROJECT_ID)
+
+    columns = [
+        "created",
+        "stock_symbol",
+        "order_type",
+        "quantity",
+        "price",
+        "status",
+        "created_date",
+        "total_value",
+    ]
+
     query = f"""
-SELECT *
+SELECT {','.join(columns)}
 FROM `{GCP_PROJECT_ID}.{BIGQUERY_DATASET_ID}.{BIGQUERY_TABLE_ID_RECORDS}`
 LIMIT 1000
 """
