@@ -21,10 +21,14 @@ from api.common.constants import (
     GCP_PROJECT_ID,
     ORDERS_TOPIC_NAME,
 )
-from api.exception.models import UnauthorizedException
+from api.exception.models import BadRequestException, UnauthorizedException
 from api.order.models import CreateOrderRequest, Order, UpdateOrderRequest
 from api.user.models import User
-from api.util.util import generate_response, get_stock_price
+from api.util.util import (
+    generate_response,
+    get_stock_price,
+    validate_date_string_for_pandas_df,
+)
 
 bp = Blueprint("order", __name__)
 GB = pytz.timezone("Europe/London")
@@ -451,6 +455,26 @@ LIMIT 1000
     df = df.set_index("created")
     logging.info(df.head())
 
+    start_date_arg = request.args.get("startDate")
+    end_date_arg = request.args.get("endDate")
+
+    if start_date_arg and end_date_arg:
+
+        if not all(
+            validate_date_string_for_pandas_df(i)
+            for i in [start_date_arg, end_date_arg]
+        ):
+            raise BadRequestException(
+                "Invalid date input. Must be in format YYYY-MM-DD", status_code=400
+            )
+
+        start_date = pd.to_datetime(start_date_arg, utc=True)
+        end_date = pd.to_datetime(end_date_arg, utc=True)
+        sliced_df = df[(df.index >= start_date) & (df.index <= end_date)]
+    else:
+        sliced_df = df.loc[:]
+
+    logging.info(f"Count of sliced dataframe: {len(sliced_df.index)}")
     logging.info(
         f"Query cost: {query_job.total_bytes_processed / 1_000_000_000:.2f} GB"
     )
@@ -460,5 +484,6 @@ LIMIT 1000
             "recordsCount": len(df.index),
             "startDate": df.index.min(),
             "endDate": df.index.max(),
+            "orders": json.loads(sliced_df.to_json(orient="table")),
         }
     )
