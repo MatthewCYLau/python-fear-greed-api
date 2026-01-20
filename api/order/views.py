@@ -1,5 +1,5 @@
 import base64
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import json
 import logging
 import math
@@ -16,7 +16,7 @@ from api.auth.auth import auth_required, super_user_required
 from api.common.constants import (
     ASSETS_UPLOADS_BUCKET_NAME,
     BIGQUERY_DATASET_ID,
-    BIGQUERY_TABLE_ID_RECORDS,
+    BIGQUERY_TABLE_ID_ORDERS,
     DATETIME_FORMATE_CODE,
     GCP_PROJECT_ID,
     ORDERS_TOPIC_NAME,
@@ -235,6 +235,30 @@ def handle_orders_subscription_push():
         new_order_id = new_order.save_to_db()
         logging.info(f"Created new order with id: {new_order_id}")
 
+        bq_client = bigquery.Client(project=GCP_PROJECT_ID)
+
+        row_to_insert = [
+            {
+                "created": datetime.now(timezone.utc).isoformat(),
+                "stock_symbol": stock_symbol,
+                "order_type": order_type,
+                "quantity": quantity,
+                "price": price,
+                "status": "open",
+                "created_date": date.today().strftime("%Y-%m-%d"),
+                "total_value": price * quantity,
+            },
+        ]
+        table_ref = f"{GCP_PROJECT_ID}.{BIGQUERY_DATASET_ID}.{BIGQUERY_TABLE_ID_ORDERS}"
+
+        errors = bq_client.insert_rows_json(table_ref, row_to_insert)
+        if errors == []:
+            logging.info("Added row to BigQuery")
+        else:
+            logging.error(
+                "Failed to add row to BigQuery. Error messages: {}".format(errors)
+            )
+
     return ("", 204)
 
 
@@ -364,7 +388,7 @@ def export_orders_csv():
 
     bq_client = bigquery.Client(project=GCP_PROJECT_ID)
 
-    table_ref = f"{GCP_PROJECT_ID}.{BIGQUERY_DATASET_ID}.{BIGQUERY_TABLE_ID_RECORDS}"
+    table_ref = f"{GCP_PROJECT_ID}.{BIGQUERY_DATASET_ID}.{BIGQUERY_TABLE_ID_ORDERS}"
 
     job_config = bigquery.LoadJobConfig(
         source_format=bigquery.SourceFormat.CSV,
@@ -443,7 +467,7 @@ def get_orders_from_bigquery(user):
 
     query = f"""
 SELECT {','.join(columns)}
-FROM `{GCP_PROJECT_ID}.{BIGQUERY_DATASET_ID}.{BIGQUERY_TABLE_ID_RECORDS}`
+FROM `{GCP_PROJECT_ID}.{BIGQUERY_DATASET_ID}.{BIGQUERY_TABLE_ID_ORDERS}`
 LIMIT 1000
 """
     query_job = bq_client.query(

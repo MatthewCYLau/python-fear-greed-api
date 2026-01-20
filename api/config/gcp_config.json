@@ -8,5 +8,5 @@
     "ASSETS_UPLOADS_BUCKET_NAME": "python-fear-greed-assets-uploads",
     "BIGQUERY_DATASET_ID":"fear_greed_dataset",
     "BIGQUERY_TABLE_ID":"fear_greed_records",
-    "BIGQUERY_TABLE_ID_RECORDS":"stock_trade_orders"
+    "BIGQUERY_TABLE_ID_ORDERS":"stock_trade_orders"
 }
