@@ -1,3 +1,4 @@
+import json
 from flask import Blueprint, request, make_response, jsonify
 import pandas_gbq
 from api.common.constants import (
@@ -22,11 +23,12 @@ from api.util.util import (
 from api.util.cloud_storage_connector import CloudStorageConnector
 from api.exception.models import BadRequestException
 from api.record.models import Record
-from api.auth.auth import auth_required
+from api.auth.auth import auth_required, super_user_required
 from datetime import datetime, timedelta
 from api.rate_limiter.rate_limiter import limiter
 from dateutil.relativedelta import relativedelta
 from google.cloud import storage
+from google.cloud import bigquery
 import logging
 import yaml
 import os
@@ -437,3 +439,64 @@ def update_record_by_id(_, record_id):
     except Exception as e:
         logging.error(e)
         return jsonify({"message": "Update record failed"}), 500
+
+
+@bp.route("/records-bq", methods=(["GET"]))
+@auth_required
+@super_user_required
+def get_records_from_bigquery(user):
+
+    logging.info(f"Requestor email: {user['email']}")
+
+    bq_client = bigquery.Client(project=GCP_PROJECT_ID)
+
+    columns = ["created", "fear_greed_index"]
+
+    start_date_arg = request.args.get("startDate")
+    end_date_arg = request.args.get("endDate")
+
+    if start_date_arg and end_date_arg:
+
+        if not all(
+            validate_date_string_for_pandas_df(i)
+            for i in [start_date_arg, end_date_arg]
+        ):
+            raise BadRequestException(
+                "Invalid date input. Must be in format YYYY-MM-DD", status_code=400
+            )
+
+        query = f"""
+SELECT {','.join(columns)}
+FROM `{GCP_PROJECT_ID}.{BIGQUERY_DATASET_ID}.{BIGQUERY_TABLE_ID}`
+WHERE created > '{start_date_arg}'
+AND created < '{end_date_arg}'
+ORDER BY created DESC
+"""
+    else:
+        query = f"""
+SELECT {','.join(columns)}
+FROM `{GCP_PROJECT_ID}.{BIGQUERY_DATASET_ID}.{BIGQUERY_TABLE_ID}`
+ORDER BY created DESC
+"""
+
+    query_job = bq_client.query(
+        query,
+    )
+
+    # Wait and get results
+    df = query_job.to_dataframe()  # ← very convenient if you like pandas
+    df = df.set_index("created")
+    logging.info(df.head())
+
+    logging.info(
+        f"Query cost: {query_job.total_bytes_processed / 1_000_000_000:.2f} GB"
+    )
+
+    return jsonify(
+        {
+            "recordsCount": len(df.index),
+            "startDate": df.index.min(),
+            "endDate": df.index.max(),
+            "orders": json.loads(df.to_json(orient="table")),
+        }
+    )
