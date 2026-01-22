@@ -492,6 +492,14 @@ ORDER BY created DESC
         f"Query cost: {query_job.total_bytes_processed / 1_000_000_000:.2f} GB"
     )
 
+    df_copy = df.copy()
+    df_copy["rolling_average"] = df_copy["fear_greed_index"].rolling(window=25).mean()
+    df_copy["is_above_average"] = (
+        df_copy["fear_greed_index"] > df_copy["rolling_average"]
+    )
+    df_copy.dropna(inplace=True)
+    logging.info(df_copy.tail())
+
     return jsonify(
         {
             "recordsCount": len(df.index),
