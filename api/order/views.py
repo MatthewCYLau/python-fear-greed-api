@@ -498,6 +498,10 @@ LIMIT 1000
     else:
         sliced_df = df.loc[:]
 
+    stock_symbol_arg = request.args.get("stock")
+    if stock_symbol_arg:
+        sliced_df = sliced_df[sliced_df["stock_symbol"] == stock_symbol_arg]
+
     logging.info(f"Count of sliced dataframe: {len(sliced_df.index)}")
     logging.info(
         f"Query cost: {query_job.total_bytes_processed / 1_000_000_000:.2f} GB"
