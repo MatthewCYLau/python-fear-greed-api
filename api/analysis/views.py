@@ -1085,3 +1085,47 @@ def generate_stock_dividends_plot_gcs_blob(_):
         fig_to_upload, file_name
     )
     return jsonify({"image_url": blob_public_url}), 200
+
+
+@bp.route("/generate-stock-roi-plot", methods=(["POST"]))
+@auth_required
+def generate_stock_roi_plot_gcs_blob(_):
+
+    try:
+        create_stock_plot_request = CreateStockPlotRequest.model_validate_json(
+            request.data
+        )
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
+
+    stock_symbol = create_stock_plot_request.stock
+    years_ago = create_stock_plot_request.years
+
+    data = yf.Ticker(stock_symbol).history(period=f"{years_ago}y")
+
+    data["Previous_Close"] = data["Close"].shift(1)
+    data["Daily_Return"] = (data["Close"] - data["Previous_Close"]) / data[
+        "Previous_Close"
+    ]
+
+    data["Cumulative_ROI"] = ((1 + data["Daily_Return"]).cumprod() - 1) * 100
+
+    plt.figure(figsize=(10, 6))
+    plt.title(f"{stock_symbol} return on investment", fontsize=16)
+    plt.ylabel("ROI percentage", fontsize=14)
+    plt.xlabel("Time", fontsize=14)
+    plt.plot(data.index, data["Cumulative_ROI"])
+
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+
+    fig_to_upload = plt.gcf()
+    cloud_storage_connector = CloudStorageConnector(
+        bucket_name=ASSETS_PLOTS_BUCKET_NAME
+    )
+    file_name = generate_figure_blob_filename("roi")
+    blob_public_url = cloud_storage_connector.upload_pyplot_figure(
+        fig_to_upload, file_name
+    )
+    return jsonify({"image_url": blob_public_url}), 200
