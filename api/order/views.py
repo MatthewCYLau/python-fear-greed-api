@@ -479,6 +479,10 @@ LIMIT 1000
     df = df.set_index("created")
     logging.info(df.head())
 
+    logging.info(
+        f"Most common stock order: {df['stock_symbol'].mode()[0]} with count {df['stock_symbol'].value_counts().nlargest(1).iloc[0]}"
+    )
+
     start_date_arg = request.args.get("startDate")
     end_date_arg = request.args.get("endDate")
 
