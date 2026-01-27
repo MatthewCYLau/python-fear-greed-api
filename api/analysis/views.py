@@ -189,6 +189,16 @@ def get_stock_analysis(_):
         close_standard_deviation = round(df["Close"].std(), 2)
         logging.info(f"Close standard deviation: {close_standard_deviation}")
 
+        initial_val = df["Close"].iloc[0]
+        final_val = df["Close"].iloc[-1]
+        total_roi = (final_val / initial_val) - 1
+
+        num_years = (df.index[-1] - df.index[0]).days / 365.25
+        cagr = (final_val / initial_val) ** (1 / num_years) - 1
+
+        logging.info(f"Total ROI: {total_roi:.2%}")
+        logging.info(f"Annualised return (CAGR): {cagr:.2%}")
+
         result_dict = {
             "stock": stock_symbol,
             "close": most_recent_close,
@@ -214,6 +224,7 @@ def get_stock_analysis(_):
                 monthly_mean_close_df.to_json(orient="table")
             )["data"],
             "closeStandardDeviation": close_standard_deviation,
+            "roi": {"total": round(total_roi, 2), "cagr": round(cagr, 2)},
         }
 
         return (
