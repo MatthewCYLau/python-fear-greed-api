@@ -620,7 +620,7 @@ def generate_stock_cumulative_returns_plot_gcs_blob(_):
         data = yf.download(tickers_list, get_years_ago_formatted(int(years)))["Close"]
 
         y_label = "Cumulative Returns"
-        ((data.pct_change() + 1).cumprod()).plot(figsize=(10, 7))
+        ((data.pct_change().fillna(0) + 1).cumprod()).plot(figsize=(10, 7))
         plt.legend()
         plt.title("Stocks Cumulative Returns", fontsize=16)
 
