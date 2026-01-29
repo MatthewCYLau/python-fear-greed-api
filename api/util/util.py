@@ -384,3 +384,25 @@ def get_stock_price(symbol: str):
     if data.empty:
         raise ValueError("Invalid stock symbol")
     return data["Close"].iloc[-1]
+
+
+def get_portfolio_value(portfolio_list):
+    stock_symbols = [item["stock_symbol"] for item in portfolio_list]
+    tickers = yf.Tickers(" ".join(stock_symbols))
+
+    total_value = 0.0
+
+    for item in portfolio_list:
+        stock_symbol = item["stock_symbol"]
+        quantity = item["quantity"]
+
+        current_price = tickers.tickers[stock_symbol].fast_info["last_price"]
+
+        item_value = current_price * quantity
+        total_value += item_value
+
+        logging.info(
+            f"{stock_symbol:<10} | ${current_price:>8.2f} | {quantity:>10} | ${item_value:>9.2f}"
+        )
+
+    return round(total_value, 2)

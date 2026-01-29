@@ -4,7 +4,11 @@ from werkzeug.security import generate_password_hash
 from bson.objectid import ObjectId
 from api.common.models import BaseModel as CommonBaseModel
 from api.db.setup import db
-from api.util.util import check_asset_available, get_current_time_utc
+from api.util.util import (
+    check_asset_available,
+    get_current_time_utc,
+    get_portfolio_value,
+)
 from enum import Enum
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
@@ -261,3 +265,13 @@ class User(CommonBaseModel):
                 updated_operation,
                 True,
             )
+
+    @staticmethod
+    @ensure_user_exists
+    def get_user_portfolio_analysis(
+        user,
+        user_id: uuid.UUID,
+    ):
+        if user.get("portfolio"):
+            return get_portfolio_value(user.get("portfolio"))
+        return 0
