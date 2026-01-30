@@ -7,7 +7,7 @@ from api.db.setup import db
 from api.util.util import (
     check_asset_available,
     get_current_time_utc,
-    get_portfolio_value,
+    get_user_portfolio_analysis_df,
 )
 from enum import Enum
 from dataclasses import dataclass
@@ -273,5 +273,18 @@ class User(CommonBaseModel):
         user_id: uuid.UUID,
     ):
         if user.get("portfolio"):
-            return get_portfolio_value(user.get("portfolio"))
-        return 0
+            portfolio_data = user.get("portfolio")
+            portfolio_df = get_user_portfolio_analysis_df(portfolio_data)
+
+            for i in portfolio_data:
+                i["weight"] = round(
+                    portfolio_df[
+                        portfolio_df["stock_symbol"] == i["stock_symbol"]
+                    ].iloc[-1]["weight"],
+                    2,
+                )
+            return {
+                "total_value": round(portfolio_df["market_value"].sum(), 2),
+                "portfolio_data": portfolio_data,
+            }
+        return {}

@@ -252,5 +252,5 @@ def delete_user_portfolio_stock(_, user_id):
 @bp.route("/users/<user_id>/portfolio-analysis", methods=["GET"])
 @auth_required
 def get_user_portfolio_analysis(_, user_id):
-    total_value = User.get_user_portfolio_analysis(user_id=user_id)
-    return jsonify({"portfolio_total_value": total_value}), 200
+    analysis_result = User.get_user_portfolio_analysis(user_id=user_id)
+    return analysis_result, 200

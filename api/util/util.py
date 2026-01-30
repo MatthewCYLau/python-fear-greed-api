@@ -406,3 +406,23 @@ def get_portfolio_value(portfolio_list):
         )
 
     return round(total_value, 2)
+
+
+def get_user_portfolio_analysis_df(portfolio_data):
+
+    df = pd.DataFrame(portfolio_data)
+
+    stock_symbols = df["stock_symbol"].tolist()
+    close_data = yf.download(stock_symbols, period="1d", progress=False)["Close"]
+
+    df["close"] = df["stock_symbol"].apply(lambda x: close_data[x].iloc[-1])
+
+    df["market_value"] = df["quantity"] * df["close"]
+    total_value = df["market_value"].sum()
+    df["weight"] = df["market_value"] / total_value
+
+    df["weight_pct"] = df["weight"].map(lambda x: f"{x:.2%}")
+
+    logging.info(f"Total Portfolio Value: ${total_value:,.2f}")
+
+    return df
