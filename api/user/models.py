@@ -276,6 +276,14 @@ class User(CommonBaseModel):
             portfolio_data = user.get("portfolio")
             portfolio_df = get_user_portfolio_analysis_df(portfolio_data)
 
+            total_value = round(portfolio_df["market_value"].sum(), 2)
+            total_invested = (
+                portfolio_df["quantity"] * portfolio_df["buy_price"]
+            ).sum()
+            portfolio_roi = round(
+                ((total_value - total_invested) / total_invested) * 100, 2
+            )
+
             for i in portfolio_data:
                 i["weight"] = round(
                     portfolio_df[
@@ -284,7 +292,8 @@ class User(CommonBaseModel):
                     2,
                 )
             return {
-                "total_value": round(portfolio_df["market_value"].sum(), 2),
+                "total_value": total_value,
                 "portfolio_data": portfolio_data,
+                "portfolio_roi": portfolio_roi,
             }
         return {}

@@ -412,17 +412,31 @@ def get_user_portfolio_analysis_df(portfolio_data):
 
     df = pd.DataFrame(portfolio_data)
 
-    stock_symbols = df["stock_symbol"].tolist()
-    close_data = yf.download(stock_symbols, period="1d", progress=False)["Close"]
+    stock_symbols = df["stock_symbol"].tolist() + ["^GSPC"]
+    price_data = yf.download(stock_symbols, period="1y", progress=False)["Close"]
 
-    df["close"] = df["stock_symbol"].apply(lambda x: close_data[x].iloc[-1])
+    df["current_price"] = df["stock_symbol"].apply(lambda x: price_data[x].iloc[-1])
 
-    df["market_value"] = df["quantity"] * df["close"]
+    initial_prices = price_data.iloc[0]
+    df["buy_price"] = df["stock_symbol"].map(initial_prices)
+
+    df["market_value"] = df["quantity"] * df["current_price"]
     total_value = df["market_value"].sum()
+    total_invested = (df["quantity"] * df["buy_price"]).sum()
+
     df["weight"] = df["market_value"] / total_value
 
     df["weight_pct"] = df["weight"].map(lambda x: f"{x:.2%}")
 
+    portfolio_roi = ((total_value - total_invested) / total_invested) * 100
+
+    sp500_start = initial_prices["^GSPC"]
+    sp500_current = price_data.iloc[-1]["^GSPC"]
+    sp500_roi = ((sp500_current - sp500_start) / sp500_start) * 100
+
     logging.info(f"Total Portfolio Value: ${total_value:,.2f}")
+    logging.info(f"Portfolio ROI: {portfolio_roi:.2f}%")
+    logging.info(f"S&P 500 ROI: {sp500_roi:.2f}%")
+    logging.info(f"Alpha: {portfolio_roi - sp500_roi:.2f}%")
 
     return df
