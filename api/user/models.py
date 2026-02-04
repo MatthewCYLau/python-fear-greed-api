@@ -280,9 +280,7 @@ class User(CommonBaseModel):
             total_invested = (
                 portfolio_df["quantity"] * portfolio_df["buy_price"]
             ).sum()
-            portfolio_roi = round(
-                ((total_value - total_invested) / total_invested) * 100, 2
-            )
+            portfolio_roi = round(((total_value - total_invested) / total_invested), 2)
 
             for i in portfolio_data:
                 i["weight"] = round(
