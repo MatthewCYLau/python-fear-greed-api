@@ -7,6 +7,7 @@ from api.db.setup import db
 from api.util.util import (
     check_asset_available,
     get_current_time_utc,
+    get_portfolio_alpha,
     get_user_portfolio_analysis_df,
 )
 from enum import Enum
@@ -276,13 +277,12 @@ class User(CommonBaseModel):
             portfolio_data = user.get("portfolio")
             portfolio_df = get_user_portfolio_analysis_df(portfolio_data)
 
-            total_value = round(portfolio_df["market_value"].sum(), 2)
+            total_value = portfolio_df["market_value"].sum()
             total_invested = (
                 portfolio_df["quantity"] * portfolio_df["buy_price"]
             ).sum()
-            portfolio_roi = round(
-                ((total_value - total_invested) / total_invested) * 100, 2
-            )
+            portfolio_roi = ((total_value - total_invested) / total_invested) * 100
+            portfolio_alpha = get_portfolio_alpha(portfolio_roi)
 
             for i in portfolio_data:
                 i["weight"] = round(
@@ -292,8 +292,9 @@ class User(CommonBaseModel):
                     2,
                 )
             return {
-                "total_value": total_value,
+                "total_value": round(total_value, 2),
                 "portfolio_data": portfolio_data,
-                "portfolio_roi": portfolio_roi,
+                "portfolio_roi": round(portfolio_roi, 2),
+                "portfolio_alpha": round(portfolio_alpha, 2),
             }
         return {}

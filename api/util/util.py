@@ -440,3 +440,12 @@ def get_user_portfolio_analysis_df(portfolio_data):
     logging.info(f"Alpha: {portfolio_roi - sp500_roi:.2f}%")
 
     return df
+
+
+def get_portfolio_alpha(portfolio_roi: float, benchmark: str = "^GSPC"):
+    data = yf.Ticker(benchmark)
+    df = data.history(period="1y")
+    sp500_start = df.iloc[0]["Close"]
+    sp500_current = df.iloc[-1]["Close"]
+    sp500_roi = ((sp500_current - sp500_start) / sp500_start) * 100
+    return portfolio_roi - sp500_roi
