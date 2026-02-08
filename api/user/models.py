@@ -9,6 +9,7 @@ from api.util.util import (
     get_current_time_utc,
     get_portfolio_alpha,
     get_user_portfolio_analysis_df,
+    get_user_portfolio_roi_series,
 )
 from enum import Enum
 from dataclasses import dataclass
@@ -298,3 +299,14 @@ class User(CommonBaseModel):
                 "portfolio_alpha": round(portfolio_alpha, 2),
             }
         return {}
+
+    @staticmethod
+    @ensure_user_exists
+    def get_user_portfolio_roi_series(
+        user,
+        user_id: uuid.UUID,
+    ):
+        if user.get("portfolio"):
+            portfolio_data = user.get("portfolio")
+            portfolio_roi, benchmark_roi = get_user_portfolio_roi_series(portfolio_data)
+            return portfolio_roi, benchmark_roi

@@ -449,3 +449,19 @@ def get_portfolio_alpha(portfolio_roi: float, benchmark: str = "^GSPC"):
     sp500_current = df.iloc[-1]["Close"]
     sp500_roi = ((sp500_current - sp500_start) / sp500_start) * 100
     return portfolio_roi - sp500_roi
+
+
+def get_user_portfolio_roi_series(portfolio_data, benchmark: str = "^GSPC"):
+    tickers = [item["stock_symbol"] for item in portfolio_data]
+    quantities = {item["stock_symbol"]: item["quantity"] for item in portfolio_data}
+
+    data = yf.download(tickers + [benchmark], period="1y")["Close"]
+
+    portfolio_daily_values = data[tickers].mul(pd.Series(quantities), axis=1)
+    total_portfolio_value = portfolio_daily_values.sum(axis=1)
+
+    portfolio_roi = total_portfolio_value / total_portfolio_value.iloc[0]
+
+    benchmark_roi = data[benchmark] / data[benchmark].iloc[0]
+
+    return portfolio_roi, benchmark_roi

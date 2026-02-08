@@ -1,11 +1,17 @@
 from flask import Blueprint, request, jsonify
+from matplotlib import pyplot as plt
 from pydantic import ValidationError
 from werkzeug.security import check_password_hash
 from google.cloud import storage
 from bson.objectid import ObjectId
-from api.common.constants import ASSETS_UPLOADS_BUCKET_NAME, GCP_PROJECT_ID
+from api.common.constants import (
+    ASSETS_PLOTS_BUCKET_NAME,
+    ASSETS_UPLOADS_BUCKET_NAME,
+    GCP_PROJECT_ID,
+)
 from api.db.setup import db
-from api.util.util import generate_response
+from api.util.cloud_storage_connector import CloudStorageConnector
+from api.util.util import generate_figure_blob_filename, generate_response
 from api.auth.auth import auth_required, validate_google_oauth_token
 from api.exception.models import UnauthorizedException, BadRequestException
 import os
@@ -254,3 +260,28 @@ def delete_user_portfolio_stock(_, user_id):
 def get_user_portfolio_analysis(_, user_id):
     analysis_result = User.get_user_portfolio_analysis(user_id=user_id)
     return analysis_result, 200
+
+
+@bp.route("/users/<user_id>/generate-portfolio-roi-plot", methods=["POST"])
+@auth_required
+def generate_portfolio_roi_plot_gcs_blob(_, user_id):
+    portfolio_roi, benchmark_roi = User.get_user_portfolio_roi_series(user_id=user_id)
+
+    plt.plot(portfolio_roi, label="My Portfolio ROI", linewidth=1, color="blue")
+    plt.plot(benchmark_roi, label="S&P 500 ROI", linestyle="--", color="red")
+
+    plt.title("Portfolio ROI vs. S&P 500 Benchmark")
+    plt.ylabel("Growth (Base 1.0)")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+
+    fig_to_upload = plt.gcf()
+    cloud_storage_connector = CloudStorageConnector(
+        bucket_name=ASSETS_PLOTS_BUCKET_NAME
+    )
+    file_name = generate_figure_blob_filename("portfolio_roi")
+    blob_public_url = cloud_storage_connector.upload_pyplot_figure(
+        fig_to_upload, file_name
+    )
+    return jsonify({"image_url": blob_public_url}), 200
