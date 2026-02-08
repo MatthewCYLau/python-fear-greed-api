@@ -267,6 +267,8 @@ def get_user_portfolio_analysis(_, user_id):
 def generate_portfolio_roi_plot_gcs_blob(_, user_id):
     portfolio_roi, benchmark_roi = User.get_user_portfolio_roi_series(user_id=user_id)
 
+    _ = plt.figure(num=1, clear=True, figsize=(10, 6))
+
     plt.plot(portfolio_roi, label="My Portfolio ROI", linewidth=1, color="blue")
     plt.plot(benchmark_roi, label="S&P 500 ROI", linestyle="--", color="red")
 

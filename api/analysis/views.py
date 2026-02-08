@@ -506,7 +506,8 @@ def generate_stock_plot_gcs_blob(_):
         y_label = "Close Price"
 
         # data.plot(figsize=(10, 6))
-        plt.figure(figsize=(10, 6))
+
+        _ = plt.figure(num=1, clear=True, figsize=(10, 6))
         plt.plot(data.index, data[tickers_list], label="Close Price")
 
         x = data.index
