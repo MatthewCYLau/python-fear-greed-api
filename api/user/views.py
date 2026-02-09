@@ -19,7 +19,7 @@ import jwt
 import logging
 from datetime import datetime, timedelta, timezone
 import pytz
-from .models import UpdateUserPortfolioRequest, User, Currency
+from .models import PlotPortfolioRoiRequest, UpdateUserPortfolioRequest, User, Currency
 
 bp = Blueprint("user", __name__)
 
@@ -265,7 +265,18 @@ def get_user_portfolio_analysis(_, user_id):
 @bp.route("/users/<user_id>/generate-portfolio-roi-plot", methods=["POST"])
 @auth_required
 def generate_portfolio_roi_plot_gcs_blob(_, user_id):
-    portfolio_roi, benchmark_roi = User.get_user_portfolio_roi_series(user_id=user_id)
+
+    try:
+        plot_portfolio_roi_request = PlotPortfolioRoiRequest.model_validate_json(
+            request.data
+        )
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
+
+    portfolio_roi, benchmark_roi = User.get_user_portfolio_roi_series(
+        user_id=user_id, benchmark=plot_portfolio_roi_request.benchmark_stock_symbol
+    )
 
     _ = plt.figure(num=1, clear=True, figsize=(10, 6))
 

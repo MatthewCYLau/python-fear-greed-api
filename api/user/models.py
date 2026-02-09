@@ -60,6 +60,18 @@ class UpdateUserPortfolioRequest(BaseModel):
         return stock_symbol
 
 
+class PlotPortfolioRoiRequest(BaseModel):
+
+    benchmark_stock_symbol: str
+
+    @field_validator("benchmark_stock_symbol")
+    @classmethod
+    def check_stock(cls, benchmark_stock_symbol: str, info: ValidationInfo) -> str:
+        if not check_asset_available(benchmark_stock_symbol):
+            raise ValueError(f"{info.field_name} is not a valid benchmark stock symbol")
+        return benchmark_stock_symbol
+
+
 class User(CommonBaseModel):
     def __init__(
         self,
@@ -303,10 +315,11 @@ class User(CommonBaseModel):
     @staticmethod
     @ensure_user_exists
     def get_user_portfolio_roi_series(
-        user,
-        user_id: uuid.UUID,
+        user, user_id: uuid.UUID, benchmark: str = "^GSPC"
     ):
         if user.get("portfolio"):
             portfolio_data = user.get("portfolio")
-            portfolio_roi, benchmark_roi = get_user_portfolio_roi_series(portfolio_data)
+            portfolio_roi, benchmark_roi = get_user_portfolio_roi_series(
+                portfolio_data, benchmark
+            )
             return portfolio_roi, benchmark_roi
