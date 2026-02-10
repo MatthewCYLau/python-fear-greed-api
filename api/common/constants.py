@@ -8,7 +8,8 @@ DEFAULT_TARGET_PE_RATIO = 25
 VALID_CURRENCIES = {"USD", "GBP", "EUR", "JPY", "CAD", "AUD", "HKD"}
 SNP_TICKER = "^GSPC"
 DJI_TICKER = "^DJI"
-NASDAQ_TICKET = "^IXIC"
+NASDAQ_TICKER = "^IXIC"
+
 
 with open(
     os.path.dirname(os.path.dirname(__file__)) + "/config/gcp_config.json"

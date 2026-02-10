@@ -2,6 +2,7 @@ import uuid
 from pydantic import BaseModel, ValidationInfo, field_validator
 from werkzeug.security import generate_password_hash
 from bson.objectid import ObjectId
+from api.common.constants import DJI_TICKER, NASDAQ_TICKER, SNP_TICKER
 from api.common.models import BaseModel as CommonBaseModel
 from api.db.setup import db
 from api.util.util import (
@@ -67,8 +68,12 @@ class PlotPortfolioRoiRequest(BaseModel):
     @field_validator("benchmark_stock_symbol")
     @classmethod
     def check_stock(cls, benchmark_stock_symbol: str, info: ValidationInfo) -> str:
-        if not check_asset_available(benchmark_stock_symbol):
-            raise ValueError(f"{info.field_name} is not a valid benchmark stock symbol")
+        if not check_asset_available(
+            benchmark_stock_symbol
+        ) or benchmark_stock_symbol not in [SNP_TICKER, DJI_TICKER, NASDAQ_TICKER]:
+            raise ValueError(
+                f"{info.field_name} is not a valid stock symbol, or not a supported benchmark."
+            )
         return benchmark_stock_symbol
 
 
