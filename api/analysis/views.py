@@ -11,6 +11,7 @@ from pydantic import ValidationError
 import time
 import base64
 import logging
+import heapq
 import json
 import yfinance as yf
 import matplotlib
@@ -1141,3 +1142,32 @@ def generate_stock_roi_plot_gcs_blob(_):
         fig_to_upload, file_name
     )
     return jsonify({"image_url": blob_public_url}), 200
+
+
+@bp.route("/analysis/price-prediction-heapq", methods=(["POST"]))
+def get_price_prediction_heapq():
+
+    try:
+        price_prediction_request = PricePredictionRequest.model_validate_json(
+            request.data
+        )
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
+
+    stock_symbol = price_prediction_request.stock
+    runs_count = price_prediction_request.runs
+
+    min_heap = []
+
+    for _ in range(runs_count):
+        price_prediction = round(
+            predict_price_linear_regression(stock_symbol, 1, 1)[0],
+            2,
+        )
+        heapq.heappush(min_heap, price_prediction)
+
+    while min_heap:
+        logging.info(heapq.heappop(min_heap))
+
+    return "Done!"
