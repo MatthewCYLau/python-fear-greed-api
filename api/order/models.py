@@ -4,6 +4,7 @@ from functools import wraps
 import json
 import logging
 import uuid
+import yfinance as yf
 from google.cloud import pubsub_v1
 from bson import ObjectId
 from pydantic import BaseModel, ValidationInfo, field_validator
@@ -205,6 +206,11 @@ class Order(CommonBaseModel):
 
             stock_sell_orders = list(db["orders"].find(stock_sell_orders_query))
             stock_buy_orders = list(db["orders"].find(stock_buy_orders_query))
+
+            ticker = yf.Ticker(i)
+            current_price = round(ticker.fast_info["last_price"], 2)
+
+            logging.info(f"{i} current price: {current_price}")
 
             if not stock_sell_orders or not stock_buy_orders:
                 logging.info(f"No matching orders for stock symbol: {i}")
