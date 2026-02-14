@@ -204,8 +204,16 @@ class Order(CommonBaseModel):
         logging.info(f"Open orders stock symbol: {open_orders_distinct_stock_symbols}")
 
         for i in open_orders_distinct_stock_symbols:
-            stock_sell_orders_query = {"stock_symbol": i, "order_type": "SELL"}
-            stock_buy_orders_query = {"stock_symbol": i, "order_type": "BUY"}
+            stock_sell_orders_query = {
+                "stock_symbol": i,
+                "order_type": "SELL",
+                "status": "open",
+            }
+            stock_buy_orders_query = {
+                "stock_symbol": i,
+                "order_type": "BUY",
+                "status": "open",
+            }
 
             stock_sell_orders = list(db["orders"].find(stock_sell_orders_query))
             stock_buy_orders = list(db["orders"].find(stock_buy_orders_query))
@@ -215,7 +223,7 @@ class Order(CommonBaseModel):
             logging.info(f"{i} current price: {current_price}")
 
             if not stock_sell_orders or not stock_buy_orders:
-                logging.info(f"No matching orders for stock symbol: {i}")
+                logging.info(f"No matching open orders for stock symbol: {i}")
             else:
                 logging.info(f"Process matching orders for stock symbol: {i}...")
                 min_sell_price_pipeline = [

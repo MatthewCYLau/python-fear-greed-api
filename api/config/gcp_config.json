@@ -2,7 +2,7 @@
     "GCP_PROJECT_ID": "open-source-apps-001",
     "PUB_SUB_TOPIC": "analysis-jobs-topic",
     "PUB_SUB_ORDERS_TOPIC": "orders-topic",
-    "PUB_SUB_TRADES_TOPIC": "trades-topic",
+    "PUB_SUB_TRADES_TOPIC": "trades",
     "PUB_SUB_SUBSCRIPTION": "analysis-jobs-subscription",
     "ASSETS_PLOTS_BUCKET_NAME": "python-fear-greed-assets-plots",
     "ASSETS_UPLOADS_BUCKET_NAME": "python-fear-greed-assets-uploads",
