@@ -465,3 +465,20 @@ def get_user_portfolio_roi_series(portfolio_data, benchmark: str = "^GSPC"):
     benchmark_roi = data[benchmark] / data[benchmark].iloc[0]
 
     return portfolio_roi, benchmark_roi
+
+
+def get_stock_current_price(stock_symbol: str):
+    ticker = yf.Ticker(stock_symbol)
+    return round(ticker.fast_info["last_price"], 2)
+
+
+def calculate_new_stock_cost_basis(
+    old_total_cost: float,
+    new_purchase_cost: float,
+    old_total_shares: int,
+    new_shares_bought: int,
+) -> float:
+
+    return round(
+        (old_total_cost + new_purchase_cost) / (old_total_shares + new_shares_bought), 2
+    )

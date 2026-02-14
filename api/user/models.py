@@ -6,9 +6,11 @@ from api.common.constants import DJI_TICKER, NASDAQ_TICKER, SNP_TICKER
 from api.common.models import BaseModel as CommonBaseModel
 from api.db.setup import db
 from api.util.util import (
+    calculate_new_stock_cost_basis,
     check_asset_available,
     get_current_time_utc,
     get_portfolio_alpha,
+    get_stock_current_price,
     get_user_portfolio_analysis_df,
     get_user_portfolio_roi_series,
 )
@@ -195,13 +197,25 @@ class User(CommonBaseModel):
     def update_user_portfolio_by_id(
         user, user_id: uuid.UUID, portfolio_data: dict = {}
     ):
-        if not user.get("portfolio"):
+        if "portfolio" not in user:
             updated_user = {
                 "$set": {
                     "portfolio": [
-                        {"stock_symbol": "AAPL", "quantity": 10},
-                        {"stock_symbol": "TSLA", "quantity": 10},
-                        {"stock_symbol": "META", "quantity": 10},
+                        {
+                            "stock_symbol": "AAPL",
+                            "quantity": 10,
+                            "cost_basis": get_stock_current_price("AAPL"),
+                        },
+                        {
+                            "stock_symbol": "TSLA",
+                            "quantity": 10,
+                            "cost_basis": get_stock_current_price("TSLA"),
+                        },
+                        {
+                            "stock_symbol": "META",
+                            "quantity": 10,
+                            "cost_basis": get_stock_current_price("META"),
+                        },
                     ],
                     "last_modified": get_current_time_utc(),
                 }
@@ -219,7 +233,14 @@ class User(CommonBaseModel):
             )
             if not matching_portfolio_stock:
                 update_operation = {
-                    "$push": {"portfolio": portfolio_data},
+                    "$push": {
+                        "portfolio": portfolio_data
+                        | {
+                            "cost_basis": get_stock_current_price(
+                                portfolio_data["stock_symbol"]
+                            )
+                        }
+                    },
                     "$set": {
                         "last_modified": get_current_time_utc(),
                     },
@@ -234,6 +255,14 @@ class User(CommonBaseModel):
                 updated_user = {
                     "$set": {
                         "portfolio.$.quantity": portfolio_data["quantity"],
+                        "portfolio.$.cost_basis": calculate_new_stock_cost_basis(
+                            old_total_cost=matching_portfolio_stock[0]["quantity"]
+                            * matching_portfolio_stock[0].get("cost_basis", 0),
+                            new_purchase_cost=portfolio_data["quantity"]
+                            * get_stock_current_price(portfolio_data["stock_symbol"]),
+                            old_total_shares=matching_portfolio_stock[0]["quantity"],
+                            new_shares_bought=portfolio_data["quantity"],
+                        ),
                         "last_modified": get_current_time_utc(),
                     }
                 }
