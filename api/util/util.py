@@ -427,6 +427,9 @@ def get_user_portfolio_analysis_df(portfolio_data):
     df["weight"] = df["market_value"] / total_value
 
     df["weight_pct"] = df["weight"].map(lambda x: f"{x:.2%}")
+    df["return"] = (df["current_price"] - df["cost_basis"]) / df["cost_basis"]
+
+    df["return"] = df["return_pct"].round(2)
 
     portfolio_roi = ((total_value - total_invested) / total_invested) * 100
 
