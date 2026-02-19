@@ -408,6 +408,10 @@ def get_portfolio_value(portfolio_list):
     return round(total_value, 2)
 
 
+def round_to_decimals(intput_value: float, decimal_place: int = 2):
+    return round(intput_value, decimal_place)
+
+
 def get_user_portfolio_analysis_df(portfolio_data):
 
     df = pd.DataFrame(portfolio_data)
@@ -436,6 +440,16 @@ def get_user_portfolio_analysis_df(portfolio_data):
     sp500_start = initial_prices["^GSPC"]
     sp500_current = price_data.iloc[-1]["^GSPC"]
     sp500_roi = ((sp500_current - sp500_start) / sp500_start) * 100
+
+    max_weight_row_label = df["weight"].idxmax()
+    max_weight_stock = df.loc[max_weight_row_label]["stock_symbol"]
+
+    logging.info(
+        f"{max_weight_stock} has highest weight of {df['weight'].max() * 100:.2f}%"
+    )
+
+    df["market_value_rounded"] = df["market_value"].map(round_to_decimals)
+    logging.info(f"Market values rounded: {df['market_value_rounded'].array.tolist()}")
 
     logging.info(f"Total Portfolio Value: ${total_value:,.2f}")
     logging.info(f"Portfolio ROI: {portfolio_roi:.2f}%")
