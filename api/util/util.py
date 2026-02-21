@@ -451,6 +451,11 @@ def get_user_portfolio_analysis_df(portfolio_data):
     df["market_value_rounded"] = df["market_value"].map(round_to_decimals)
     logging.info(f"Market values rounded: {df['market_value_rounded'].array.tolist()}")
 
+    top_market_value_stocks = df.nlargest(3, "market_value")[
+        "stock_symbol"
+    ].array.tolist()
+    logging.info(f"Top three stocks by market value: {top_market_value_stocks}")
+
     logging.info(f"Total Portfolio Value: ${total_value:,.2f}")
     logging.info(f"Portfolio ROI: {portfolio_roi:.2f}%")
     logging.info(f"S&P 500 ROI: {sp500_roi:.2f}%")
