@@ -347,6 +347,9 @@ class User(CommonBaseModel):
                 i["return"] = portfolio_df[
                     portfolio_df["stock_symbol"] == i["stock_symbol"]
                 ].iloc[-1]["return"]
+                i["sector"] = portfolio_df[
+                    portfolio_df["stock_symbol"] == i["stock_symbol"]
+                ].iloc[-1]["sector"]
             return {
                 "total_value": round(total_value, 2),
                 "portfolio_data": portfolio_data,

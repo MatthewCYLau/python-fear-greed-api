@@ -420,6 +420,9 @@ def get_user_portfolio_analysis_df(portfolio_data):
     price_data = yf.download(stock_symbols, period="1y", progress=False)["Close"]
 
     df["current_price"] = df["stock_symbol"].apply(lambda x: price_data[x].iloc[-1])
+    df["sector"] = df["stock_symbol"].apply(
+        lambda x: yf.Ticker(x).info.get("sector", "Unknown")
+    )
 
     initial_prices = price_data.iloc[0]
     df["buy_price"] = df["stock_symbol"].map(initial_prices)
