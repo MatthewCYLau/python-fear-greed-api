@@ -608,16 +608,32 @@ def generate_stock_cumulative_returns_plot_gcs_blob(_):
         logging.error(e)
         return jsonify({"message": "Invalid payload"}), 400
 
+    tickers = plot_request.stocks.split(",")
+
     try:
         data = yf.download(
-            plot_request.stocks.split(","),
+            tickers,
             get_years_ago_formatted(int(plot_request.years)),
         )["Close"]
 
+        if plot_request.groupBySector:
+            sector_map = {}
+
+            for ticker in tickers:
+                info = yf.Ticker(ticker).info
+                sector_map[ticker] = info.get("sector", "Unknown")
+
+            daily_returns = data.pct_change()
+            sector_returns = daily_returns.T.groupby(sector_map).mean().T
+            cumulative_returns = (1 + sector_returns).cumprod()
+            cumulative_returns.plot(figsize=(10, 7))
+            plt.title("Cumulative Stock Returns Grouped by Sector", fontsize=16)
+        else:
+            ((data.pct_change().fillna(0) + 1).cumprod()).plot(figsize=(10, 7))
+            plt.title("Cumulative Stocks Returns", fontsize=16)
+
         y_label = "Cumulative Returns"
-        ((data.pct_change().fillna(0) + 1).cumprod()).plot(figsize=(10, 7))
         plt.legend()
-        plt.title("Stocks Cumulative Returns", fontsize=16)
 
         # Define the labels
         plt.ylabel(y_label, fontsize=14)
