@@ -47,6 +47,7 @@ from api.exception.models import BadRequestException
 from api.analysis.models import (
     AnalyseCurrencyImpactOnReturnRequest,
     AnalysisJob,
+    CreateStockCumulativeReturnsPlotRequest,
     CreateStockPlotRequest,
     AnalysisJobRequest,
     PricePredictionRequest,
@@ -599,27 +600,19 @@ def generate_stock_plot_gcs_blob(_):
 @auth_required
 def generate_stock_cumulative_returns_plot_gcs_blob(_):
 
-    data = request.get_json()
-    if not data or not data.get("stocks") or not data.get("years"):
-        return jsonify({"message": "Missing field"}), 400
-
-    tickers_list = data.get("stocks").split(",")
-    years = data.get("years")
-
-    if not isinstance(years, int):
-        return jsonify({"message": "Invalid value for years!"}), 400
-
-    if len(tickers_list) > 5:
-        return jsonify({"message": "Maximum five stocks!"}), 400
-
-    if len(tickers_list) != len(set(tickers_list)):
-        return jsonify({"message": "Duplicated stock symbol!"}), 400
-
-    if int(years) > 3:
-        return jsonify({"message": "Maximum three years!"}), 400
+    try:
+        plot_request = CreateStockCumulativeReturnsPlotRequest.model_validate_json(
+            request.data
+        )
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
 
     try:
-        data = yf.download(tickers_list, get_years_ago_formatted(int(years)))["Close"]
+        data = yf.download(
+            plot_request.stocks.split(","),
+            get_years_ago_formatted(int(plot_request.years)),
+        )["Close"]
 
         y_label = "Cumulative Returns"
         ((data.pct_change().fillna(0) + 1).cumprod()).plot(figsize=(10, 7))

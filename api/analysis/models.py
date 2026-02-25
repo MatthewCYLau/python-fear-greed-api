@@ -1,3 +1,4 @@
+from typing import Optional
 import pytz
 import uuid
 from bson.objectid import ObjectId
@@ -167,3 +168,34 @@ class AnalyseCurrencyImpactOnReturnRequest(BaseModel):
                 f"{info.field_name} is not a supported currency for US stock impact analysis."
             )
         return currency
+
+
+class CreateStockCumulativeReturnsPlotRequest(BaseModel):
+    years: int
+    stocks: str
+    groupBySector: Optional[bool] = False
+
+    @field_validator("years")
+    @classmethod
+    def check_years(cls, v: int, info: ValidationInfo) -> str:
+        if v < 1 or v > 3:
+            raise ValueError(f"{info.field_name} must be between 1 and 3 inclusive")
+        return v
+
+    @field_validator("stocks")
+    @classmethod
+    def check_stock(cls, stocks: str, info: ValidationInfo) -> str:
+
+        tickers_list = stocks.split(",")
+
+        if not all(check_asset_available(stock) for stock in tickers_list):
+            raise ValueError(
+                f"{info.field_name} must contain valid stock symbols in comma separated string"
+            )
+        if len(tickers_list) > 5:
+            raise ValueError(f"{info.field_name} must contain maximum five stocks")
+
+        if len(tickers_list) != len(set(tickers_list)):
+            raise ValueError(f"{info.field_name} contains duplicated stock symbol!")
+
+        return stocks
