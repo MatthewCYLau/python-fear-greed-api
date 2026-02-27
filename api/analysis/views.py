@@ -50,6 +50,7 @@ from api.analysis.models import (
     CreateStockCumulativeReturnsPlotRequest,
     CreateStockPlotRequest,
     AnalysisJobRequest,
+    PredictionResult,
     PricePredictionRequest,
 )
 from api.record.models import Record
@@ -890,11 +891,14 @@ def get_price_prediction_generator():
 
     results_mean = round(statistics.mean([i for i in generator]), 2)
 
+    prediction_result = PredictionResult()
+    prediction_result.result = results_mean
+
     return (
         jsonify(
             {
                 "stock": stock_symbol,
-                "pricePredictionMean": results_mean,
+                "pricePredictionMean": prediction_result.result,
                 "predictionRunCount": runs_count,
             }
         ),

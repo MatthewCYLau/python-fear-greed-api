@@ -199,3 +199,16 @@ class CreateStockCumulativeReturnsPlotRequest(BaseModel):
             raise ValueError(f"{info.field_name} contains duplicated stock symbol!")
 
         return stocks
+
+
+class PredictionResult:
+    def __init__(self):
+        self.__result = 0
+
+    @property
+    def result(self):
+        return self.__result
+
+    @result.setter
+    def result(self, value):
+        self.__result = value
