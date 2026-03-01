@@ -891,8 +891,12 @@ def get_price_prediction_generator():
 
     results_mean = round(statistics.mean([i for i in generator]), 2)
 
-    prediction_result = PredictionResult()
+    prediction_result = PredictionResult(stock_symbol=stock_symbol)
     prediction_result.result = results_mean
+
+    logging.info(
+        f"{prediction_result.stock_symbol} price prediction: {prediction_result.result}"
+    )
 
     return (
         jsonify(

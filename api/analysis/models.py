@@ -201,9 +201,15 @@ class CreateStockCumulativeReturnsPlotRequest(BaseModel):
         return stocks
 
 
-class PredictionResult:
-    def __init__(self):
+class BasePredictionResult:
+    def __init__(self, stock_symbol: str):
+        self.stock_symbol = stock_symbol
+
+
+class PredictionResult(BasePredictionResult):
+    def __init__(self, stock_symbol: str):
         self.__result = 0
+        super().__init__(stock_symbol=stock_symbol)
 
     @property
     def result(self):
