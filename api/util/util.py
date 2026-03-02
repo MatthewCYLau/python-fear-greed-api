@@ -459,6 +459,8 @@ def get_user_portfolio_analysis_df(portfolio_data):
     ].array.tolist()
     logging.info(f"Top three stocks by market value: {top_market_value_stocks}")
 
+    df = df.sort_values(by="market_value", ascending=True)
+
     logging.info(f"Total Portfolio Value: ${total_value:,.2f}")
     logging.info(f"Portfolio ROI: {portfolio_roi:.2f}%")
     logging.info(f"S&P 500 ROI: {sp500_roi:.2f}%")
