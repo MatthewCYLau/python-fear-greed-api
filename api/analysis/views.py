@@ -138,6 +138,9 @@ def get_stock_analysis(_):
             f"Period low is {period_low} on {df['Close'].idxmin().strftime(DATETIME_FORMATE_CODE)}"
         )
 
+        monthly_df = df["Close"].asfreq("ME").dropna()
+        logging.info(monthly_df[::-1].head())
+
         most_early_row = df.head(1)
         most_early_row_date = most_early_row.index.strftime(DATETIME_FORMATE_CODE)[0]
         most_early_close = most_early_row["Close"].values[0]
