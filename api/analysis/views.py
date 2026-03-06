@@ -4,6 +4,7 @@ from itertools import repeat
 import statistics
 from flask import Blueprint, jsonify, make_response, request
 from matplotlib.dates import relativedelta
+import numpy as np
 from api.db.setup import db
 from bson.objectid import ObjectId
 from concurrent.futures import ProcessPoolExecutor
@@ -194,6 +195,9 @@ def get_stock_analysis(_):
 
         close_standard_deviation = round(df["Close"].std(), 2)
         logging.info(f"Close standard deviation: {close_standard_deviation}")
+
+        var_95 = np.percentile(df["Close"].pct_change().dropna(), 5)
+        logging.info(f"95% daily value at risk (VaR): {var_95:.2%}")
 
         initial_val = df["Close"].iloc[0]
         final_val = df["Close"].iloc[-1]
