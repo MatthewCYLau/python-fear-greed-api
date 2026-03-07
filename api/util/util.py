@@ -1,8 +1,11 @@
 import logging
+import os
 from flask import jsonify
 from datetime import date, datetime, timedelta, timezone
 from dateutil.relativedelta import relativedelta, TU
 from typing import List, Tuple
+
+import psutil
 from api.common.constants import DATETIME_FORMATE_CODE, PANDAS_DF_DATE_FORMATE_CODE
 import asyncio
 import pandas as pd
@@ -509,3 +512,17 @@ def calculate_new_stock_cost_basis(
     return round(
         (old_total_cost + new_purchase_cost) / (old_total_shares + new_shares_bought), 2
     )
+
+
+def log_resource_usage():
+    """Task to log CPU and Memory usage of the current process."""
+    process = psutil.Process(os.getpid())
+
+    # cpu_percent(interval=None) compares time since last call
+    cpu_usage = process.cpu_percent(interval=None)
+
+    # RSS is the non-swapped physical memory the process has used
+    memory_info = process.memory_info()
+    memory_mb = memory_info.rss / (1024 * 1024)
+
+    logging.info(f"Resource Usage | CPU: {cpu_usage}% | RAM: {memory_mb:.2f} MB")
