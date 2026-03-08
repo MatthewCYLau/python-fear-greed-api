@@ -1,5 +1,6 @@
 import logging
 import os
+import socket
 from flask import jsonify
 from datetime import date, datetime, timedelta, timezone
 from dateutil.relativedelta import relativedelta, TU
@@ -526,3 +527,20 @@ def log_resource_usage():
     memory_mb = memory_info.rss / (1024 * 1024)
 
     logging.info(f"Resource Usage | CPU: {cpu_usage}% | RAM: {memory_mb:.2f} MB")
+
+
+def measure_latency(host, port, count=3):
+    latencies = []
+    for _ in range(count):
+        start = time.perf_counter()
+        try:
+            with socket.create_connection((host, port), timeout=2):
+                end = time.perf_counter()
+                latencies.append((end - start) * 1000)  # Convert to ms
+        except (socket.timeout, ConnectionRefusedError):
+            logging.info("Target unreachable.")
+
+    if latencies:
+        avg = sum(latencies) / len(latencies)
+        logging.info(f"Average TCP Latency to {host}:{port}: {avg:.2f}ms")
+    return latencies

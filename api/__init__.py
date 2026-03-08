@@ -23,7 +23,11 @@ from api.analysis import views as analysis  # noqa: E402
 from api.order import views as order  # noqa: E402
 from api.model import views as model  # noqa: E402
 from api.rate_limiter.rate_limiter import limiter  # noqa: E402
-from api.util.util import log_resource_usage, return_random_int  # noqa: E402
+from api.util.util import (
+    log_resource_usage,
+    measure_latency,
+    return_random_int,
+)  # noqa: E402
 from api.exception.models import (  # noqa: E402
     UnauthorizedException,
     BadRequestException,
@@ -102,6 +106,13 @@ scheduler.add_job(func=Order.match_orders, trigger="interval", seconds=60 * 60)
 scheduler.add_job(
     id="LogResourceUsageTask",
     func=log_resource_usage,
+    trigger="interval",
+    seconds=60 * 60,
+)
+scheduler.add_job(
+    id="MeasureLatency",
+    func=measure_latency,
+    args=["example.com", 443],
     trigger="interval",
     seconds=60 * 60,
 )
