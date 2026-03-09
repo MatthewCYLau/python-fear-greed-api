@@ -544,3 +544,26 @@ def measure_latency(host, port, count=3):
         avg = sum(latencies) / len(latencies)
         logging.info(f"Average TCP Latency to {host}:{port}: {avg:.2f}ms")
     return latencies
+
+
+def download_with_fallback(tickers_list):
+    periods = [
+        "1y",
+        "6mo",
+    ]
+    data = pd.DataFrame()
+
+    for period in periods:
+        logging.info(f"Attempting to download {tickers_list} for period: {period}...")
+        data = yf.download(tickers_list, period=period)
+
+        if not data.empty:
+            logging.info(f"Success! Found data for {period}.")
+            return data
+        else:
+            logging.warning(f"No data found for {period}. Trying next option...")
+
+    logging.warning(
+        f"Error: No data available for {tickers_list} in any requested period."
+    )
+    return None

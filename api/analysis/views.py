@@ -31,6 +31,7 @@ from api.common.constants import (
     VALID_CURRENCIES,
 )
 from api.util.util import (
+    download_with_fallback,
     generate_dividend_yield_df,
     generate_monthly_mean_close_df,
     generate_response,
@@ -512,7 +513,13 @@ def generate_stock_plot_gcs_blob(_):
         )
 
     try:
-        data = yf.download(tickers_list, get_years_ago_formatted(years_ago))["Close"]
+
+        if tickers_list == ["^VIX"]:
+            data = download_with_fallback(tickers_list)["Close"]
+        else:
+            data = yf.download(tickers_list, get_years_ago_formatted(years_ago))[
+                "Close"
+            ]
         y_label = "Close Price"
 
         # data.plot(figsize=(10, 6))
