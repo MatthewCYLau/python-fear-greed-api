@@ -1,4 +1,5 @@
 import asyncio
+from collections import deque
 from datetime import datetime
 from itertools import repeat
 import statistics
@@ -1202,3 +1203,52 @@ def get_price_prediction_heapq():
         logging.info(heapq.heappop(min_heap))
 
     return "Done!"
+
+
+@bp.route("/analysis/price-prediction-deque", methods=(["POST"]))
+def get_price_prediction_deque():
+
+    try:
+        price_prediction_request = PricePredictionRequest.model_validate_json(
+            request.data
+        )
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
+
+    stock_symbol = price_prediction_request.stock
+    runs_count = price_prediction_request.runs
+
+    queue = deque()
+
+    for _ in range(runs_count):
+        price_prediction = round(
+            predict_price_linear_regression(stock_symbol, 1, 1)[0],
+            2,
+        )
+        queue.append(price_prediction)
+
+    res = []
+
+    while queue:
+        res.append(queue.popleft())
+
+    results_mean = round(statistics.mean(i for i in res), 2)
+
+    prediction_result = PredictionResult(stock_symbol=stock_symbol)
+    prediction_result.result = results_mean
+
+    logging.info(
+        f"{prediction_result.stock_symbol} price prediction: {prediction_result.result}"
+    )
+
+    return (
+        jsonify(
+            {
+                "stock": stock_symbol,
+                "pricePredictionMean": prediction_result.result,
+                "predictionRunCount": runs_count,
+            }
+        ),
+        200,
+    )
