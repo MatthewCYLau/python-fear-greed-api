@@ -53,6 +53,7 @@ from api.analysis.models import (
     CreateStockCumulativeReturnsPlotRequest,
     CreateStockPlotRequest,
     AnalysisJobRequest,
+    CustomCounter,
     PredictionResult,
     PricePredictionRequest,
 )
@@ -1221,7 +1222,8 @@ def get_price_prediction_deque():
 
     queue = deque()
 
-    for _ in range(runs_count):
+    counter = CustomCounter(3)
+    for _ in counter:
         price_prediction = round(
             predict_price_linear_regression(stock_symbol, 1, 1)[0],
             2,

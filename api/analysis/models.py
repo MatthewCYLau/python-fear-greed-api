@@ -218,3 +218,19 @@ class PredictionResult(BasePredictionResult):
     @result.setter
     def result(self, value):
         self.__result = value
+
+
+class CustomCounter:
+    def __init__(self, start):
+        self.current = start
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.current < 1:
+            raise StopIteration
+
+        num = self.current
+        self.current -= 1
+        return num
