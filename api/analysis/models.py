@@ -1,6 +1,7 @@
 from typing import Optional
 import pytz
 import uuid
+from abc import ABC, abstractmethod
 from bson.objectid import ObjectId
 from api.common.constants import VALID_CURRENCIES
 from api.common.models import BaseModel as CommonBaseModel
@@ -201,9 +202,19 @@ class CreateStockCumulativeReturnsPlotRequest(BaseModel):
         return stocks
 
 
-class BasePredictionResult:
+class AbstractPredictionResult(ABC):
+    @abstractmethod
+    def return_stock_symbol(self):
+        """Must implement this to return its stock symbol."""
+        pass
+
+
+class BasePredictionResult(AbstractPredictionResult):
     def __init__(self, stock_symbol: str):
         self.stock_symbol = stock_symbol
+
+    def return_stock_symbol(self):
+        return self.stock_symbol
 
 
 class PredictionResult(BasePredictionResult):

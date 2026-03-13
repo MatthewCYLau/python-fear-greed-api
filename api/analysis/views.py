@@ -1241,7 +1241,7 @@ def get_price_prediction_deque():
     prediction_result.result = results_mean
 
     logging.info(
-        f"{prediction_result.stock_symbol} price prediction: {prediction_result.result}"
+        f"{prediction_result.return_stock_symbol()} price prediction: {prediction_result.result}"
     )
 
     return (
