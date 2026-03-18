@@ -7,6 +7,7 @@ from dateutil.relativedelta import relativedelta, TU
 from typing import List, Tuple
 
 import psutil
+import subprocess
 from api.common.constants import DATETIME_FORMATE_CODE, PANDAS_DF_DATE_FORMATE_CODE
 import asyncio
 import pandas as pd
@@ -567,3 +568,12 @@ def download_with_fallback(tickers_list):
         f"Error: No data available for {tickers_list} in any requested period."
     )
     return None
+
+
+def log_file_system_disk_free():
+    command = ["df", "-h"]
+    result = subprocess.run(command, capture_output=True, text=True)
+    lines = result.stdout.splitlines()
+    for line in lines[1:]:  # Skip the header row
+        parts = line.split()
+        logging.info(f"Drive {parts[0]} is {parts[4]} full.")

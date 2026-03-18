@@ -24,6 +24,7 @@ from api.order import views as order  # noqa: E402
 from api.model import views as model  # noqa: E402
 from api.rate_limiter.rate_limiter import limiter  # noqa: E402
 from api.util.util import (  # noqa: E402
+    log_file_system_disk_free,
     log_resource_usage,
     measure_latency,
     return_random_int,
@@ -70,6 +71,8 @@ def handle_unauthorized_exception(e):
 
 if os.environ.get("MONGO_DB_CONNECTION_STRING"):
     db_connect()
+
+log_file_system_disk_free()
 
 
 @app.route("/async")
