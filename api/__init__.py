@@ -24,6 +24,7 @@ from api.order import views as order  # noqa: E402
 from api.model import views as model  # noqa: E402
 from api.rate_limiter.rate_limiter import limiter  # noqa: E402
 from api.util.util import (  # noqa: E402
+    get_subprocesses_ids,
     log_file_system_disk_free,
     log_resource_usage,
     measure_latency,
@@ -102,6 +103,12 @@ def get_random_int_http_request():
 @app.route("/ping")
 def ping():
     return "pong!"
+
+
+@app.route("/subprocesses-ids")
+def subprocesses_ids():
+    get_subprocesses_ids()
+    return "Ok"
 
 
 scheduler = BackgroundScheduler()

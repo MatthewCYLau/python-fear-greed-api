@@ -1,4 +1,5 @@
 import logging
+import multiprocessing
 import os
 import socket
 from flask import jsonify
@@ -577,3 +578,17 @@ def log_file_system_disk_free():
     for line in lines[1:]:  # Skip the header row
         parts = line.split()
         logging.info(f"Drive {parts[0]} is {parts[4]} full.")
+
+
+def get_my_pid(_):
+    return os.getpid()
+
+
+def get_subprocesses_ids():
+    parent_pid = os.getpid()
+
+    with multiprocessing.Pool(processes=2) as pool:
+        worker_pids = pool.map(get_my_pid, range(4))
+
+    for pid in worker_pids:
+        logging.info(f"Worker PID {pid} vs Parent PID {parent_pid}!")
