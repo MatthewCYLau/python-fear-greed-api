@@ -3,6 +3,7 @@ from collections import deque
 from datetime import datetime
 from itertools import repeat
 import statistics
+import traceback
 from flask import Blueprint, jsonify, make_response, request
 from matplotlib.dates import relativedelta
 import numpy as np
@@ -1213,8 +1214,8 @@ def get_price_prediction_deque():
         price_prediction_request = PricePredictionRequest.model_validate_json(
             request.data
         )
-    except ValidationError as e:
-        logging.error(e)
+    except ValidationError:
+        logging.error(traceback.format_exc())
         return jsonify({"message": "Invalid payload"}), 400
 
     stock_symbol = price_prediction_request.stock
