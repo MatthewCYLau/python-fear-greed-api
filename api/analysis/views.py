@@ -1255,3 +1255,55 @@ def get_price_prediction_deque():
         ),
         200,
     )
+
+
+def update_record(shared_dict, key, stock_symbol):
+    """Worker function to update the shared dictionary"""
+    shared_dict[key] = predict_price_linear_regression(stock_symbol, 1, 1)[0]
+    logging.info(f"Process {multiprocessing.current_process().name} updated {key}")
+
+
+@bp.route("/analysis/price-prediction-multiprocess-shared-memory", methods=(["POST"]))
+def get_price_prediction_multiprocess_shared_memory():
+
+    try:
+        price_prediction_request = PricePredictionRequest.model_validate_json(
+            request.data
+        )
+    except ValidationError as e:
+        logging.error(e)
+        return jsonify({"message": "Invalid payload"}), 400
+
+    stock_symbol = price_prediction_request.stock
+    runs_count = price_prediction_request.runs
+
+    with multiprocessing.Manager() as manager:
+        shared_data = manager.dict()
+
+        processes = []
+
+        for i in range(runs_count):
+            p = multiprocessing.Process(
+                target=update_record, args=(shared_data, f"run_index_{i}", stock_symbol)
+            )
+            processes.append(p)
+            p.start()
+
+        # 4. Ensure all processes finish
+        for p in processes:
+            p.join()
+
+        results_mean = round(
+            statistics.mean([i[1] for i in dict(shared_data).items()]), 2
+        )
+
+    return (
+        jsonify(
+            {
+                "stock": stock_symbol,
+                "pricePredictionMean": results_mean,
+                "predictionRunCount": runs_count,
+            }
+        ),
+        200,
+    )
