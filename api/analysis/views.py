@@ -1257,10 +1257,11 @@ def get_price_prediction_deque():
     )
 
 
-def update_record(shared_dict, key, stock_symbol):
+def update_record(shared_dict, lock, key, stock_symbol):
     """Worker function to update the shared dictionary"""
-    shared_dict[key] = predict_price_linear_regression(stock_symbol, 1, 1)[0]
-    logging.info(f"Process {multiprocessing.current_process().name} updated {key}")
+    with lock:
+        shared_dict[key] = predict_price_linear_regression(stock_symbol, 1, 1)[0]
+        logging.info(f"Process {multiprocessing.current_process().name} updated {key}")
 
 
 @bp.route("/analysis/price-prediction-multiprocess-shared-memory", methods=(["POST"]))
@@ -1279,12 +1280,13 @@ def get_price_prediction_multiprocess_shared_memory():
 
     with multiprocessing.Manager() as manager:
         shared_data = manager.dict()
-
+        lock = multiprocessing.Lock()
         processes = []
 
         for i in range(runs_count):
             p = multiprocessing.Process(
-                target=update_record, args=(shared_data, f"run_index_{i}", stock_symbol)
+                target=update_record,
+                args=(shared_data, lock, f"run_index_{i}", stock_symbol),
             )
             processes.append(p)
             p.start()
