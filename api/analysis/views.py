@@ -1,7 +1,7 @@
 import asyncio
 from collections import deque
 from datetime import datetime
-from itertools import repeat
+from itertools import chain, repeat
 import statistics
 import traceback
 from flask import Blueprint, jsonify, make_response, request
@@ -1234,9 +1234,11 @@ def get_price_prediction_deque():
     res = []
 
     while queue:
-        res.append(queue.popleft())
+        res.append([queue.popleft()])
 
-    results_mean = round(statistics.mean(i for i in res), 2)
+    res_chained = chain.from_iterable(res)
+
+    results_mean = round(statistics.mean(res_chained), 2)
 
     prediction_result = PredictionResult(stock_symbol=stock_symbol)
     prediction_result.result = results_mean
