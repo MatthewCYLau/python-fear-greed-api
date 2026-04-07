@@ -352,7 +352,7 @@ def delete_old_complete_orders(_):
 @bp.route("/orders/export-csv", methods=(["POST"]))
 @auth_required
 @super_user_required
-def export_orders_csv():
+def export_orders_csv(_):
     orders = Order.get_all()
     df = pd.DataFrame(orders)
 
