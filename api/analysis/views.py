@@ -11,6 +11,7 @@ from api.db.setup import db
 from bson.objectid import ObjectId
 from concurrent.futures import ProcessPoolExecutor
 from pydantic import ValidationError
+from functools import cmp_to_key
 import time
 import base64
 import logging
@@ -1207,6 +1208,13 @@ def get_price_prediction_heapq():
     return "Done!"
 
 
+def compare(n1, n2):
+    if n1 > n2:
+        return -1
+    else:
+        return 1
+
+
 @bp.route("/analysis/price-prediction-deque", methods=(["POST"]))
 def get_price_prediction_deque():
 
@@ -1237,6 +1245,8 @@ def get_price_prediction_deque():
         res.append([queue.popleft()])
 
     res_chained = chain.from_iterable(res)
+
+    res_chained = sorted(res_chained, key=cmp_to_key(compare))
 
     results_mean = round(statistics.mean(res_chained), 2)
 
