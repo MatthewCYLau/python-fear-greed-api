@@ -1,6 +1,7 @@
 from typing import Optional
 import pytz
 import uuid
+import logging
 from abc import ABC, abstractmethod
 from bson.objectid import ObjectId
 from api.common.constants import VALID_CURRENCIES
@@ -221,6 +222,13 @@ class PredictionResult(BasePredictionResult):
     def __init__(self, stock_symbol: str):
         self.__result = 0
         super().__init__(stock_symbol=stock_symbol)
+
+    @classmethod
+    def prediction_result_from_stock_symbo_string(cls, stock_symbol: str):
+        logging.info(
+            f"Generating prediction result from class method for stock {stock_symbol}"
+        )
+        return cls(stock_symbol)
 
     @property
     def result(self):

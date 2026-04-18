@@ -1250,7 +1250,9 @@ def get_price_prediction_deque():
 
     results_mean = round(statistics.mean(res_chained), 2)
 
-    prediction_result = PredictionResult(stock_symbol=stock_symbol)
+    prediction_result = PredictionResult.prediction_result_from_stock_symbo_string(
+        stock_symbol
+    )
     prediction_result.result = results_mean
 
     logging.info(
