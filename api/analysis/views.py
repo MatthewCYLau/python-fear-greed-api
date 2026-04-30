@@ -5,6 +5,7 @@ from itertools import chain, repeat
 import statistics
 import traceback
 from flask import Blueprint, jsonify, make_response, request
+import httpx
 from matplotlib.dates import relativedelta
 import numpy as np
 from api.db.setup import db
@@ -61,7 +62,6 @@ from api.analysis.models import (
 )
 from api.record.models import Record
 from sklearn.linear_model import LinearRegression
-
 
 matplotlib.use("agg")
 
@@ -1319,6 +1319,56 @@ def get_price_prediction_multiprocess_shared_memory():
                 "stock": stock_symbol,
                 "pricePredictionMean": results_mean,
                 "predictionRunCount": runs_count,
+            }
+        ),
+        200,
+    )
+
+
+API_URLS = [
+    "http://www.randomnumberapi.com/api/v1.0/random?min=1&max=1000&count=1"
+    for _ in range(1, 11)
+]
+
+
+async def fetch_number(client, url, max_try=5):
+    counter = 0
+    while counter < max_try:
+        try:
+            response = await client.get(url, timeout=5.0)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            logging.error(f"Server error {e.response.status_code} at {url}")
+            counter += 1
+        except Exception as e:
+            logging.error(f"Connection failed for {url}: {e}")
+            counter += 1
+    return None
+
+
+@bp.route("/analysis/get-random-numbers-async", methods=(["GET"]))
+async def get_random_numbers_async():
+
+    async with httpx.AsyncClient() as client:
+        start_time = time.perf_counter()
+
+        tasks = [fetch_number(client, url) for url in API_URLS]
+
+        results = await asyncio.gather(*tasks)
+
+        end_time = time.perf_counter()
+
+        random_numbers = [r[0] for r in results if r is not None]
+
+        logging.info(
+            f"Fetched {len(random_numbers)} numbers in {end_time - start_time:.2f}s"
+        )
+
+    return (
+        jsonify(
+            {
+                "randomNumbersSum": sum(random_numbers),
             }
         ),
         200,
